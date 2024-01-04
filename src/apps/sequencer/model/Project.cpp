@@ -142,6 +142,7 @@ bool Project::read(VersionedSerializedReader &reader) {
 
     reader.read(_name, NameLength + 1, ProjectVersion::Version5);
     reader.read(_tempo.base);
+    _orinalTempo = _tempo.base;
     reader.read(_swing.base);
     if (reader.dataVersion() >= ProjectVersion::Version18) {
         _timeSignature.read(reader);

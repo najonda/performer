@@ -66,7 +66,10 @@ public:
     float tempo() const { return _tempo.get(isRouted(Routing::Target::Tempo)); }
     void setTempo(float tempo, bool routed = false) {
         _tempo.set(clamp(tempo, 1.f, 1000.f), routed);
+        _orinalTempo = _tempo.base;
     }
+
+    float originalTempo() { return _orinalTempo;}
 
     void editTempo(int value, bool shift) {
         if (!isRouted(Routing::Target::Tempo)) {
@@ -460,6 +463,7 @@ private:
     char _name[NameLength + 1];
     mutable uint8_t _autoLoaded = 0;
     Routable<float> _tempo;
+    float _orinalTempo;
     Routable<uint8_t> _swing;
     TimeSignature _timeSignature;
     uint8_t _syncMeasure;

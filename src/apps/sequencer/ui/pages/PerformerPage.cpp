@@ -21,13 +21,12 @@ float _projectTempo;
 
 PerformerPage::PerformerPage(PageManager &manager, PageContext &context) :
     BasePage(manager, context)
-{
-    _projectTempo = _project.tempo();
-}
+{}
 
 void PerformerPage::enter() {
     _latching = false;
     _syncing = false;
+    _projectTempo = _project.originalTempo();
 }
 
 void PerformerPage::exit() {
