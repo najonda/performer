@@ -90,8 +90,8 @@ void NoteSequenceEditPage::draw(Canvas &canvas) {
 
     // Track Section on the UI
     if (_sectionTracking && _engine.state().running()) {
-        bool section_change = bool(currentStep % StepCount); // StepCount is relative to screen
-        int section_no = int(currentStep / StepCount);
+        bool section_change = bool((currentStep) % StepCount); // StepCount is relative to screen
+        int section_no = int((currentStep) / StepCount);
         if (section_change && section_no != _section) {
             _section = section_no;
         }
@@ -325,7 +325,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
 
     if (key.shiftModifier() && key.isStep()) {
         if (key.is(Key::Step6)) {
-            toggleSectionTracking();
+            setSectionTracking(not _sectionTracking, true);
             event.consume();
             return;
         }
@@ -378,6 +378,8 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
     }
 
     if (key.isEncoder()) {
+        setSectionTracking(false, false);
+
         if (!_showDetail && _stepSelection.any() && allSelectedStepsActive()) {
             setSelectedStepsGate(false);
         } else {
@@ -389,6 +391,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
         if (key.shiftModifier()) {
             sequence.shiftSteps(_stepSelection.selected(), -1);
         } else {
+            setSectionTracking(false, false);
             _section = std::max(0, _section - 1);
         }
         event.consume();
@@ -397,6 +400,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
         if (key.shiftModifier()) {
             sequence.shiftSteps(_stepSelection.selected(), 1);
         } else {
+            setSectionTracking(false, false);
             _section = std::min(3, _section + 1);
         }
         event.consume();
@@ -919,14 +923,17 @@ void NoteSequenceEditPage::duplicateSequence() {
 }
 
 /*
- * Makes the UI track the current step section (=page)
+ * Makes the UI track the current step section
  */
-void NoteSequenceEditPage::toggleSectionTracking() {
-    _sectionTracking = not _sectionTracking;
-    if (_sectionTracking)
-        showMessage("TRACKING ACTIVATED");
-    else
-        showMessage("TRACKING DEACTIVATED");
+void NoteSequenceEditPage::setSectionTracking(bool track, bool notify) {
+    _sectionTracking = track;
+
+    if (notify) {
+        if (_sectionTracking)
+            showMessage("TRACKING ACTIVATED");
+        else
+            showMessage("TRACKING DEACTIVATED");
+    }
 }
 
 void NoteSequenceEditPage::tieNotes() {
