@@ -12,8 +12,9 @@
 #define SettingWakeMode "wakemode"
 #define SettingDimSequence "dimsequence"
 #define SettingLaunchpadStyle "lpstyle"
-#define SettingLaunchpadPatternChange "lppattern"
+#define SettingPatternChange "patternchg"
 #define SettingLaunchpadNoteStyle "lpnote"
+#define SettingSyncSong "syncsong"
 
 class BaseSetting {
 public:
@@ -157,10 +158,10 @@ class LaunchpadStyleSetting : public Setting<int> {
     ) {}
 };
 
-class LaunchpadPatternChange : public Setting<int> {
+class PatternChange : public Setting<int> {
     public:
-    LaunchpadPatternChange() : Setting(
-        SettingLaunchpadPatternChange,
+    PatternChange() : Setting(
+        SettingPatternChange,
         "Pattern Change",
         {"immediate", "sync"},
         {0, 1},
@@ -179,6 +180,17 @@ class LaunchpadNoteStyle : public Setting<int> {
     ) {}
 };
 
+class SyncSong : public Setting<int> {
+    public:
+    SyncSong() : Setting(
+        SettingSyncSong,
+        "Sync song",
+        {"yes", "no"},
+        {1, 0},
+        0
+    ) {}
+};
+
 class UserSettings {
 public:
     UserSettings() {
@@ -187,8 +199,9 @@ public:
         addSetting(new WakeModeSetting());
         addSetting(new DimSequenceSetting());
         addSetting(new LaunchpadStyleSetting());
-        addSetting(new LaunchpadPatternChange());
+        addSetting(new PatternChange());
         addSetting(new LaunchpadNoteStyle());
+        addSetting(new SyncSong());
     }
 
     //----------------------------------------

@@ -228,7 +228,7 @@ void NoteSequenceEditPage::draw(Canvas &canvas) {
         }
         case Layer::StageRepeats: {
             canvas.setColor(Bright);
-            FixedStringBuilder<8> str("x%d", step.stageRepeats());
+            FixedStringBuilder<8> str("x%d", step.stageRepeats()+1);
             canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
             break;
         }
@@ -794,7 +794,7 @@ void NoteSequenceEditPage::drawDetail(Canvas &canvas, const NoteSequence::Step &
         break;
     case Layer::StageRepeats:
         str.reset();
-        str("x%d", step.stageRepeats());
+        str("x%d", step.stageRepeats()+1);
         canvas.setFont(Font::Small);
         canvas.drawTextCentered(64 + 32, 16, 64, 32, str);
         break;
@@ -807,11 +807,26 @@ void NoteSequenceEditPage::drawDetail(Canvas &canvas, const NoteSequence::Step &
             case NoteSequence::First:
                 str("FIRST");
                 break;
+            case NoteSequence::Middle:
+                str("MIDDLE");
+                break;
+            case NoteSequence::Last:
+                str("LAST");
+                break;
             case NoteSequence::Odd:
                 str("ODD");
                 break;
+            case NoteSequence::Even:
+                str("EVEN");
+                break;
             case NoteSequence::Triplets:
                 str("TRIPLET");
+                break;
+            case NoteSequence::Random:
+                str("RANDOM");
+                break;
+
+            default:
                 break;
         }
         canvas.setFont(Font::Small);
