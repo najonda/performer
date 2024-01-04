@@ -27,7 +27,6 @@ To find out more about improvements changes, check the table below.
 | launchpad color theme | in user settings there is an option to chose between classic and blue launchapd color schema | done |
 | launchpad circuit note editor | novation circuit style note editor. on user setting you can choose it or leave the classic one | done |
 | step edit ui enhancements | on track and curve step edit pages, turning the encoder cycles through available layers of the selected tab | done |
-| Improve Note edit page layout | thanks to @aclangor: use the encoder to switch between layouts. layouts rearrangment | done |
 | Sync Song | sync song play with starting clock | done |
 | Perform Page | encoder to change tempo on Performer page | done
 | Metro like seq | add new repeat modes | done |
