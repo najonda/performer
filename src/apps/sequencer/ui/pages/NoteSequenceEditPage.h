@@ -47,6 +47,7 @@ private:
     void copySequence();
     void pasteSequence();
     void duplicateSequence();
+    void toggleSectionTracking();
     void tieNotes();
     void generateSequence();
 
@@ -59,6 +60,7 @@ private:
     void setLayer(NoteSequence::Layer layer) { _project.setSelectedNoteSequenceLayer(layer); }
 
     int _section = 0;
+    bool _sectionTracking = true;
     bool _showDetail;
     uint32_t _showDetailTicks;
 

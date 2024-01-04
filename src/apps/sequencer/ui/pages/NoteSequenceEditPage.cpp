@@ -87,6 +87,16 @@ void NoteSequenceEditPage::draw(Canvas &canvas) {
 
     const int loopY = 16;
 
+
+    // Track Section on the UI
+    if (_sectionTracking && _engine.state().running()) {
+        bool section_change = bool(currentStep % StepCount); // StepCount is relative to screen
+        int section_no = int(currentStep / StepCount);
+        if (section_change && section_no != _section) {
+            _section = section_no;
+        }
+    }
+
     // draw loop points
     canvas.setBlendMode(BlendMode::Set);
     canvas.setColor(Color::Bright);
@@ -259,6 +269,9 @@ void NoteSequenceEditPage::draw(Canvas &canvas) {
     if (_showDetail) {
         drawDetail(canvas, sequence.step(_stepSelection.first()));
     }
+
+
+
 }
 
 void NoteSequenceEditPage::updateLeds(Leds &leds) {
@@ -307,6 +320,14 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
     if (key.isQuickEdit()) {
         if (key.is(Key::Step15)) {
             tieNotes();
+        }
+    }
+
+    if (key.shiftModifier() && key.isStep()) {
+        if (key.is(Key::Step6)) {
+            toggleSectionTracking();
+            event.consume();
+            return;
         }
     }
 
@@ -895,6 +916,17 @@ void NoteSequenceEditPage::pasteSequence() {
 void NoteSequenceEditPage::duplicateSequence() {
     _project.selectedNoteSequence().duplicateSteps();
     showMessage("STEPS DUPLICATED");
+}
+
+/*
+ * Makes the UI track the current step section (=page)
+ */
+void NoteSequenceEditPage::toggleSectionTracking() {
+    _sectionTracking = not _sectionTracking;
+    if (_sectionTracking)
+        showMessage("TRACKING ACTIVATED");
+    else
+        showMessage("TRACKING DEACTIVATED");
 }
 
 void NoteSequenceEditPage::tieNotes() {
