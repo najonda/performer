@@ -8,7 +8,7 @@ RandomGenerator::RandomGenerator(SequenceBuilder &builder, Params &params) :
     Generator(builder),
     _params(params)
 {
-    init();
+    update();
 }
 
 const char *RandomGenerator::paramName(int index) const {
