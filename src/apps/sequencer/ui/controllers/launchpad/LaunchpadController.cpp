@@ -341,8 +341,12 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
                                 int linearIndex = button.col + ofs + (button.row*8);
                                 if (isNoteKeyboardPressed()) { 
                                     sequence.step(linearIndex).setLayerValue(layer, selectedNote);
+                                    if (!sequence.step(linearIndex).gate()) {
+                                        sequence.step(linearIndex).toggleGate();    
+                                    }
+                                } else {
+                                    sequence.step(linearIndex).toggleGate();
                                 }
-                                sequence.step(linearIndex).toggleGate();
                                 break;
                             } else if (button.row == 6) {
                                 switch (button.col) {
