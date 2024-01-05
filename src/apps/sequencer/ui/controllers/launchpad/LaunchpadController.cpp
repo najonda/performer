@@ -1076,6 +1076,7 @@ void LaunchpadController::drawNoteSequenceNotes(const NoteSequence &sequence, No
                     }
                     for (auto const& x : tones)
                     {
+
                         if (step.gate() && s == scale.getNoteIndex(x.second)+noteOctave*scale.notesPerOctave()) {
                             if (step.note() == rootNote+(scale.notesPerOctave()*noteOctave) && noteOctave == selectedOctave +1) {
                                 setGridLed(4, 7, colorRed());
