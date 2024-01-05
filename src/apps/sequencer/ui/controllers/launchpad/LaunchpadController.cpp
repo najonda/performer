@@ -5,6 +5,7 @@
 #include "os/os.h"
 #include <iostream>
 #include <map>
+#include <set>
 
 #define CALL_MODE_FUNCTION(_mode_, _function_, ...)                         \
     switch (_mode_) {                                                       \
@@ -113,6 +114,7 @@ int _patternChangeDefault = 0;
 int _noteStyle = 0;
 
 int noteGridValues[] = { 0,1,1,0,1,1,1,0, 1, 1, 1, 1, 1, 1, 1, 1};
+std::set<int> semitonesIndex = { 1,3,6,8,10};
 std::map<int, int> semitones = {{1, 1}, {2, 3}, {4, 6}, {5,8}, {6, 10 }};
 std::map<int, int> tones = {{0,0}, {1,2}, {2, 4}, {3, 5}, {4, 7}, {5, 9}, {6, 11}, {7, 12}};
 int selectedNote = 0;
@@ -325,14 +327,26 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
                 if (_noteStyle == 0) {
                     sequenceEditStep(button.row, button.col);
                 } else {
+                    const auto &sequence = _project.selectedNoteSequence();
+                            const auto &scale = sequence.selectedScale(_project.scale());
+                            int rootNote = sequence.selectedRootNote(_model.project().rootNote());
                     switch ( _project.selectedNoteSequenceLayer()) {
                         case NoteSequence::Layer::Note:
+                            
                             if (button.row >=3 && button.row <= 4) {
+                                int ft = -1;
                                 if (button.row == 3) {
-                                    selectedNote = semitones[button.col] + (12*selectedOctave);
+                                    ft = semitones[button.col];
                                 } else if (button.row == 4) {
-                                    selectedNote = tones[button.col] + (12*selectedOctave);
+                                    ft = tones[button.col];
                                 }
+                                 if (scale.isNotePresent(ft)) {
+                                        int noteIndex = scale.getNoteIndex(ft);
+                                        selectedNote = noteIndex + (scale.notesPerOctave()*selectedOctave);
+                                        if (button.col == 7) {
+                                            selectedNote = selectedNote + scale.notesPerOctave();
+                                        }
+                                    }
                                 break;
                             } else if (button.row >= 0 && button.row <= 2) {
                                 auto &sequence = _project.selectedNoteSequence();
@@ -415,12 +429,18 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
 }
 
 bool LaunchpadController::isNoteKeyboardPressed() {
+    const auto &sequence = _project.selectedNoteSequence();
+    const auto &scale = sequence.selectedScale(_project.scale());
     for (int col = 0; col <= 7; ++col) {
         if (buttonState(3, col)) {
-            return true;
+            if (scale.isNotePresent(semitones[col])) {
+                return true;
+            }
         }
         if (buttonState(4, col)) {
-            return true;
+            if (scale.isNotePresent(tones[col])) {
+                return true;
+            }
         }
    
     }
@@ -996,6 +1016,7 @@ void LaunchpadController::drawNoteSequenceDots(const NoteSequence &sequence, Not
 
 void LaunchpadController::drawNoteSequenceNotes(const NoteSequence &sequence, NoteSequence::Layer layer, int currentStep) {
     int ofs = _sequence.navigation.col * 16;
+    const auto &scale = sequence.selectedScale(_project.scale());
 
     if (_noteStyle == 1) {
 
@@ -1017,6 +1038,8 @@ void LaunchpadController::drawNoteSequenceNotes(const NoteSequence &sequence, No
             }
         }       
 
+        int rootNote = sequence.selectedRootNote(_model.project().rootNote());
+
         // draw keyboard
         for (int row = 3; row<=4; ++row) {
             for (int col = 0; col < 8; col++) {
@@ -1027,25 +1050,39 @@ void LaunchpadController::drawNoteSequenceNotes(const NoteSequence &sequence, No
                     if (row == 4) {
                         n = tones[col];
                     }
-                    Color color = (selectedNote - (12*selectedOctave))== n ? colorYellow() : colorGreen(1);
-                    setGridLed(row, col, color);
+                    if (scale.isNotePresent(n)) {
+                        n = scale.getNoteIndex(n);
+                        if (col == 7) {
+                            n = n + scale.notesPerOctave();
+                        }
+                        Color color = (selectedNote - (scale.notesPerOctave()*selectedOctave))== n ? colorYellow() : colorGreen(1);
+                        setGridLed(row, col, color);
+                    }
                 }
                 if (_engine.state().running()) {
                     const auto &step = sequence.step(currentStep);
-                    int noteOctave = step.note() / 12;
-                    int s = step.note() - (12*noteOctave);
+                    int noteOctave = step.note() / scale.notesPerOctave();
+                    int s = step.note() - (scale.notesPerOctave()*noteOctave);
+                    if (row == 4 && col == 7) {
+                        s = step.note();
+                    }
 
                     for (auto const& x : semitones)
                     {
-                        if (step.gate() && s == x.second) {
-                            setGridLed(3, x.first, step.gate() && s == x.second ? colorRed() : colorGreen());
+                        if (step.gate() && s == scale.getNoteIndex(x.second)) {
+                            setGridLed(3, x.first, step.gate() && s == scale.getNoteIndex(x.second) ? colorRed() : colorGreen());
                             break;
                         }
                     }
                     for (auto const& x : tones)
                     {
-                        if (step.gate() && s == x.second) {
-                            setGridLed(4, x.first, step.gate() && s == x.second ? colorRed() : colorGreen());
+                        int i = scale.getNoteIndex(x.second)+noteOctave*scale.notesPerOctave();
+                        if (step.gate() && s == scale.getNoteIndex(x.second)+noteOctave*scale.notesPerOctave()) {
+                            if (step.note() == rootNote+(scale.notesPerOctave()*noteOctave) && noteOctave == selectedOctave +1) {
+                                setGridLed(4, 7, colorRed());
+                            } else {
+                                setGridLed(4, x.first, step.gate() && s == scale.getNoteIndex(x.second)+noteOctave*scale.notesPerOctave() ? colorRed() : colorGreen());
+                            }
                             break;
                         }
                     }
@@ -1062,7 +1099,7 @@ void LaunchpadController::drawNoteSequenceNotes(const NoteSequence &sequence, No
                 const auto &step = sequence.step(currentStep);
                 int s = step.note();
 
-                int octave = s / 12;
+                int octave = s / scale.notesPerOctave();
                 for (auto const& x : octaveMap)
                     {
                         if (step.gate() && octave == x.second) {

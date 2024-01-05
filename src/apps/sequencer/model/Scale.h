@@ -23,6 +23,8 @@ public:
     {}
 
     virtual bool isChromatic() const = 0;
+    virtual bool isNotePresent(int note) const = 0;
+    virtual int getNoteIndex(int note) const = 0;
 
     virtual void noteName(StringBuilder &str, int note, int rootNote, Format format = Long) const = 0;
     virtual float noteToVolts(int note) const = 0;
@@ -53,6 +55,30 @@ public:
 
     bool isChromatic() const override {
         return _chromatic;
+    }
+
+    bool isNotePresent(int note) const override {
+        if (note >= 12) {
+            note = note -12;
+        }
+        for (int i = 0; i < _noteCount; i++) {
+            if (_notes[i] == note * 128) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    int getNoteIndex(int note) const override {
+        if (note >= 12) {
+            note = note - 12;
+        }
+         for (int i = 0; i < _noteCount; i++) {
+            if (_notes[i] == note * 128) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     void noteName(StringBuilder &str, int note, int rootNote, Format format) const override {
@@ -132,6 +158,14 @@ public:
 
     bool isChromatic() const override {
         return false;
+    }
+
+    bool isNotePresent(int note) const override{
+        return true;
+    }
+
+    int getNoteIndex(int note) const override {
+        return -1;
     }
 
     void noteName(StringBuilder &str, int note, int rootNote, Format format) const override {
