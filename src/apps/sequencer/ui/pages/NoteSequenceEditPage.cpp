@@ -347,7 +347,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
     if (key.pageModifier()) {
         // XXX Added here, but should we move it to pageModifier structure?
         if (key.is(Key::Step5)) {
-            setSectionTracking(not _sectionTracking, true);
+            setSectionTracking(not _sectionTracking);
             event.consume();
         }
         return;
@@ -384,7 +384,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
     }
 
     if (key.isEncoder()) {
-        setSectionTracking(false, false);
+        setSectionTracking(false);
 
         if (!_showDetail && _stepSelection.any() && allSelectedStepsActive()) {
             setSelectedStepsGate(false);
@@ -398,7 +398,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
         if (key.shiftModifier()) {
             sequence.shiftSteps(_stepSelection.selected(), -1);
         } else {
-            setSectionTracking(false, false);
+            setSectionTracking(false);
             _section = std::max(0, _section - 1);
         }
         event.consume();
@@ -407,7 +407,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
         if (key.shiftModifier()) {
             sequence.shiftSteps(_stepSelection.selected(), 1);
         } else {
-            setSectionTracking(false, false);
+            setSectionTracking(false);
             _section = std::min(3, _section + 1);
         }
         event.consume();
@@ -932,15 +932,8 @@ void NoteSequenceEditPage::duplicateSequence() {
 /*
  * Makes the UI track the current step section
  */
-void NoteSequenceEditPage::setSectionTracking(bool track, bool notify) {
+void NoteSequenceEditPage::setSectionTracking(bool track) {
     _sectionTracking = track;
-
-    if (notify) {
-        if (_sectionTracking)
-            showMessage("FOLLOW STEPS ENABLED");
-        else
-            showMessage("FOLLOW STEPS DISABLED");
-    }
 }
 
 void NoteSequenceEditPage::tieNotes() {

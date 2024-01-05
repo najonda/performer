@@ -47,7 +47,6 @@ private:
     void copySequence();
     void pasteSequence();
     void duplicateSequence();
-    void setSectionTracking(bool track, bool notify);
     void tieNotes();
     void generateSequence();
 
@@ -55,6 +54,8 @@ private:
 
     bool allSelectedStepsActive() const;
     void setSelectedStepsGate(bool gate);
+
+    void setSectionTracking(bool track);
 
     NoteSequence::Layer layer() const { return _project.selectedNoteSequenceLayer(); };
     void setLayer(NoteSequence::Layer layer) { _project.setSelectedNoteSequenceLayer(layer); }
