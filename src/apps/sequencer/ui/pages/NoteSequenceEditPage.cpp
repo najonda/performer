@@ -46,7 +46,7 @@ static const NoteSequenceListModel::Item quickEditItems[8] = {
     NoteSequenceListModel::Item::Divisor,
     NoteSequenceListModel::Item::ResetMeasure,
     NoteSequenceListModel::Item::Scale,
-    NoteSequenceListModel::Item::RootNote,
+
     NoteSequenceListModel::Item::Last
 };
 
@@ -88,9 +88,9 @@ void NoteSequenceEditPage::draw(Canvas &canvas) {
     const int loopY = 16;
 
 
-    // Track Section on the UI
+    // Track Pattern Section on the UI
     if (_sectionTracking && _engine.state().running()) {
-        bool section_change = bool((currentStep) % StepCount); // StepCount is relative to screen
+        bool section_change = bool((currentStep) % StepCount == 0); // StepCount is relative to screen
         int section_no = int((currentStep) / StepCount);
         if (section_change && section_no != _section) {
             _section = section_no;
@@ -323,14 +323,6 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
         }
     }
 
-    if (key.shiftModifier() && key.isStep()) {
-        if (key.is(Key::Step6)) {
-            setSectionTracking(not _sectionTracking, true);
-            event.consume();
-            return;
-        }
-    }
-
     if (key.isContextMenu()) {
         contextShow();
         event.consume();
@@ -344,6 +336,11 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
     }
 
     if (key.pageModifier()) {
+        // XXX Added here, but should we move it to pageModifier structure?
+        if (key.is(Key::Step5)) {
+            setSectionTracking(not _sectionTracking, true);
+            event.consume();
+        }
         return;
     }
 
@@ -386,6 +383,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
             setSelectedStepsGate(true);
         }
     }
+
 
     if (key.isLeft()) {
         if (key.shiftModifier()) {
