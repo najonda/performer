@@ -72,7 +72,16 @@ void NoteSequenceEditPage::exit() {
 
 void NoteSequenceEditPage::draw(Canvas &canvas) {
     WindowPainter::clear(canvas);
-    WindowPainter::drawHeader(canvas, _model, _engine, "STEPS");
+
+    /* Prepare flags shown before mode name (top right header) */
+    const char *mode_flags = NULL;
+    if (_sectionTracking) {
+        const char *st_flag = "F";
+        mode_flags = st_flag;
+    }
+
+    WindowPainter::drawHeader(canvas, _model, _engine, "STEPS", mode_flags);
+
     WindowPainter::drawActiveFunction(canvas, NoteSequence::layerName(layer()));
     WindowPainter::drawFooter(canvas, functionNames, pageKeyState(), activeFunctionKey());
 
@@ -928,9 +937,9 @@ void NoteSequenceEditPage::setSectionTracking(bool track, bool notify) {
 
     if (notify) {
         if (_sectionTracking)
-            showMessage("TRACKING ACTIVATED");
+            showMessage("FOLLOW STEPS ENABLED");
         else
-            showMessage("TRACKING DEACTIVATED");
+            showMessage("FOLLOW STEPS DISABLED");
     }
 }
 
