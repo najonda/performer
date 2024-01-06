@@ -246,6 +246,9 @@ void TopPage::setSequenceEditPage() {
     case Track::TrackMode::MidiCv:
         setMainPage(pages.track);
         break;
+    case Track::TrackMode::Stochastic:
+        setMainPage(pages.stochasticSequenceEdit);
+        break;
     case Track::TrackMode::Last:
         break;
     }

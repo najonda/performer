@@ -2,6 +2,7 @@
 
 #include "Config.h"
 #include "Observable.h"
+#include "StochasticSequence.h"
 #include "Types.h"
 #include "TimeSignature.h"
 #include "ClockSetup.h"
@@ -358,6 +359,9 @@ public:
                 case Track::TrackMode::MidiCv:
                     StringUtils::copy(_selectedTrackName, selectedTrack().midiCvTrack().name(), sizeof(_selectedTrackName));
                     break;
+                case Track::TrackMode::Stochastic:
+                    StringUtils::copy(_selectedTrackName, selectedTrack().stochasticTrack().name(), sizeof(_selectedTrackName));
+                    break;
                 case Track::TrackMode::Last:
                     break;
             }
@@ -392,6 +396,10 @@ public:
     NoteSequence::Layer selectedNoteSequenceLayer() const { return _selectedNoteSequenceLayer; }
     void setSelectedNoteSequenceLayer(NoteSequence::Layer layer) { _selectedNoteSequenceLayer = layer; }
 
+
+    StochasticSequence::Layer selectedStochasticSequenceLayer() const { return _selectedStochasticSequenceLayer; }
+    void setSelectedStochasticSequenceLayer(StochasticSequence::Layer layer) { _selectedStochasticSequenceLayer = layer; }
+
     // selectedCurveSequenceLayer
 
     CurveSequence::Layer selectedCurveSequenceLayer() const { return _selectedCurveSequenceLayer; }
@@ -421,6 +429,16 @@ public:
 
     const CurveSequence &selectedCurveSequence() const { return curveSequence(_selectedTrackIndex, selectedPatternIndex()); }
           CurveSequence &selectedCurveSequence()       { return curveSequence(_selectedTrackIndex, selectedPatternIndex()); }
+
+        // curveSequence
+
+    const StochasticSequence &stochasticSequence(int trackIndex, int patternIndex) const { return _tracks[trackIndex].stochasticTrack().sequence(patternIndex); }
+          StochasticSequence &stochasticSequence(int trackIndex, int patternIndex)       { return _tracks[trackIndex].stochasticTrack().sequence(patternIndex); }
+
+    // selectedCurveSequence
+
+    const StochasticSequence &selectedStochasticSequence() const { return stochasticSequence(_selectedTrackIndex, selectedPatternIndex()); }
+          StochasticSequence &selectedStochasticSequence()       { return stochasticSequence(_selectedTrackIndex, selectedPatternIndex()); }
 
     //----------------------------------------
     // Routing
@@ -492,6 +510,7 @@ private:
     char _selectedTrackName[FileHeader::NameLength+1] = "";
     NoteSequence::Layer _selectedNoteSequenceLayer = NoteSequence::Layer(0);
     CurveSequence::Layer _selectedCurveSequenceLayer = CurveSequence::Layer(0);
+    StochasticSequence::Layer _selectedStochasticSequenceLayer = StochasticSequence::Layer(0);
 
     Observable<Event, 2> _observable;
 };

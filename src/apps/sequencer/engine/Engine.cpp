@@ -434,6 +434,11 @@ void Engine::updateTrackSetups() {
                     track.midiCvTrack().setName(str);
                 }
                 break;
+            case Track::TrackMode::Stochastic:
+                trackEngine = trackContainer.create<StochasticEngine>(*this, _model, track, linkedTrackEngine);
+                if (sizeof(track.stochasticTrack().name()==0)) {
+                    track.stochasticTrack().setName(str);
+                }
                 break;
             case Track::TrackMode::Last:
                 break;

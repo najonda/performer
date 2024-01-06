@@ -14,6 +14,7 @@ set(sources
     engine/MidiLearn.cpp
     engine/MidiOutputEngine.cpp
     engine/NoteTrackEngine.cpp
+    engine/StochasticEngine.cpp
     engine/RoutingEngine.cpp
     engine/SequenceState.cpp
     # engine/generators
@@ -38,6 +39,8 @@ set(sources
     model/ModelUtils.cpp
     model/NoteSequence.cpp
     model/NoteTrack.cpp
+    model/StochasticSequence.cpp
+    model/StochasticTrack.cpp
     model/PlayState.cpp
     model/Project.cpp
     model/Routing.cpp
@@ -84,6 +87,7 @@ set(sources
     ui/pages/MonitorPage.cpp
     ui/pages/NoteSequenceEditPage.cpp
     ui/pages/NoteSequencePage.cpp
+    ui/pages/StochasticSequenceEditPage.cpp
     ui/pages/OverviewPage.cpp
     ui/pages/PatternPage.cpp
     ui/pages/PerformerPage.cpp

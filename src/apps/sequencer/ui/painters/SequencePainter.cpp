@@ -1,6 +1,7 @@
 #include "SequencePainter.h"
 #include "core/gfx/Canvas.h"
 #include "model/NoteSequence.h"
+#include "model/StochasticSequence.h"
 #include <bitset>
 
 void SequencePainter::drawLoopStart(Canvas &canvas, int x, int y, int w) {
@@ -101,6 +102,53 @@ void SequencePainter::drawSlide(Canvas &canvas, int x, int y, int w, int h, bool
 
 const std::bitset<4> mask = 0x1;
 void SequencePainter::drawStageRepeatMode(Canvas &canvas, int x, int y, int w, int h, NoteSequence::StageRepeatMode mode) {
+    canvas.setBlendMode(BlendMode::Set);
+    canvas.setColor(Bright);
+    int bottom = y + h - 1;
+    std::bitset<4> enabled;
+    x += (w - 8) / 2;
+
+    switch (mode) {
+        case NoteSequence::StageRepeatMode::Each:
+           enabled = 0xf;
+            break;
+        case NoteSequence::StageRepeatMode::First:
+            enabled = 0x1;
+            break;
+        case NoteSequence::StageRepeatMode::Middle:
+            enabled = 0x1 << 2;
+            break;
+        case NoteSequence::StageRepeatMode::Last:
+            enabled = 0x8;
+            break;
+        case NoteSequence::StageRepeatMode::Odd:
+            enabled = 0x5;
+            break;
+        case NoteSequence::StageRepeatMode::Even:
+            enabled = 0x5 << 1;
+            break;
+        case NoteSequence::StageRepeatMode::Triplets:
+            enabled = 0x9;
+            break;
+        case NoteSequence::StageRepeatMode::Random:
+            enabled = 0xf;
+            break;
+    }
+
+    for (int i = 0; i < 4; i++) {
+        if (mode == NoteSequence::StageRepeatMode::Random) {
+            canvas.drawTextCentered(x,y, x+6, h, "????");
+        } else {
+            if (((enabled >> i) & mask) == 1) {
+                canvas.vline(x + 2 * i, y, h);
+            } else {
+                canvas.hline(x + 2 * i, bottom, 1);
+            }
+        }
+    }
+}
+
+void SequencePainter::drawStageRepeatMode(Canvas &canvas, int x, int y, int w, int h, StochasticSequence::StageRepeatMode mode) {
     canvas.setBlendMode(BlendMode::Set);
     canvas.setColor(Bright);
     int bottom = y + h - 1;

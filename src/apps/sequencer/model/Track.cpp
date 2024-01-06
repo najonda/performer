@@ -16,6 +16,9 @@ void Track::clearPattern(int patternIndex) {
     case TrackMode::Curve:
         _track.curve->sequence(patternIndex).clear();
         break;
+    case TrackMode::Stochastic:
+        _track.stochastic->sequence(patternIndex).clear();
+        break;
     case TrackMode::MidiCv:
         break;
     case TrackMode::Last:
@@ -30,6 +33,9 @@ void Track::copyPattern(int src, int dst) {
         break;
     case TrackMode::Curve:
         _track.curve->sequence(dst) = _track.curve->sequence(src);
+        break;
+    case TrackMode::Stochastic:
+        _track.stochastic->sequence(dst) = _track.stochastic->sequence(src);
         break;
     case TrackMode::MidiCv:
         break;
@@ -50,6 +56,7 @@ void Track::gateOutputName(int index, StringBuilder &str) const {
     switch (_trackMode) {
     case TrackMode::Note:
     case TrackMode::Curve:
+    case TrackMode::Stochastic:
         str("Gate");
         break;
     case TrackMode::MidiCv:
@@ -64,6 +71,7 @@ void Track::cvOutputName(int index, StringBuilder &str) const {
     switch (_trackMode) {
     case TrackMode::Note:
     case TrackMode::Curve:
+    case TrackMode::Stochastic:
         str("CV");
         break;
     case TrackMode::MidiCv:
@@ -88,6 +96,9 @@ void Track::write(VersionedSerializedWriter &writer) const {
     case TrackMode::MidiCv:
         _track.midiCv->write(writer);
         break;
+    case TrackMode::Stochastic:
+        _track.stochastic->write(writer);
+        break;
     case TrackMode::Last:
         break;
     }
@@ -109,6 +120,9 @@ void Track::read(VersionedSerializedReader &reader) {
     case TrackMode::MidiCv:
         _track.midiCv->read(reader);
         break;
+    case TrackMode::Stochastic:
+        _track.stochastic->read(reader);
+        break;
     case TrackMode::Last:
         break;
     }
@@ -118,6 +132,7 @@ void Track::initContainer() {
     _track.note = nullptr;
     _track.curve = nullptr;
     _track.midiCv = nullptr;
+    _track.stochastic = nullptr;
 
     switch (_trackMode) {
     case TrackMode::Note:
@@ -129,6 +144,8 @@ void Track::initContainer() {
     case TrackMode::MidiCv:
         _track.midiCv = _container.create<MidiCvTrack>();
         break;
+    case TrackMode::Stochastic:
+        _track.stochastic = _container.create<StochasticTrack>();
     case TrackMode::Last:
         break;
     }
@@ -151,6 +168,9 @@ void Track::setContainerTrackIndex(int trackIndex) {
         break;
     case TrackMode::MidiCv:
         _track.midiCv->setTrackIndex(trackIndex);
+        break;
+    case TrackMode::Stochastic:
+        _track.stochastic->setTrackIndex(trackIndex);
         break;
     case TrackMode::Last:
         break;
