@@ -3,7 +3,7 @@
 #include "BasePage.h"
 
 #include "ui/StepSelection.h"
-#include "ui/model/NoteSequenceListModel.h"
+#include "ui/model/StochasticSequenceListModel.h"
 
 #include "engine/generators/SequenceBuilder.h"
 #include "ui/KeyPressEventTracker.h"
@@ -68,9 +68,9 @@ private:
     KeyPressEventTracker _keyPressEventTracker;
 
 
-    NoteSequenceListModel _listModel;
+    StochasticSequenceListModel _listModel;
 
     StepSelection<CONFIG_STEP_COUNT> _stepSelection;
 
-    Container<NoteSequenceBuilder> _builderContainer;
+    Container<StochasticSequenceBuilder> _builderContainer;
 };

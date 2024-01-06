@@ -39,15 +39,15 @@ enum class Function {
 
 static const char *functionNames[] = { "GATE", "RETRIG", "LENGTH", "NOTE", "COND" };
 
-static const NoteSequenceListModel::Item quickEditItems[8] = {
-    NoteSequenceListModel::Item::FirstStep,
-    NoteSequenceListModel::Item::LastStep,
-    NoteSequenceListModel::Item::RunMode,
-    NoteSequenceListModel::Item::Divisor,
-    NoteSequenceListModel::Item::ResetMeasure,
-    NoteSequenceListModel::Item::Scale,
-    NoteSequenceListModel::Item::RootNote,
-    NoteSequenceListModel::Item::Last
+static const StochasticSequenceListModel::Item quickEditItems[8] = {
+    StochasticSequenceListModel::Item::FirstStep,
+    StochasticSequenceListModel::Item::LastStep,
+    StochasticSequenceListModel::Item::RunMode,
+    StochasticSequenceListModel::Item::Divisor,
+    StochasticSequenceListModel::Item::ResetMeasure,
+    StochasticSequenceListModel::Item::Scale,
+    StochasticSequenceListModel::Item::RootNote,
+    StochasticSequenceListModel::Item::Last
 };
 
 StochasticSequenceEditPage::StochasticSequenceEditPage(PageManager &manager, PageContext &context) :
@@ -159,49 +159,49 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
             SequencePainter::drawProbability(
                 canvas,
                 x + 2, y + 18, stepWidth - 4, 2,
-                step.gateProbability() + 1, NoteSequence::GateProbability::Range
+                step.gateProbability() + 1, StochasticSequence::GateProbability::Range
             );
             break;
         case Layer::GateOffset:
             SequencePainter::drawOffset(
                 canvas,
                 x + 2, y + 18, stepWidth - 4, 2,
-                step.gateOffset(), NoteSequence::GateOffset::Min - 1, NoteSequence::GateOffset::Max + 1
+                step.gateOffset(), StochasticSequence::GateOffset::Min - 1, StochasticSequence::GateOffset::Max + 1
             );
             break;
         case Layer::Retrigger:
             SequencePainter::drawRetrigger(
                 canvas,
                 x, y + 18, stepWidth, 2,
-                step.retrigger() + 1, NoteSequence::Retrigger::Range
+                step.retrigger() + 1, StochasticSequence::Retrigger::Range
             );
             break;
         case Layer::RetriggerProbability:
             SequencePainter::drawProbability(
                 canvas,
                 x + 2, y + 18, stepWidth - 4, 2,
-                step.retriggerProbability() + 1, NoteSequence::RetriggerProbability::Range
+                step.retriggerProbability() + 1, StochasticSequence::RetriggerProbability::Range
             );
             break;
         case Layer::Length:
             SequencePainter::drawLength(
                 canvas,
                 x + 2, y + 18, stepWidth - 4, 6,
-                step.length() + 1, NoteSequence::Length::Range
+                step.length() + 1, StochasticSequence::Length::Range
             );
             break;
         case Layer::LengthVariationRange:
             SequencePainter::drawLengthRange(
                 canvas,
                 x + 2, y + 18, stepWidth - 4, 6,
-                step.length() + 1, step.lengthVariationRange(), NoteSequence::Length::Range
+                step.length() + 1, step.lengthVariationRange(), StochasticSequence::Length::Range
             );
             break;
         case Layer::LengthVariationProbability:
             SequencePainter::drawProbability(
                 canvas,
                 x + 2, y + 18, stepWidth - 4, 2,
-                step.lengthVariationProbability() + 1, NoteSequence::LengthVariationProbability::Range
+                step.lengthVariationProbability() + 1, StochasticSequence::LengthVariationProbability::Range
             );
             break;
         case Layer::Note: {
@@ -225,7 +225,7 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
             SequencePainter::drawProbability(
                 canvas,
                 x + 2, y + 18, stepWidth - 4, 2,
-                step.noteVariationProbability() + 1, NoteSequence::NoteVariationProbability::Range
+                step.noteVariationProbability() + 1, StochasticSequence::NoteVariationProbability::Range
             );
             break;
         case Layer::Slide:
@@ -284,8 +284,8 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
 }
 
 void StochasticSequenceEditPage::updateLeds(Leds &leds) {
-    const auto &trackEngine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
-    const auto &sequence = _project.selectedNoteSequence();
+    const auto &trackEngine = _engine.selectedTrackEngine().as<StochasticEngine>();
+    const auto &sequence = _project.selectedStochasticSequence();
     int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
 
     for (int i = 0; i < 16; ++i) {
@@ -302,7 +302,7 @@ void StochasticSequenceEditPage::updateLeds(Leds &leds) {
         for (int i = 0; i < 8; ++i) {
             int index = MatrixMap::fromStep(i + 8);
             leds.unmask(index);
-            leds.set(index, false, quickEditItems[i] != NoteSequenceListModel::Item::Last);
+            leds.set(index, false, quickEditItems[i] != StochasticSequenceListModel::Item::Last);
             leds.mask(index);
         }
         int index = MatrixMap::fromStep(15);
@@ -324,7 +324,7 @@ void StochasticSequenceEditPage::keyUp(KeyEvent &event) {
 
 void StochasticSequenceEditPage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
-    auto &sequence = _project.selectedNoteSequence();
+    auto &sequence = _project.selectedStochasticSequence();
 
     if (key.isQuickEdit()) {
         if (key.is(Key::Step15)) {
@@ -415,7 +415,7 @@ void StochasticSequenceEditPage::keyPress(KeyPressEvent &event) {
 }
 
 void StochasticSequenceEditPage::encoder(EncoderEvent &event) {
-    auto &sequence = _project.selectedNoteSequence();
+    auto &sequence = _project.selectedStochasticSequence();
     const auto &scale = sequence.selectedScale(_project.scale());
 
     if (!_stepSelection.any())
@@ -526,7 +526,7 @@ void StochasticSequenceEditPage::encoder(EncoderEvent &event) {
                 break;
             case Layer::StageRepeatsMode:
                 step.setStageRepeatsMode(
-                    static_cast<NoteSequence::StageRepeatMode>(
+                    static_cast<StochasticSequence::StageRepeatMode>(
                         step.stageRepeatMode() + event.value()
                     )
                 );
@@ -542,8 +542,8 @@ void StochasticSequenceEditPage::encoder(EncoderEvent &event) {
 
 void StochasticSequenceEditPage::midi(MidiEvent &event) {
     if (!_engine.recording() && layer() == Layer::Note && _stepSelection.any()) {
-        auto &trackEngine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
-        auto &sequence = _project.selectedNoteSequence();
+        auto &trackEngine = _engine.selectedTrackEngine().as<StochasticEngine>();
+        auto &sequence = _project.selectedStochasticSequence();
         const auto &scale = sequence.selectedScale(_project.scale());
         const auto &message = event.message();
 
@@ -682,7 +682,7 @@ int StochasticSequenceEditPage::activeFunctionKey() {
 }
 
 void StochasticSequenceEditPage::updateMonitorStep() {
-    auto &trackEngine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
+    auto &trackEngine = _engine.selectedTrackEngine().as<StochasticEngine>();
 
     // TODO should we monitor an all layers not just note?
     if (layer() == Layer::Note && !_stepSelection.isPersisted() && _stepSelection.any()) {
@@ -694,7 +694,7 @@ void StochasticSequenceEditPage::updateMonitorStep() {
 
 void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequence::Step &step) {
 
-    const auto &sequence = _project.selectedNoteSequence();
+    const auto &sequence = _project.selectedStochasticSequence();
     const auto &scale = sequence.selectedScale(_project.scale());
 
     FixedStringBuilder<16> str;
@@ -722,10 +722,10 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
         SequencePainter::drawProbability(
             canvas,
             64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.gateProbability() + 1, NoteSequence::GateProbability::Range
+            step.gateProbability() + 1, StochasticSequence::GateProbability::Range
         );
         str.reset();
-        str("%.1f%%", 100.f * (step.gateProbability() + 1.f) / NoteSequence::GateProbability::Range);
+        str("%.1f%%", 100.f * (step.gateProbability() + 1.f) / StochasticSequence::GateProbability::Range);
         canvas.setColor(Color::Bright);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
@@ -733,10 +733,10 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
         SequencePainter::drawOffset(
             canvas,
             64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.gateOffset(), NoteSequence::GateOffset::Min - 1, NoteSequence::GateOffset::Max + 1
+            step.gateOffset(), StochasticSequence::GateOffset::Min - 1, StochasticSequence::GateOffset::Max + 1
         );
         str.reset();
-        str("%.1f%%", 100.f * step.gateOffset() / float(NoteSequence::GateOffset::Max + 1));
+        str("%.1f%%", 100.f * step.gateOffset() / float(StochasticSequence::GateOffset::Max + 1));
         canvas.setColor(Color::Bright);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
@@ -744,7 +744,7 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
         SequencePainter::drawRetrigger(
             canvas,
             64+ 32 + 8, 32 - 4, 64 - 16, 8,
-            step.retrigger() + 1, NoteSequence::Retrigger::Range
+            step.retrigger() + 1, StochasticSequence::Retrigger::Range
         );
         str.reset();
         str("%d", step.retrigger() + 1);
@@ -755,10 +755,10 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
         SequencePainter::drawProbability(
             canvas,
             64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.retriggerProbability() + 1, NoteSequence::RetriggerProbability::Range
+            step.retriggerProbability() + 1, StochasticSequence::RetriggerProbability::Range
         );
         str.reset();
-        str("%.1f%%", 100.f * (step.retriggerProbability() + 1.f) / NoteSequence::RetriggerProbability::Range);
+        str("%.1f%%", 100.f * (step.retriggerProbability() + 1.f) / StochasticSequence::RetriggerProbability::Range);
         canvas.setColor(Color::Bright);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
@@ -766,10 +766,10 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
         SequencePainter::drawLength(
             canvas,
             64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.length() + 1, NoteSequence::Length::Range
+            step.length() + 1, StochasticSequence::Length::Range
         );
         str.reset();
-        str("%.1f%%", 100.f * (step.length() + 1.f) / NoteSequence::Length::Range);
+        str("%.1f%%", 100.f * (step.length() + 1.f) / StochasticSequence::Length::Range);
         canvas.setColor(Color::Bright);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
@@ -777,10 +777,10 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
         SequencePainter::drawLengthRange(
             canvas,
             64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.length() + 1, step.lengthVariationRange(), NoteSequence::Length::Range
+            step.length() + 1, step.lengthVariationRange(), StochasticSequence::Length::Range
         );
         str.reset();
-        str("%.1f%%", 100.f * (step.lengthVariationRange()) / NoteSequence::Length::Range);
+        str("%.1f%%", 100.f * (step.lengthVariationRange()) / StochasticSequence::Length::Range);
         canvas.setColor(Color::Bright);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
@@ -788,10 +788,10 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
         SequencePainter::drawProbability(
             canvas,
             64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.lengthVariationProbability() + 1, NoteSequence::LengthVariationProbability::Range
+            step.lengthVariationProbability() + 1, StochasticSequence::LengthVariationProbability::Range
         );
         str.reset();
-        str("%.1f%%", 100.f * (step.lengthVariationProbability() + 1.f) / NoteSequence::LengthVariationProbability::Range);
+        str("%.1f%%", 100.f * (step.lengthVariationProbability() + 1.f) / StochasticSequence::LengthVariationProbability::Range);
         canvas.setColor(Color::Bright);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
@@ -811,10 +811,10 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
         SequencePainter::drawProbability(
             canvas,
             64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.noteVariationProbability() + 1, NoteSequence::NoteVariationProbability::Range
+            step.noteVariationProbability() + 1, StochasticSequence::NoteVariationProbability::Range
         );
         str.reset();
-        str("%.1f%%", 100.f * (step.noteVariationProbability() + 1.f) / NoteSequence::NoteVariationProbability::Range);
+        str("%.1f%%", 100.f * (step.noteVariationProbability() + 1.f) / StochasticSequence::NoteVariationProbability::Range);
         canvas.setColor(Color::Bright);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
@@ -833,28 +833,28 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
      case Layer::StageRepeatsMode:
         str.reset();
         switch (step.stageRepeatMode()) {
-            case NoteSequence::Each:
+            case StochasticSequence::Each:
                 str("EACH");
                 break;
-            case NoteSequence::First:
+            case StochasticSequence::First:
                 str("FIRST");
                 break;
-            case NoteSequence::Middle:
+            case StochasticSequence::Middle:
                 str("MIDDLE");
                 break;
-            case NoteSequence::Last:
+            case StochasticSequence::Last:
                 str("LAST");
                 break;
-            case NoteSequence::Odd:
+            case StochasticSequence::Odd:
                 str("ODD");
                 break;
-            case NoteSequence::Even:
+            case StochasticSequence::Even:
                 str("EVEN");
                 break;
-            case NoteSequence::Triplets:
+            case StochasticSequence::Triplets:
                 str("TRIPLET");
                 break;
-            case NoteSequence::Random:
+            case StochasticSequence::Random:
                 str("RANDOM");
                 break;
 
@@ -910,7 +910,7 @@ bool StochasticSequenceEditPage::contextActionEnabled(int index) const {
 }
 
 void StochasticSequenceEditPage::initSequence() {
-    _project.selectedNoteSequence().clearSteps();
+    _project.selectedStochasticSequence().clearSteps();
     showMessage("STEPS INITIALIZED");
 }
 
@@ -925,7 +925,7 @@ void StochasticSequenceEditPage::pasteSequence() {
 }
 
 void StochasticSequenceEditPage::duplicateSequence() {
-    _project.selectedNoteSequence().duplicateSteps();
+    _project.selectedStochasticSequence().duplicateSteps();
     showMessage("STEPS DUPLICATED");
 }
 
@@ -938,7 +938,7 @@ void StochasticSequenceEditPage::setSectionTracking(bool track) {
 
 void StochasticSequenceEditPage::tieNotes() {
 
-    auto &sequence = _project.selectedNoteSequence();
+    auto &sequence = _project.selectedStochasticSequence();
 
     if (_stepSelection.any()) {
         int first=-1;
@@ -956,7 +956,7 @@ void StochasticSequenceEditPage::tieNotes() {
         for (int i = first; i <= last; i++) {
             sequence.step(i).setGate(true);
             if (i != last) {
-                sequence.step(i).setLength(NoteSequence::Length::Max);
+                sequence.step(i).setLength(StochasticSequence::Length::Max);
                 showMessage("NOTES TIED");
             }
             sequence.step(i).setNote(sequence.step(first).note());
@@ -978,14 +978,14 @@ void StochasticSequenceEditPage::generateSequence() {
 }
 
 void StochasticSequenceEditPage::quickEdit(int index) {
-    _listModel.setSequence(&_project.selectedNoteSequence());
-    if (quickEditItems[index] != NoteSequenceListModel::Item::Last) {
+    _listModel.setSequence(&_project.selectedStochasticSequence());
+    if (quickEditItems[index] != StochasticSequenceListModel::Item::Last) {
         _manager.pages().quickEdit.show(_listModel, int(quickEditItems[index]));
     }
 }
 
 bool StochasticSequenceEditPage::allSelectedStepsActive() const {
-    const auto &sequence = _project.selectedNoteSequence();
+    const auto &sequence = _project.selectedStochasticSequence();
     for (size_t stepIndex = 0; stepIndex < _stepSelection.size(); ++stepIndex) {
         if (_stepSelection[stepIndex] && !sequence.step(stepIndex).gate()) {
             return false;
@@ -995,7 +995,7 @@ bool StochasticSequenceEditPage::allSelectedStepsActive() const {
 }
 
 void StochasticSequenceEditPage::setSelectedStepsGate(bool gate) {
-    auto &sequence = _project.selectedNoteSequence();
+    auto &sequence = _project.selectedStochasticSequence();
     for (size_t stepIndex = 0; stepIndex < _stepSelection.size(); ++stepIndex) {
         if (_stepSelection[stepIndex]) {
             sequence.step(stepIndex).setGate(gate);
