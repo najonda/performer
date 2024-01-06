@@ -244,7 +244,7 @@ void StochasticSequence::clear() {
     setResetMeasure(0);
     setRunMode(Types::RunMode::Forward);
     setFirstStep(0);
-    setLastStep(15);
+    setLastStep(0);
 
     clearSteps();
 }
@@ -252,6 +252,12 @@ void StochasticSequence::clear() {
 void StochasticSequence::clearSteps() {
     for (auto &step : _steps) {
         step.clear();
+    }
+
+    for (int i = 0; i < 12; ++i) {
+        _steps[i].setGate(true);
+        _steps[i].setGateProbability(0);
+        _steps[i].setNote(i);
     }
 }
 
