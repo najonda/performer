@@ -1,6 +1,11 @@
 # Changelog
 
-## v 0.1.46 (4 January 2024)
+# v0.1.4.37 ()
+- launchpad circuit mode improvements
+- random generator: random seed just on init method
+- patter follow
+
+## v0.1.46 (4 January 2024)
 
 - UI note edit page reaggment
 - song sync with clock
