@@ -255,7 +255,7 @@ void StochasticSequence::clearSteps() {
     }
 
     for (int i = 0; i < 12; ++i) {
-        _steps[i].setGate(true);
+        _steps[i].setGate(false);
         _steps[i].setGateProbability(0);
         _steps[i].setNote(i);
     }

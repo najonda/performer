@@ -46,6 +46,9 @@ public:
 
     void setMonitorStep(int index);
 
+    int* get_cum_distr(int *distr) ;
+    int sampler(int *cum_distr);
+
 private:
     void triggerStep(uint32_t tick, uint32_t divisor, bool nextStep);
     void triggerStep(uint32_t tick, uint32_t divisor);

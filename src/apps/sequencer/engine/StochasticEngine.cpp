@@ -15,6 +15,8 @@
 #include <climits>
 #include <iostream>
 #include <ctime>
+#include <random>
+#include <vector>
 
 static Random rng;
 
@@ -312,8 +314,8 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     bool useFillSequence = fillStep && _stochasticTrack.fillMode() == StochasticTrack::FillMode::NextPattern;
     bool useFillCondition = fillStep && _stochasticTrack.fillMode() == StochasticTrack::FillMode::Condition;
 
-    const auto &sequence = *_sequence;
-    const auto &evalSequence = useFillSequence ? *_fillSequence : *_sequence;
+    auto &sequence = *_sequence;
+    auto &evalSequence = useFillSequence ? *_fillSequence : *_sequence;
 
     // TODO do we need to encounter rotate?
     _currentStep = SequenceUtils::rotateStep(_sequenceState.step(), sequence.firstStep(), sequence.lastStep(), rotate);
@@ -328,7 +330,37 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
     if (stepIndex < 0) return;
 
-    const auto &step = evalSequence.step(stepIndex);
+
+    int maxProbability = -1;
+    int indexMaxProbability = -1;
+
+    int probability[12];
+    for (int i = 0; i < 12; ++i) {
+        probability[i] = sequence.step(i).gateProbability();
+    }
+
+
+    int *distr = get_cum_distr(probability);
+    stepIndex = sampler(distr);
+
+
+   /* for (int i = 0; i < 12; ++i) {
+4
+        int m = ceil((sqrt(8*sequence.step(i).gateProbability() + 1) - 1) / 2);
+        if (m > maxProbability) {
+            maxProbability = m;
+            indexMaxProbability = i;
+        }
+    }*/
+
+    for (int i = 0; i < 12; ++i) {
+        sequence.step(i).setGate(false);
+    }
+    auto &step = sequence.step(stepIndex);
+    step.setGate(true);
+    sequence.setFirstStep(indexMaxProbability);
+    sequence.setLastStep(indexMaxProbability);
+
 
     int gateOffset = ((int) divisor * step.gateOffset()) / (StochasticSequence::GateOffset::Max + 1);
     uint32_t stepTick = (int) tick + gateOffset;
@@ -409,6 +441,27 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         int rootNote = evalSequence.selectedRootNote(_model.project().rootNote());
         _cvQueue.push({ Groove::applySwing(stepTick, swing()), evalStepNote(step, _stochasticTrack.noteProbabilityBias(), scale, rootNote, octave, transpose), step.slide() });
     }
+}
+
+int * StochasticEngine::get_cum_distr(int *distr) {
+    static int cum_distr[12];
+    int sum = 0;
+    for (int i=0; i < 12; ++i) {
+        sum += distr[i];
+        cum_distr[i] = sum;
+    }
+    return cum_distr;
+}
+
+int StochasticEngine::sampler(int *cum_distr) {
+    srand((unsigned int)time(NULL));
+    int r = 0 + ( std::rand() % ( cum_distr[11] - 0 + 1 ) );
+    int i = 0;
+    std::cerr << cum_distr[i] << "\n";
+    while (r > cum_distr[i]) {
+        i += 1;
+    }
+    return i;
 }
 
 void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor) {
