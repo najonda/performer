@@ -46,7 +46,7 @@ static const NoteSequenceListModel::Item quickEditItems[8] = {
     NoteSequenceListModel::Item::Divisor,
     NoteSequenceListModel::Item::ResetMeasure,
     NoteSequenceListModel::Item::Scale,
-
+    NoteSequenceListModel::Item::RootNote,
     NoteSequenceListModel::Item::Last
 };
 
