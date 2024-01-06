@@ -376,6 +376,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
         if(key.shiftModifier() && key.function() == 2) {
             tieNotes();
             event.consume();
+            return;
         }
         switchLayer(key.function(), key.shiftModifier());
         event.consume();
