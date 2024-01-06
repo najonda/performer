@@ -326,12 +326,6 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
     auto &sequence = _project.selectedNoteSequence();
 
-    if (key.isQuickEdit()) {
-        if (key.is(Key::Step15)) {
-            tieNotes();
-        }
-    }
-
     if (key.isContextMenu()) {
         contextShow();
         event.consume();
@@ -379,6 +373,10 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
     }
 
     if (key.isFunction()) {
+        if(key.shiftModifier() && key.function() == 2) {
+            tieNotes();
+            event.consume();
+        }
         switchLayer(key.function(), key.shiftModifier());
         event.consume();
     }
