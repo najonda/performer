@@ -373,7 +373,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
     }
 
     if (key.isFunction()) {
-        if(key.shiftModifier() && key.function() == 2) {
+        if(key.shiftModifier() && key.function() == 2 && _stepSelection.any()) {
             tieNotes();
             event.consume();
             return;
