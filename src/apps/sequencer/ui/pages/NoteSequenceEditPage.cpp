@@ -72,7 +72,16 @@ void NoteSequenceEditPage::exit() {
 
 void NoteSequenceEditPage::draw(Canvas &canvas) {
     WindowPainter::clear(canvas);
-    WindowPainter::drawHeader(canvas, _model, _engine, "STEPS");
+
+    /* Prepare flags shown before mode name (top right header) */
+    const char *mode_flags = NULL;
+    if (_sectionTracking) {
+        const char *st_flag = "F";
+        mode_flags = st_flag;
+    }
+
+    WindowPainter::drawHeader(canvas, _model, _engine, "STEPS", mode_flags);
+
     WindowPainter::drawActiveFunction(canvas, NoteSequence::layerName(layer()));
     WindowPainter::drawFooter(canvas, functionNames, pageKeyState(), activeFunctionKey());
 
@@ -86,6 +95,16 @@ void NoteSequenceEditPage::draw(Canvas &canvas) {
     const int stepOffset = this->stepOffset();
 
     const int loopY = 16;
+
+
+    // Track Pattern Section on the UI
+    if (_sectionTracking && _engine.state().running()) {
+        bool section_change = bool((currentStep) % StepCount == 0); // StepCount is relative to screen
+        int section_no = int((currentStep) / StepCount);
+        if (section_change && section_no != _section) {
+            _section = section_no;
+        }
+    }
 
     // draw loop points
     canvas.setBlendMode(BlendMode::Set);
@@ -259,6 +278,9 @@ void NoteSequenceEditPage::draw(Canvas &canvas) {
     if (_showDetail) {
         drawDetail(canvas, sequence.step(_stepSelection.first()));
     }
+
+
+
 }
 
 void NoteSequenceEditPage::updateLeds(Leds &leds) {
@@ -323,6 +345,11 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
     }
 
     if (key.pageModifier()) {
+        // XXX Added here, but should we move it to pageModifier structure?
+        if (key.is(Key::Step5)) {
+            setSectionTracking(not _sectionTracking);
+            event.consume();
+        }
         return;
     }
 
@@ -357,6 +384,8 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
     }
 
     if (key.isEncoder()) {
+        setSectionTracking(false);
+
         if (!_showDetail && _stepSelection.any() && allSelectedStepsActive()) {
             setSelectedStepsGate(false);
         } else {
@@ -364,10 +393,12 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
         }
     }
 
+
     if (key.isLeft()) {
         if (key.shiftModifier()) {
             sequence.shiftSteps(_stepSelection.selected(), -1);
         } else {
+            setSectionTracking(false);
             _section = std::max(0, _section - 1);
         }
         event.consume();
@@ -376,6 +407,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
         if (key.shiftModifier()) {
             sequence.shiftSteps(_stepSelection.selected(), 1);
         } else {
+            setSectionTracking(false);
             _section = std::min(3, _section + 1);
         }
         event.consume();
@@ -895,6 +927,13 @@ void NoteSequenceEditPage::pasteSequence() {
 void NoteSequenceEditPage::duplicateSequence() {
     _project.selectedNoteSequence().duplicateSteps();
     showMessage("STEPS DUPLICATED");
+}
+
+/*
+ * Makes the UI track the current step section
+ */
+void NoteSequenceEditPage::setSectionTracking(bool track) {
+    _sectionTracking = track;
 }
 
 void NoteSequenceEditPage::tieNotes() {

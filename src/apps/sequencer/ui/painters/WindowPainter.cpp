@@ -98,11 +98,16 @@ void WindowPainter::drawActiveState(Canvas &canvas, int track, const char *track
     }
 }
 
-void WindowPainter::drawActiveMode(Canvas &canvas, const char *mode) {
+void WindowPainter::drawActiveMode(Canvas &canvas, const char *mode, const char *flags) {
     canvas.setFont(Font::Tiny);
     canvas.setBlendMode(BlendMode::Set);
     canvas.setColor(Color::Bright);
     canvas.drawText(PageWidth - canvas.textWidth(mode) - 2, 8 - 2, mode);
+
+    if (flags) {
+        drawInvertedText(canvas, PageWidth - canvas.textWidth(mode) - canvas.textWidth(flags) - 4, 8 - 2, flags, true);
+    }
+
 }
 
 void WindowPainter::drawActiveFunction(Canvas &canvas, const char *function) {
@@ -112,7 +117,9 @@ void WindowPainter::drawActiveFunction(Canvas &canvas, const char *function) {
     canvas.drawText(130, 8 - 2, function);
 }
 
-void WindowPainter::drawHeader(Canvas &canvas, const Model &model, const Engine &engine, const char *mode) {
+
+
+void WindowPainter::drawHeader(Canvas &canvas, const Model &model, const Engine &engine, const char *mode, const char *flags) {
     const auto &project = model.project();
     int track = project.selectedTrackIndex();
     const char *trackName = project.selectedTrackName();
@@ -123,7 +130,7 @@ void WindowPainter::drawHeader(Canvas &canvas, const Model &model, const Engine 
 
     drawClock(canvas, engine);
     drawActiveState(canvas, track, trackName, playPattern, editPattern, snapshotActive, songActive);
-    drawActiveMode(canvas, mode);
+    drawActiveMode(canvas, mode, flags);
 
     canvas.setBlendMode(BlendMode::Set);
     canvas.setColor(Color::Medium);
