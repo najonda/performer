@@ -339,8 +339,6 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     if (sum==0) { return;}
 
     stepIndex= getNextWeightedPitch(probability, sequence.reseed());
-    std::cerr << "STEP_INDEX: " << stepIndex << "\n";
-
 
     //for (int i = 0; i < 12; ++i) {
     //    sequence.step(i).setGate(false);    
@@ -348,8 +346,6 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     //}
     auto &step = sequence.step(stepIndex);
     
-    sequence.setLastStep(stepIndex);
-    sequence.setFirstStep(stepIndex);
     //step.setGate(true);
 
     int gateOffset = ((int) divisor * step.gateOffset()) / (StochasticSequence::GateOffset::Max + 1);
@@ -410,6 +406,8 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     }
 
     if (stepGate) {
+        sequence.setLastStep(stepIndex);
+        sequence.setFirstStep(stepIndex);
         uint32_t stepLength = (divisor * evalStepLength(step, _stochasticTrack.lengthBias())) / StochasticSequence::Length::Range;
         int stepRetrigger = evalStepRetrigger(step, _stochasticTrack.retriggerProbabilityBias());
         if (stepRetrigger > 1) {
@@ -445,7 +443,7 @@ int StochasticEngine::getNextWeightedPitch(int *distr, bool reseed) {
             srand((unsigned int)time(NULL));
             _sequence->setReseed(0, false);
         }
-        int rnd = 1 + ( std::rand() % ( (total_weights + 1) - 1 + 1 ) );
+        int rnd = 1 + ( std::rand() % ( (total_weights) - 1 + 1 ) );
 
         for(int i = 0; i < 12; i++) {
             int weight = distr[i % 12];
