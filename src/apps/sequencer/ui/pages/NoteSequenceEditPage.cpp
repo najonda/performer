@@ -39,19 +39,6 @@ enum class Function {
     Condition     = 4,
 };
 
-//template <>
-//  struct std::hash<NoteSequence::Layer> {
- //std::size_t operator()(const NoteSequence::Layer & k) const {
-     // return std::hash<std::string>()(k.Data());
-   // };
-//  };
-
-template <class T>
-class NoteSequenceMap :
-    public std::unordered_map<T, std::pair<T, T>>
-{
-};
-
 static const char *functionNames[] = { "GATE", "RETRIG", "LENGTH", "NOTE", "COND" };
 
 static const NoteSequenceListModel::Item quickEditItems[8] = {
@@ -434,33 +421,30 @@ void NoteSequenceEditPage::encoder(EncoderEvent &event) {
     const auto &scale = sequence.selectedScale(_project.scale());
 
     if (!_stepSelection.any()) {
-
-
-        NoteSequenceMap<NoteSequence::Layer> layerMapAlignedTrack;
-
-        layerMapAlignedTrack.insert({ Layer::Retrigger, { Layer::RetriggerProbability, Layer::RetriggerProbability } });
-        layerMapAlignedTrack.insert({ Layer::RetriggerProbability, { Layer::Retrigger, Layer::Retrigger } });
-
-        NoteSequenceMap<NoteSequence::Layer> layerMapFreeTrack;
-
-        layerMapFreeTrack.insert({ Layer::Retrigger, { Layer::RetriggerProbability, Layer::StageRepeatsMode } });
-        layerMapFreeTrack.insert({ Layer::RetriggerProbability, { Layer::StageRepeats, Layer::Retrigger } });
-        layerMapFreeTrack.insert({ Layer::StageRepeats, { Layer::StageRepeatsMode, Layer::RetriggerProbability } });
-        layerMapFreeTrack.insert({ Layer::StageRepeatsMode, { Layer::Retrigger, Layer::StageRepeats } });
-
-        NoteSequenceMap<NoteSequence::Layer> layerMap;
-        layerMap.insert({ Layer::Gate, { Layer::GateOffset, Layer::GateProbability } });
-        layerMap.insert({ Layer::GateOffset, { Layer::GateProbability, Layer::Gate } });
-        layerMap.insert({ Layer::GateProbability, { Layer::Gate, Layer::GateOffset } });
-        layerMap.insert({ Layer::Length, { Layer::LengthVariationRange, Layer::LengthVariationProbability } });
-        layerMap.insert({ Layer::LengthVariationRange, { Layer::LengthVariationProbability, Layer::Length } });
-        layerMap.insert({ Layer::LengthVariationProbability, { Layer::Length, Layer::LengthVariationRange } });
-        layerMap.insert({ Layer::Note, { Layer::NoteVariationRange, Layer::Slide } });
-        layerMap.insert({ Layer::NoteVariationRange, { Layer::Slide, Layer::NoteVariationProbability } });
-        layerMap.insert({ Layer::NoteVariationProbability, { Layer::NoteVariationRange, Layer::Note } });
-        layerMap.insert({ Layer::Slide, { Layer::Note, Layer::NoteVariationProbability } });
-        layerMap.insert({ Layer::Condition, { Layer::Condition, Layer::Condition } });
-        layerMap.insert({ Layer::Last, { Layer::Last, Layer::Last } });
+        std::unordered_map<NoteSequence::Layer, std::pair<NoteSequence::Layer, NoteSequence::Layer>> layerMapAlignedTrack = {
+            { Layer::Retrigger, { Layer::RetriggerProbability, Layer::RetriggerProbability } },
+            { Layer::RetriggerProbability, { Layer::Retrigger, Layer::Retrigger } },
+        };
+        std::unordered_map<NoteSequence::Layer, std::pair<NoteSequence::Layer, NoteSequence::Layer>> layerMapFreeTrack = {
+            { Layer::Retrigger, { Layer::RetriggerProbability, Layer::StageRepeatsMode } },
+            { Layer::RetriggerProbability, { Layer::StageRepeats, Layer::Retrigger } },
+            { Layer::StageRepeats, { Layer::StageRepeatsMode, Layer::RetriggerProbability } },
+            { Layer::StageRepeatsMode, { Layer::Retrigger, Layer::StageRepeats } },
+        };
+        std::unordered_map<NoteSequence::Layer, std::pair<NoteSequence::Layer, NoteSequence::Layer>> layerMap = {
+            { Layer::Gate, { Layer::GateOffset, Layer::GateProbability } },
+            { Layer::GateOffset, { Layer::GateProbability, Layer::Gate } },
+            { Layer::GateProbability, { Layer::Gate, Layer::GateOffset } },
+            { Layer::Length, { Layer::LengthVariationRange, Layer::LengthVariationProbability } },
+            { Layer::LengthVariationRange, { Layer::LengthVariationProbability, Layer::Length } },
+            { Layer::LengthVariationProbability, { Layer::Length, Layer::LengthVariationRange } },
+            { Layer::Note, { Layer::NoteVariationRange, Layer::Slide } },
+            { Layer::NoteVariationRange, { Layer::Slide, Layer::NoteVariationProbability } },
+            { Layer::NoteVariationProbability, { Layer::NoteVariationRange, Layer::Note } },
+            { Layer::Slide, { Layer::Note, Layer::NoteVariationProbability } },
+            { Layer::Condition, { Layer::Condition, Layer::Condition } },
+            { Layer::Last, { Layer::Last, Layer::Last } },
+        };
 
         if (trackEngine.playMode() == Types::PlayMode::Aligned) {
             layerMap.insert(layerMapAlignedTrack.begin(), layerMapAlignedTrack.end());
