@@ -416,18 +416,25 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
 }
 
 void NoteSequenceEditPage::encoder(EncoderEvent &event) {
+    auto &trackEngine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
     auto &sequence = _project.selectedNoteSequence();
     const auto &scale = sequence.selectedScale(_project.scale());
 
     if (!_stepSelection.any()) {
+        std::unordered_map<NoteSequence::Layer, std::pair<NoteSequence::Layer, NoteSequence::Layer>> layerMapAlignedTrack = {
+            { Layer::Retrigger, { Layer::RetriggerProbability, Layer::RetriggerProbability } },
+            { Layer::RetriggerProbability, { Layer::Retrigger, Layer::Retrigger } },
+        };
+        std::unordered_map<NoteSequence::Layer, std::pair<NoteSequence::Layer, NoteSequence::Layer>> layerMapFreeTrack = {
+            { Layer::Retrigger, { Layer::RetriggerProbability, Layer::StageRepeatsMode } },
+            { Layer::RetriggerProbability, { Layer::StageRepeats, Layer::Retrigger } },
+            { Layer::StageRepeats, { Layer::StageRepeatsMode, Layer::RetriggerProbability } },
+            { Layer::StageRepeatsMode, { Layer::Retrigger, Layer::StageRepeats } },
+        };
         std::unordered_map<NoteSequence::Layer, std::pair<NoteSequence::Layer, NoteSequence::Layer>> layerMap = {
             { Layer::Gate, { Layer::GateOffset, Layer::GateProbability } },
             { Layer::GateOffset, { Layer::GateProbability, Layer::Gate } },
             { Layer::GateProbability, { Layer::Gate, Layer::GateOffset } },
-            { Layer::Retrigger, { Layer::RetriggerProbability, Layer::StageRepeatsMode } },
-            { Layer::RetriggerProbability, { Layer::StageRepeatsMode, Layer::Retrigger } },
-            { Layer::StageRepeatsMode, { Layer::Retrigger, Layer::RetriggerProbability } },
-            { Layer::StageRepeats, { Layer::StageRepeatsMode, Layer::RetriggerProbability } },
             { Layer::Length, { Layer::LengthVariationRange, Layer::LengthVariationProbability } },
             { Layer::LengthVariationRange, { Layer::LengthVariationProbability, Layer::Length } },
             { Layer::LengthVariationProbability, { Layer::Length, Layer::LengthVariationRange } },
@@ -438,6 +445,12 @@ void NoteSequenceEditPage::encoder(EncoderEvent &event) {
             { Layer::Condition, { Layer::Condition, Layer::Condition } },
             { Layer::Last, { Layer::Last, Layer::Last } },
         };
+
+        if (trackEngine.playMode() == Types::PlayMode::Aligned) {
+            layerMap.insert(layerMapAlignedTrack.begin(), layerMapAlignedTrack.end());
+        } else {
+            layerMap.insert(layerMapFreeTrack.begin(), layerMapFreeTrack.end());
+        }
         auto it = layerMap.find(layer());
         if (it != layerMap.end()) {
             setLayer(event.value() > 0 ? it->second.first : it->second.second);
@@ -539,16 +552,22 @@ void NoteSequenceEditPage::midi(MidiEvent &event) {
 }
 
 void NoteSequenceEditPage::switchLayer(int functionKey, bool shift) {
+    auto &trackEngine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
+
     if (shift) {
         switch (Function(functionKey)) {
         case Function::Gate:
             setLayer(Layer::Gate);
             break;
         case Function::Retrigger:
-            setLayer(Layer::StageRepeats);
+            if(trackEngine.playMode() == Types::PlayMode::Free) {
+                setLayer(Layer::StageRepeats);
+            }
             break;
         case Function::Length:
-            setLayer(Layer::StageRepeatsMode);
+            if(trackEngine.playMode() == Types::PlayMode::Free) {
+                setLayer(Layer::StageRepeatsMode);
+            }
             break;
         case Function::Note:
             setLayer(Layer::Slide);
@@ -580,7 +599,7 @@ void NoteSequenceEditPage::switchLayer(int functionKey, bool shift) {
             setLayer(Layer::RetriggerProbability);
             break;
         case Layer::RetriggerProbability:
-            setLayer(Layer::StageRepeats);
+            setLayer(trackEngine.playMode() == Types::PlayMode::Free ? Layer::StageRepeats : Layer::Retrigger);
             break;
         case Layer::StageRepeats:
             setLayer(Layer::StageRepeatsMode);
