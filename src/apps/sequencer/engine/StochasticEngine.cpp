@@ -144,14 +144,14 @@ TrackEngine::TickResult StochasticEngine::tick(uint32_t tick) {
                 recordStep(tick, divisor);
                 triggerStep(tick, divisor);
                 
-                /*_sequenceState.calculateNextStepAligned(
+                _sequenceState.calculateNextStepAligned(
                         (relativeTick + divisor) / divisor, 
                         sequence.runMode(),
                         sequence.firstStep(),
                         sequence.lastStep(),
                         rng
                     );
-                triggerStep(tick + divisor, divisor, true);*/
+                triggerStep(tick + divisor, divisor, true);
             }
             break;
         case Types::PlayMode::Free:
@@ -340,19 +340,16 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
     stepIndex= getNextWeightedPitch(probability, sequence.reseed());
 
-    //for (int i = 0; i < 12; ++i) {
-    //    sequence.step(i).setGate(false);    
-    //
-    //}
     auto &step = sequence.step(stepIndex);
     
-    //step.setGate(true);
-
     int gateOffset = ((int) divisor * step.gateOffset()) / (StochasticSequence::GateOffset::Max + 1);
     uint32_t stepTick = (int) tick + gateOffset;
 
     bool stepGate = evalStepGate(step, _stochasticTrack.gateProbabilityBias()) || useFillGates;
     if (stepGate) {
+        auto i = _sequenceState.iteration();
+        auto p = _prevCondition;
+
         stepGate = evalStepCondition(step, _sequenceState.iteration(), useFillCondition, _prevCondition);
     }
     switch (step.stageRepeatMode()) {
