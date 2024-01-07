@@ -112,7 +112,7 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
     SequencePainter::drawLoopStart(canvas, (sequence.firstStep() - stepOffset) * stepWidth + 1, loopY, stepWidth - 2);
     SequencePainter::drawLoopEnd(canvas, (sequence.lastStep() - stepOffset) * stepWidth + 1, loopY, stepWidth - 2);
 
-    for (int i = 0; i < StepCount; ++i) {
+    for (int i = 0; i < 12; ++i) {
         int stepIndex = stepOffset + i;
         const auto &step = sequence.step(stepIndex);
 
@@ -221,13 +221,19 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
             canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
             break;
         }
-        case Layer::NoteVariationProbability:
+        case Layer::NoteVariationProbability: {
             SequencePainter::drawProbability(
                 canvas,
                 x + 2, y + 18, stepWidth - 4, 2,
                 step.noteVariationProbability() + 1, StochasticSequence::NoteVariationProbability::Range
             );
+            int rootNote = sequence.selectedRootNote(_model.project().rootNote());
+            canvas.setColor(Color::Bright);
+            FixedStringBuilder<8> str;
+            scale.noteName(str, step.note(), rootNote, Scale::Short1);
+            canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
             break;
+        }
         case Layer::Slide:
             SequencePainter::drawSlide(
                 canvas,
@@ -569,7 +575,7 @@ void StochasticSequenceEditPage::switchLayer(int functionKey, bool shift) {
     if (shift) {
         switch (Function(functionKey)) {
         case Function::Gate:
-            setLayer(Layer::Gate);
+            setLayer(Layer::GateProbability);
             break;
         case Function::Retrigger:
             setLayer(Layer::StageRepeats);
@@ -590,14 +596,14 @@ void StochasticSequenceEditPage::switchLayer(int functionKey, bool shift) {
     switch (Function(functionKey)) {
     case Function::Gate:
         switch (layer()) {
-        case Layer::Gate:
+        case Layer::GateProbability:
             setLayer(Layer::GateOffset);
             break;
         case Layer::GateOffset:
             setLayer(Layer::GateProbability);
             break;
         default:
-            setLayer(Layer::Gate);
+            setLayer(Layer::GateProbability);
             break;
         }
         break;
@@ -633,16 +639,16 @@ void StochasticSequenceEditPage::switchLayer(int functionKey, bool shift) {
     case Function::Note:
         switch (layer()) {
         case Layer::Note:
-            setLayer(Layer::NoteVariationRange);
+            //setLayer(Layer::NoteVariationRange);
             break;
         case Layer::NoteVariationRange:
-            setLayer(Layer::NoteVariationProbability);
+            //setLayer(Layer::NoteVariationProbability);
             break;
         case Layer::NoteVariationProbability:
             setLayer(Layer::Slide);
             break;
         default:
-            setLayer(Layer::Note);
+            setLayer(Layer::NoteVariationProbability);
             break;
         }
         break;

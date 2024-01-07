@@ -87,6 +87,7 @@ set(sources
     ui/pages/MonitorPage.cpp
     ui/pages/NoteSequenceEditPage.cpp
     ui/pages/NoteSequencePage.cpp
+    ui/pages/StochasticSequencePage.cpp
     ui/pages/StochasticSequenceEditPage.cpp
     ui/pages/OverviewPage.cpp
     ui/pages/PatternPage.cpp

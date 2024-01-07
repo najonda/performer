@@ -510,7 +510,7 @@ private:
     char _selectedTrackName[FileHeader::NameLength+1] = "";
     NoteSequence::Layer _selectedNoteSequenceLayer = NoteSequence::Layer(0);
     CurveSequence::Layer _selectedCurveSequenceLayer = CurveSequence::Layer(0);
-    StochasticSequence::Layer _selectedStochasticSequenceLayer = StochasticSequence::Layer(0);
+    StochasticSequence::Layer _selectedStochasticSequenceLayer = StochasticSequence::Layer(12);
 
     Observable<Event, 2> _observable;
 };

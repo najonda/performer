@@ -330,36 +330,28 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
     if (stepIndex < 0) return;
 
-
-    int maxProbability = -1;
-    int indexMaxProbability = -1;
-
     int probability[12];
+    int sum =0;
     for (int i = 0; i < 12; ++i) {
-        probability[i] = sequence.step(i).gateProbability();
+        probability[i] = clamp(sequence.step(i).noteVariationProbability() + _stochasticTrack.noteProbabilityBias(), -1, StochasticSequence::NoteVariationProbability::Max);
+        sum = sum + probability[i];
     }
+    if (sum==0) { return;}
 
 
     int *distr = get_cum_distr(probability);
     stepIndex = sampler(distr);
+    std::cerr << "STEP_INDEX: " << stepIndex << "\n";
 
-
-   /* for (int i = 0; i < 12; ++i) {
-4
-        int m = ceil((sqrt(8*sequence.step(i).gateProbability() + 1) - 1) / 2);
-        if (m > maxProbability) {
-            maxProbability = m;
-            indexMaxProbability = i;
-        }
-    }*/
 
     for (int i = 0; i < 12; ++i) {
-        sequence.step(i).setGate(false);
+        sequence.step(i).setGate(false);    
+
     }
     auto &step = sequence.step(stepIndex);
     step.setGate(true);
-    sequence.setFirstStep(indexMaxProbability);
-    sequence.setLastStep(indexMaxProbability);
+    sequence.setLastStep(stepIndex);
+    sequence.setFirstStep(stepIndex);
 
 
     int gateOffset = ((int) divisor * step.gateOffset()) / (StochasticSequence::GateOffset::Max + 1);
@@ -447,7 +439,7 @@ int * StochasticEngine::get_cum_distr(int *distr) {
     static int cum_distr[12];
     int sum = 0;
     for (int i=0; i < 12; ++i) {
-        sum += distr[i];
+        sum += (distr[i]*100)/15;
         cum_distr[i] = sum;
     }
     return cum_distr;
@@ -455,9 +447,8 @@ int * StochasticEngine::get_cum_distr(int *distr) {
 
 int StochasticEngine::sampler(int *cum_distr) {
     srand((unsigned int)time(NULL));
-    int r = 0 + ( std::rand() % ( cum_distr[11] - 0 + 1 ) );
+    int r = 1 + ( std::rand() % ( cum_distr[11] - 1 + 1 ) );
     int i = 0;
-    std::cerr << cum_distr[i] << "\n";
     while (r > cum_distr[i]) {
         i += 1;
     }
