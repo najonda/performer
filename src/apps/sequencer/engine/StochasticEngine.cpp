@@ -342,13 +342,15 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     std::cerr << "STEP_INDEX: " << stepIndex << "\n";
 
 
-    for (int i = 0; i < 12; ++i) {
-        sequence.step(i).setGate(false);    
-
-    }
+    //for (int i = 0; i < 12; ++i) {
+    //    sequence.step(i).setGate(false);    
+    //
+    //}
     auto &step = sequence.step(stepIndex);
-    step.setGate(true);
-
+    
+    sequence.setLastStep(stepIndex);
+    sequence.setFirstStep(stepIndex);
+    //step.setGate(true);
 
     int gateOffset = ((int) divisor * step.gateOffset()) / (StochasticSequence::GateOffset::Max + 1);
     uint32_t stepTick = (int) tick + gateOffset;

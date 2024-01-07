@@ -601,14 +601,14 @@ void StochasticSequenceEditPage::switchLayer(int functionKey, bool shift) {
     switch (Function(functionKey)) {
     case Function::Gate:
         switch (layer()) {
-        case Layer::GateProbability:
+        case Layer::Gate:
             setLayer(Layer::GateOffset);
             break;
         case Layer::GateOffset:
             setLayer(Layer::GateProbability);
             break;
         default:
-            setLayer(Layer::GateProbability);
+            setLayer(Layer::Gate);
             break;
         }
         break;
