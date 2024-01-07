@@ -638,6 +638,11 @@ void LaunchpadController::sequenceDrawLayer() {
         for (int i = 0; i < noteSequenceLayerMapSize; ++i) {
             const auto &item = noteSequenceLayerMap[i];
             bool selected = i == int(_project.selectedNoteSequenceLayer());
+
+            auto playMode = _engine.selectedTrackEngine().as<NoteTrackEngine>().playMode();
+            if (playMode == Types::PlayMode::Aligned && (i == 5 || i == 6)) {
+                continue;
+            } 
             setGridLed(item.row, item.col, selected ? colorYellow() : colorGreen());
         }
         break;
