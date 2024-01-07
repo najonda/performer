@@ -156,34 +156,34 @@ void SequencePainter::drawStageRepeatMode(Canvas &canvas, int x, int y, int w, i
     x += (w - 8) / 2;
 
     switch (mode) {
-        case NoteSequence::StageRepeatMode::Each:
+        case StochasticSequence::StageRepeatMode::Each:
            enabled = 0xf;
             break;
-        case NoteSequence::StageRepeatMode::First:
+        case StochasticSequence::StageRepeatMode::First:
             enabled = 0x1;
             break;
-        case NoteSequence::StageRepeatMode::Middle:
+        case StochasticSequence::StageRepeatMode::Middle:
             enabled = 0x1 << 2;
             break;
-        case NoteSequence::StageRepeatMode::Last:
+        case StochasticSequence::StageRepeatMode::Last:
             enabled = 0x8;
             break;
-        case NoteSequence::StageRepeatMode::Odd:
+        case StochasticSequence::StageRepeatMode::Odd:
             enabled = 0x5;
             break;
-        case NoteSequence::StageRepeatMode::Even:
+        case StochasticSequence::StageRepeatMode::Even:
             enabled = 0x5 << 1;
             break;
-        case NoteSequence::StageRepeatMode::Triplets:
+        case StochasticSequence::StageRepeatMode::Triplets:
             enabled = 0x9;
             break;
-        case NoteSequence::StageRepeatMode::Random:
+        case StochasticSequence::StageRepeatMode::Random:
             enabled = 0xf;
             break;
     }
 
     for (int i = 0; i < 4; i++) {
-        if (mode == NoteSequence::StageRepeatMode::Random) {
+        if (mode == StochasticSequence::StageRepeatMode::Random) {
             canvas.drawTextCentered(x,y, x+6, h, "????");
         } else {
             if (((enabled >> i) & mask) == 1) {
