@@ -46,8 +46,7 @@ public:
 
     void setMonitorStep(int index);
 
-    int* get_cum_distr(int *distr) ;
-    int sampler(int *cum_distr);
+    int getNextWeightedPitch(int *distr, bool reseed = false);
 
 private:
     void triggerStep(uint32_t tick, uint32_t divisor, bool nextStep);

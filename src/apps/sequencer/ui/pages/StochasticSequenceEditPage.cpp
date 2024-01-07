@@ -356,6 +356,11 @@ void StochasticSequenceEditPage::keyPress(KeyPressEvent &event) {
             setSectionTracking(not _sectionTracking);
             event.consume();
         }
+
+        if (key.is(Key::Step4)) {
+            sequence.setReseed(true);
+            event.consume();
+        }
         return;
     }
 

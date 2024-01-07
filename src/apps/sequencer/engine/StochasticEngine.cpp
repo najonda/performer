@@ -338,9 +338,7 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     }
     if (sum==0) { return;}
 
-
-    int *distr = get_cum_distr(probability);
-    stepIndex = sampler(distr);
+    stepIndex= getNextWeightedPitch(probability, sequence.reseed());
     std::cerr << "STEP_INDEX: " << stepIndex << "\n";
 
 
@@ -435,25 +433,29 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     }
 }
 
-int * StochasticEngine::get_cum_distr(int *distr) {
-    static int cum_distr[12];
-    int sum = 0;
-    for (int i=0; i < 12; ++i) {
-        sum += (distr[i]*100)/15;
-        cum_distr[i] = sum;
-    }
-    return cum_distr;
-}
 
-int StochasticEngine::sampler(int *cum_distr) {
-    srand((unsigned int)time(NULL));
-    int r = 1 + ( std::rand() % ( cum_distr[11] - 1 + 1 ) );
-    int i = 0;
-    while (r > cum_distr[i]) {
-        i += 1;
+int StochasticEngine::getNextWeightedPitch(int *distr, bool reseed) {
+        int total_weights = 0;
+
+        for(int i = 0; i < 12; i++) {
+            total_weights += distr[i % 12];
+        }
+
+        if (reseed) {
+            srand((unsigned int)time(NULL));
+            _sequence->setReseed(false);
+        }
+        int rnd = 1 + ( std::rand() % ( (total_weights + 1) - 1 + 1 ) );
+
+        for(int i = 0; i < 12; i++) {
+            int weight = distr[i % 12];
+            if (rnd <= weight && weight > 0) {
+                return i;
+            }
+            rnd -= weight;
+        }
+        return -1;
     }
-    return i;
-}
 
 void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor) {
     triggerStep(tick, divisor, false);

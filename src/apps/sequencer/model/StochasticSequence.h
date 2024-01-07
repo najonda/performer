@@ -473,6 +473,14 @@ public:
     void write(VersionedSerializedWriter &writer) const;
     void read(VersionedSerializedReader &reader);
 
+    bool reseed() {
+        return _reseed;
+    }
+
+    void setReseed(bool r) {
+        _reseed = r;
+    }
+
 private:
     void setTrackIndex(int trackIndex) { _trackIndex = trackIndex; }
 
@@ -495,6 +503,8 @@ private:
     Routable<Types::RunMode> _runMode;
     Routable<uint8_t> _firstStep;
     Routable<uint8_t> _lastStep;
+
+    bool _reseed = false;
 
     StepArray _steps;
 
