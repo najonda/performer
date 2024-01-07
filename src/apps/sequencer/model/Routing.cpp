@@ -215,6 +215,15 @@ void Routing::writeTarget(Target target, uint8_t tracks, float normalized) {
                         track.midiCvTrack().writeRouted(target, intValue, floatValue);
                     }
                     break;
+                case Track::TrackMode::Stochastic:
+                    if (isTrackTarget(target)) {
+                        track.stochasticTrack().writeRouted(target, intValue, floatValue);
+                    } else {
+                        for (int patternIndex = 0; patternIndex < CONFIG_PATTERN_COUNT; ++patternIndex) {
+                            track.stochasticTrack().sequence(patternIndex).writeRouted(target, intValue, floatValue);
+                        }
+                    }
+                    break;
                 case Track::TrackMode::Last:
                     break;
                 }
