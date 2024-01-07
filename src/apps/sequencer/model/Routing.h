@@ -72,7 +72,8 @@ public:
         Divisor,
         Scale,
         RootNote,
-        SequenceLast = RootNote,
+        Reseed,
+        SequenceLast = Reseed,
 
         Last,
     };
@@ -112,6 +113,7 @@ public:
         case Target::Divisor:                   return "Divisor";
         case Target::Scale:                     return "Scale";
         case Target::RootNote:                  return "Root Note";
+        case Target::Reseed:                    return "Reseed";
 
         case Target::Last:                      break;
         }
@@ -154,6 +156,7 @@ public:
 
         case Target::PlayToggle:                return 26;
         case Target::RecordToggle:              return 27;
+        case Target::Reseed:                    return 28;
 
         case Target::Last:                      break;
         }

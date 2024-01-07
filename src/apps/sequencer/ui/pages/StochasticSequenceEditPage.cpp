@@ -358,7 +358,7 @@ void StochasticSequenceEditPage::keyPress(KeyPressEvent &event) {
         }
 
         if (key.is(Key::Step4)) {
-            sequence.setReseed(true);
+            sequence.setReseed(1, false);
             event.consume();
         }
         return;

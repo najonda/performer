@@ -443,7 +443,7 @@ int StochasticEngine::getNextWeightedPitch(int *distr, bool reseed) {
 
         if (reseed) {
             srand((unsigned int)time(NULL));
-            _sequence->setReseed(false);
+            _sequence->setReseed(0, false);
         }
         int rnd = 1 + ( std::rand() % ( (total_weights + 1) - 1 + 1 ) );
 

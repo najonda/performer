@@ -232,6 +232,8 @@ void StochasticSequence::writeRouted(Routing::Target target, int intValue, float
     case Routing::Target::LastStep:
         setLastStep(intValue, true);
         break;
+    case Routing::Target::Reseed:
+        setReseed(intValue, true);
     default:
         break;
     }

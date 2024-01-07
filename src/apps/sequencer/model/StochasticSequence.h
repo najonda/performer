@@ -473,12 +473,12 @@ public:
     void write(VersionedSerializedWriter &writer) const;
     void read(VersionedSerializedReader &reader);
 
-    bool reseed() {
-        return _reseed;
+    int reseed() const {
+        return _reseed.get(isRouted(Routing::Target::Reseed));
     }
 
-    void setReseed(bool r) {
-        _reseed = r;
+    void setReseed(int r, bool routed = false) {
+        _reseed.set(r, routed);
     }
 
 private:
@@ -504,7 +504,7 @@ private:
     Routable<uint8_t> _firstStep;
     Routable<uint8_t> _lastStep;
 
-    bool _reseed = false;
+    Routable<uint8_t> _reseed;
 
     StepArray _steps;
 
