@@ -348,8 +348,6 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     }
     auto &step = sequence.step(stepIndex);
     step.setGate(true);
-    sequence.setLastStep(stepIndex);
-    sequence.setFirstStep(stepIndex);
 
 
     int gateOffset = ((int) divisor * step.gateOffset()) / (StochasticSequence::GateOffset::Max + 1);
