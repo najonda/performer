@@ -347,9 +347,6 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
     bool stepGate = evalStepGate(step, _stochasticTrack.gateProbabilityBias()) || useFillGates;
     if (stepGate) {
-        auto i = _sequenceState.iteration();
-        auto p = _prevCondition;
-
         stepGate = evalStepCondition(step, _sequenceState.iteration(), useFillCondition, _prevCondition);
     }
     switch (step.stageRepeatMode()) {
