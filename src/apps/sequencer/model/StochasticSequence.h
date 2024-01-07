@@ -436,6 +436,11 @@ public:
         str("%d", lastStep() + 1);
     }
 
+    void setStepBounds(int index) {
+        _firstStep.set(index, false);
+        _lastStep.set(index, false);
+    }
+
     // steps
 
     const StepArray &steps() const { return _steps; }

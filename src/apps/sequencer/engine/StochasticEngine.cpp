@@ -144,14 +144,14 @@ TrackEngine::TickResult StochasticEngine::tick(uint32_t tick) {
                 recordStep(tick, divisor);
                 triggerStep(tick, divisor);
                 
-                _sequenceState.calculateNextStepAligned(
+                /*_sequenceState.calculateNextStepAligned(
                         (relativeTick + divisor) / divisor, 
                         sequence.runMode(),
                         sequence.firstStep(),
                         sequence.lastStep(),
                         rng
                     );
-                triggerStep(tick + divisor, divisor, true);
+                triggerStep(tick + divisor, divisor, true);*/
             }
             break;
         case Types::PlayMode::Free:
@@ -406,8 +406,10 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     }
 
     if (stepGate) {
-        sequence.setLastStep(stepIndex);
-        sequence.setFirstStep(stepIndex);
+        std::cerr << "STEP_INDEX " << stepIndex << "\n";
+        //sequence.setLastStep(stepIndex);
+        sequence.setStepBounds(stepIndex);
+        
         uint32_t stepLength = (divisor * evalStepLength(step, _stochasticTrack.lengthBias())) / StochasticSequence::Length::Range;
         int stepRetrigger = evalStepRetrigger(step, _stochasticTrack.retriggerProbabilityBias());
         if (stepRetrigger > 1) {
