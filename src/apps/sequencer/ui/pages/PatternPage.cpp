@@ -275,7 +275,6 @@ void PatternPage::keyPress(KeyPressEvent &event) {
             if (otherKey != -1) {
                 int sedondPattern = key.step();
                 int firstPattern = otherKey;
-                std::cerr << "CHAIN PATTERN" << "\n";
                 auto &song = _project.song();
                 song.chainPattern(firstPattern);
                 song.chainPattern(sedondPattern);
