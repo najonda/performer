@@ -98,8 +98,10 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
     int stepsToDraw = scale.notesPerOctave();
     if (scale.notesPerOctave() % 16 != scale.notesPerOctave() && _section > 0) {
         stepsToDraw = scale.notesPerOctave() % 16;
+    } else if (stepsToDraw > 16) {
+        stepsToDraw = 16;
     }
-    const int loopY = stepsToDraw;
+    const int loopY = 16;
 
 
     // Track Pattern Section on the UI
