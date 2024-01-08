@@ -46,7 +46,7 @@ public:
 
     void setMonitorStep(int index);
 
-    int getNextWeightedPitch(int *distr, bool reseed = false);
+    int getNextWeightedPitch(int *distr, bool reseed = false, int notesPerOctave = 12);
 
 private:
     void triggerStep(uint32_t tick, uint32_t divisor, bool nextStep);
@@ -62,6 +62,7 @@ private:
 
     TrackLinkData _linkData;
 
+    Project _project;
     StochasticSequence *_sequence;
     const StochasticSequence *_fillSequence;
 

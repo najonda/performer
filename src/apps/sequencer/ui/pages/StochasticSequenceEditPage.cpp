@@ -64,6 +64,7 @@ void StochasticSequenceEditPage::enter() {
     updateMonitorStep();
 
     _showDetail = false;
+    _section = 0;
 }
 
 void StochasticSequenceEditPage::exit() {
@@ -94,7 +95,11 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
     const int stepWidth = Width / StepCount;
     const int stepOffset = this->stepOffset();
 
-    const int loopY = 16;
+    int stepsToDraw = scale.notesPerOctave();
+    if (scale.notesPerOctave() % 16 != scale.notesPerOctave() && _section > 0) {
+        stepsToDraw = scale.notesPerOctave() % 16;
+    }
+    const int loopY = stepsToDraw;
 
 
     // Track Pattern Section on the UI
@@ -109,14 +114,17 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
     // draw loop points
     canvas.setBlendMode(BlendMode::Set);
     canvas.setColor(Color::Bright);
-    SequencePainter::drawLoopStart(canvas, (sequence.firstStep() - stepOffset) * stepWidth + 1, loopY, stepWidth - 2);
-    SequencePainter::drawLoopEnd(canvas, (sequence.lastStep() - stepOffset) * stepWidth + 1, loopY, stepWidth - 2);
+    SequencePainter::drawLoopStart(canvas, ((sequence.firstStep() - stepOffset) * stepWidth + 1)+((16 - stepsToDraw)*stepWidth)/2, loopY, stepWidth - 2);
+    SequencePainter::drawLoopEnd(canvas, ((sequence.lastStep() - stepOffset) * stepWidth + 1)+((16 - stepsToDraw)*stepWidth)/2, loopY, stepWidth - 2);
 
-    for (int i = 0; i < 12; ++i) {
+
+  
+
+    for (int i = 0; i < stepsToDraw; ++i) {
         int stepIndex = stepOffset + i;
-        const auto &step = sequence.step(stepIndex);
+        auto &step = sequence.step(stepIndex);
 
-        int x = i * stepWidth;
+        int x = (i * stepWidth) + ((16 - stepsToDraw)*stepWidth)/2 ;
         int y = 20;
 
         // loop
@@ -404,13 +412,13 @@ void StochasticSequenceEditPage::keyPress(KeyPressEvent &event) {
         }
     }
 
-
+    const auto &scale = sequence.selectedScale(_project.scale());
     if (key.isLeft()) {
         if (key.shiftModifier()) {
             sequence.shiftSteps(_stepSelection.selected(), -1);
         } else {
             setSectionTracking(false);
-            _section = std::max(0, _section - 1);
+            _section = std::max(0, (_section - 1) );
         }
         event.consume();
     }
@@ -418,8 +426,15 @@ void StochasticSequenceEditPage::keyPress(KeyPressEvent &event) {
         if (key.shiftModifier()) {
             sequence.shiftSteps(_stepSelection.selected(), 1);
         } else {
-            setSectionTracking(false);
-            _section = std::min(3, _section + 1);
+            int stepsToDraw = scale.notesPerOctave();
+            if (scale.notesPerOctave() % 16 != scale.notesPerOctave() && _section > 0) {
+                stepsToDraw = scale.notesPerOctave() % 16;
+            }
+
+            if (stepsToDraw > 16) {
+                setSectionTracking(false);
+                _section = std::min(3, _section + 1);
+            }
         }
         event.consume();
     }
