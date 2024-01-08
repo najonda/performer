@@ -329,7 +329,7 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
                 } else {
                     const auto &sequence = _project.selectedNoteSequence();
                             const auto &scale = sequence.selectedScale(_project.scale());
-                            int rootNote = sequence.selectedRootNote(_model.project().rootNote());
+                            //int rootNote = sequence.selectedRootNote(_model.project().rootNote());
                     switch ( _project.selectedNoteSequenceLayer()) {
                         case NoteSequence::Layer::Note:
                             

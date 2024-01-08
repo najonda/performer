@@ -62,7 +62,6 @@ private:
 
     TrackLinkData _linkData;
 
-    Project _project;
     StochasticSequence *_sequence;
     const StochasticSequence *_fillSequence;
 
