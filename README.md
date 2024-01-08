@@ -4,7 +4,7 @@
 
 This is a fork of the [original repository](https://github.com/westlicht/performer), with some improvements that I personally find essential.
 
-[Full updated documentation](https://mebitek.github.io/manual/)
+[Full updated documentation](https://mebitek.github.io/performer/manual/)
 
 To find out more about improvements changes, check the table below.
 
