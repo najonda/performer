@@ -1,6 +1,7 @@
 #include "SequencePainter.h"
 #include "core/gfx/Canvas.h"
 #include "model/NoteSequence.h"
+#include "model/StochasticSequence.h"
 #include <bitset>
 
 void SequencePainter::drawLoopStart(Canvas &canvas, int x, int y, int w) {
