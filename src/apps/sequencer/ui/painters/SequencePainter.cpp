@@ -1,6 +1,7 @@
 #include "SequencePainter.h"
 #include "core/gfx/Canvas.h"
 #include "model/NoteSequence.h"
+#include "model/StochasticSequence.h"
 #include <bitset>
 
 void SequencePainter::drawLoopStart(Canvas &canvas, int x, int y, int w) {
@@ -136,7 +137,7 @@ void SequencePainter::drawStageRepeatMode(Canvas &canvas, int x, int y, int w, i
 
     for (int i = 0; i < 4; i++) {
         if (mode == NoteSequence::StageRepeatMode::Random) {
-            canvas.drawTextCentered(x,y, x+6, h, "????");
+            canvas.drawText(x-1, y+4, "????");
         } else {
             if (((enabled >> i) & mask) == 1) {
                 canvas.vline(x + 2 * i, y, h);
