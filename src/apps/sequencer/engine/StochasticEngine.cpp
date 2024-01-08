@@ -330,15 +330,17 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
     if (stepIndex < 0) return;
 
-    int probability[12];
+    auto &scale = sequence.selectedScale(_model.project().scale());
+
+    int probability[scale.notesPerOctave()];
     int sum =0;
-    for (int i = 0; i < 12; ++i) {
+    for (int i = 0; i < scale.notesPerOctave(); ++i) {
         probability[i] = clamp(sequence.step(i).noteVariationProbability() + _stochasticTrack.noteProbabilityBias(), -1, StochasticSequence::NoteVariationProbability::Max);
         sum = sum + probability[i];
     }
     if (sum==0) { return;}
 
-    stepIndex= getNextWeightedPitch(probability, sequence.reseed());
+    stepIndex= getNextWeightedPitch(probability, sequence.reseed(), scale.notesPerOctave());
 
     auto &step = sequence.step(stepIndex);
     
@@ -400,8 +402,6 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     }
 
     if (stepGate) {
-        std::cerr << "STEP_INDEX " << stepIndex << "\n";
-        //sequence.setLastStep(stepIndex);
         sequence.setStepBounds(stepIndex);
         
         uint32_t stepLength = (divisor * evalStepLength(step, _stochasticTrack.lengthBias())) / StochasticSequence::Length::Range;
@@ -428,11 +428,11 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 }
 
 
-int StochasticEngine::getNextWeightedPitch(int *distr, bool reseed) {
+int StochasticEngine::getNextWeightedPitch(int *distr, bool reseed, int notesPerOctave) {
         int total_weights = 0;
 
-        for(int i = 0; i < 12; i++) {
-            total_weights += distr[i % 12];
+        for(int i = 0; i < notesPerOctave; i++) {
+            total_weights += distr[i % notesPerOctave];
         }
 
         if (reseed) {
@@ -441,8 +441,8 @@ int StochasticEngine::getNextWeightedPitch(int *distr, bool reseed) {
         }
         int rnd = 1 + ( std::rand() % ( (total_weights) - 1 + 1 ) );
 
-        for(int i = 0; i < 12; i++) {
-            int weight = distr[i % 12];
+        for(int i = 0; i < notesPerOctave; i++) {
+            int weight = distr[i % notesPerOctave];
             if (rnd <= weight && weight > 0) {
                 return i;
             }

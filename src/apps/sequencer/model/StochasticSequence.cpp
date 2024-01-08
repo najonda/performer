@@ -256,7 +256,9 @@ void StochasticSequence::clearSteps() {
         step.clear();
     }
 
-    for (int i = 0; i < 12; ++i) {
+    
+
+    for (int i = 0; i < 64; ++i) {
         _steps[i].setGate(false);
         _steps[i].setNoteVariationProbability(0);
         _steps[i].setNote(i);
