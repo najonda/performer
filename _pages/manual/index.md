@@ -907,6 +907,11 @@ To create a pattern chain, hold `F1` and press `S[1-16]` to select the pattern t
 
 ![](images/page-song-chain-example.png)
 
+To create a pattern chain from the _pattern_ page, simply hold `S[1-16]` for the first pattern and press `S[1-16]` for the second pattern.
+Holding `S1` and pressing `S6` will create the following slot list:
+
+![](images/page-song-pattern-chain.png)
+
 > Note: When creating a pattern chain, the song is immediately activated for playback and the sequencer clock is started if not already running.
 
 <h4>Editing Slots</h4>
