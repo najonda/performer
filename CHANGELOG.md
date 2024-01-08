@@ -4,6 +4,7 @@
 - launchpad circuit mode improvements
 - random generator: random seed just on init method
 - patter follow
+- pattern chain quick shortcut from pattern page
 
 ## v0.1.46 (4 January 2024)
 

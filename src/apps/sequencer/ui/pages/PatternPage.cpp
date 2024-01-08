@@ -8,6 +8,7 @@
 #include "model/PlayState.h"
 
 #include "core/utils/StringBuilder.h"
+#include <iostream>
 
 enum class Function {
     Latch       = 0,
@@ -268,32 +269,45 @@ void PatternPage::keyPress(KeyPressEvent &event) {
             // select edit pattern
             _project.setSelectedPatternIndex(pattern);
         } else {
-            UserSettings userSettings = _model.settings().userSettings();
 
-            int _patternChangeDefault = userSettings.get<PatternChange>(SettingPatternChange)->getValue();
+            
+            int otherKey = otherPressedStepKey(key.state(), key.step());
+            if (otherKey != -1) {
+                int sedondPattern = key.step();
+                int firstPattern = otherKey;
+                auto &song = _project.song();
+                song.chainPattern(firstPattern);
+                song.chainPattern(sedondPattern);
+                
+            } else {
 
-            // select playing pattern
+                UserSettings userSettings = _model.settings().userSettings();
 
-            PlayState::ExecuteType executeType = PlayState::Immediate;
-            if (_latching) executeType = PlayState::Latched;
-            else if (_syncing && _patternChangeDefault==1) executeType = PlayState::Immediate;
-            else if (_syncing && _patternChangeDefault==0) executeType = PlayState::Synced;
-            else if (_patternChangeDefault==0) executeType = PlayState::Immediate;
-            else if (_patternChangeDefault==1) executeType = PlayState::Synced;
+                int _patternChangeDefault = userSettings.get<PatternChange>(SettingPatternChange)->getValue();
 
-            bool globalChange = true;
-            for (int trackIndex = 0; trackIndex < CONFIG_TRACK_COUNT; ++trackIndex) {
-                if (pageKeyState()[MatrixMap::fromTrack(trackIndex)]) {
-                    playState.selectTrackPattern(trackIndex, pattern, executeType);
-                    globalChange = false;
+                // select playing pattern
+
+                PlayState::ExecuteType executeType = PlayState::Immediate;
+                if (_latching) executeType = PlayState::Latched;
+                else if (_syncing && _patternChangeDefault==1) executeType = PlayState::Immediate;
+                else if (_syncing && _patternChangeDefault==0) executeType = PlayState::Synced;
+                else if (_patternChangeDefault==0) executeType = PlayState::Immediate;
+                else if (_patternChangeDefault==1) executeType = PlayState::Synced;
+
+                bool globalChange = true;
+                for (int trackIndex = 0; trackIndex < CONFIG_TRACK_COUNT; ++trackIndex) {
+                    if (pageKeyState()[MatrixMap::fromTrack(trackIndex)]) {
+                        playState.selectTrackPattern(trackIndex, pattern, executeType);
+                        globalChange = false;
+                    }
+                }
+                if (globalChange) {
+                    playState.selectPattern(pattern, executeType);
+                    _project.setSelectedPatternIndex(pattern);
                 }
             }
-            if (globalChange) {
-                playState.selectPattern(pattern, executeType);
-                _project.setSelectedPatternIndex(pattern);
-            }
+            event.consume();
         }
-        event.consume();
     }
 
     if (key.isLeft()) {
@@ -305,6 +319,19 @@ void PatternPage::keyPress(KeyPressEvent &event) {
         event.consume();
     }
 }
+
+    int *PatternPage::getPressedKeySteps(Key key) {
+        int *keys = new int [16];
+        for (int i=9, j=0; i < 25; ++i) {
+            auto s = key.state(i);
+            if (s == 1) {
+                keys[j] = i;
+                j++;
+            }
+        }
+        
+        return keys;
+    }
 
 void PatternPage::encoder(EncoderEvent &event) {
     _project.editSelectedPatternIndex(event.value(), event.pressed());
