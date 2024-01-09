@@ -1060,8 +1060,10 @@ void LaunchpadController::drawNoteSequenceNotes(const NoteSequence &sequence, No
                         if (col == 7) {
                             n = n + scale.notesPerOctave();
                         }
-                        Color color = (selectedNote - (scale.notesPerOctave()*selectedOctave))== n ? colorYellow() : colorGreen(1);
+                        Color color = (selectedNote - (scale.notesPerOctave()*selectedOctave))== n ? colorYellow() : colorGreen(3);
                         setGridLed(row, col, color);
+                    } else {
+                        setGridLed(row, col, colorGreen(1));
                     }
                 }
                 if (_engine.state().running()) {
