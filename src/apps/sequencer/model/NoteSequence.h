@@ -282,6 +282,10 @@ public:
 
         auto &aScale = selectedScale(s);
 
+        if (pScaleIndex == s) {
+            return;
+        }
+
         if (s != -1 && pScaleIndex != -1 && aScale.isChromatic() && aScale.Count > 0) {
             for (int i = 0; i < 64; ++i) {
 

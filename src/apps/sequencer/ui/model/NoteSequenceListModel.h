@@ -137,8 +137,13 @@ private:
             break;
         case Scale: {
                 int trackIndex = _sequence->trackIndex();
-                auto name = _scales[_selectedScale[trackIndex]] < 0 ? "Default" : Scale::name(_scales[_selectedScale[trackIndex]]);
-                str(name);
+                bool isRouted = Routing::isRouted(Routing::Target::Scale, trackIndex);
+                if (isRouted) {
+                    _sequence->printScale(str);
+                } else {
+                    auto name = _scales[_selectedScale[trackIndex]] < 0 ? "Default" : Scale::name(_scales[_selectedScale[trackIndex]]);
+                    str(name);
+                }
             }
             break;
         case RootNote:
@@ -167,8 +172,12 @@ private:
             _sequence->editResetMeasure(value, shift);
             break;
         case Scale: {
-            int trackIndex = _sequence->trackIndex();
-            _selectedScale[trackIndex] = clamp(_selectedScale[trackIndex] + value, 0, 23);
+                int trackIndex = _sequence->trackIndex();
+                bool isRouted = Routing::isRouted(Routing::Target::Scale, trackIndex);
+                if (!isRouted) {
+                    int trackIndex = _sequence->trackIndex();
+                    _selectedScale[trackIndex] = clamp(_selectedScale[trackIndex] + value, 0, 23);
+                }
             }
             break;
         case RootNote:
