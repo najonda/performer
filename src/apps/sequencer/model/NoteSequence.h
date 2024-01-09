@@ -286,7 +286,7 @@ public:
             return;
         }
 
-        if (s != -1 && pScaleIndex != -1 && aScale.isChromatic() && aScale.Count > 0) {
+        if (s != -1 && pScaleIndex != -1 && aScale.isChromatic() && pScale.isChromatic() > 0) {
             for (int i = 0; i < 64; ++i) {
 
                 auto pStep = _steps[i];

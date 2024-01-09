@@ -142,7 +142,7 @@ public:
 
         auto &aScale = Scale::get(s);
 
-        if (s != -1 && pScaleIndex != -1 && aScale.isChromatic()) {
+        if (s != -1 && pScaleIndex != -1 && aScale.isChromatic() && pScale.isChromatic()) {
 
             for (int trackIndex = 0; trackIndex < 8; ++trackIndex) {    
                     auto &t = track(trackIndex);
