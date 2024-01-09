@@ -75,6 +75,13 @@ void ProjectPage::keyPress(KeyPressEvent &event) {
         return;
     }
 
+    if (key.isEncoder()) {
+        auto row = ListPage::selectedRow();
+        if (row == 5) {
+            _listModel.setSelectedScale();
+        }
+    }
+
     ListPage::keyPress(event);
 }
 

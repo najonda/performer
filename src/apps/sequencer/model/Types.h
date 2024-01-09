@@ -309,6 +309,8 @@ public:
         str(names[note]);
     }
 
+    
+
     static void printMidiNote(StringBuilder &str, int midiNote) {
         printNote(str, midiNote % 12);
         int octave = midiNote / 12 - 1;
