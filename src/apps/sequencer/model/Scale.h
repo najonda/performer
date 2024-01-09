@@ -25,6 +25,7 @@ public:
     virtual bool isChromatic() const = 0;
     virtual bool isNotePresent(int note) const = 0;
     virtual int getNoteIndex(int note) const = 0;
+    virtual int noteIndex(int note, int rootNote) const = 0;
 
     virtual void noteName(StringBuilder &str, int note, int rootNote, Format format = Long) const = 0;
     virtual float noteToVolts(int note) const = 0;
@@ -111,6 +112,21 @@ public:
         }
     }
 
+    int noteIndex(int note, int rootNote) const override {
+        int octave = roundDownDivide(note, _noteCount);
+        int noteIndex = 0;
+        if (isChromatic()) {
+            noteIndex = _notes[note - octave * _noteCount] / 128 + rootNote;
+            while (noteIndex >= 12) {
+                noteIndex -= 12;
+                octave += 1;
+            }
+        } else {
+            noteIndex = note - octave * _noteCount + 1;
+        }
+        return noteIndex;
+    }
+
     float noteToVolts(int note) const override {
         int octave = roundDownDivide(note, _noteCount);
         int index = note - octave * _noteCount;
@@ -165,6 +181,10 @@ public:
     }
 
     int getNoteIndex(int note) const override {
+        return -1;
+    }
+
+    int noteIndex(int note, int rootNote) const override {
         return -1;
     }
 

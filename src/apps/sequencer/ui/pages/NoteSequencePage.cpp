@@ -1,11 +1,13 @@
 #include "NoteSequencePage.h"
 
+#include "ListPage.h"
 #include "Pages.h"
 
 #include "ui/LedPainter.h"
 #include "ui/painters/WindowPainter.h"
 
 #include "core/utils/StringBuilder.h"
+#include <iostream>
 
 enum class ContextAction {
     Init,
@@ -65,6 +67,12 @@ void NoteSequencePage::keyPress(KeyPressEvent &event) {
 
     if (!event.consumed()) {
         ListPage::keyPress(event);
+    }
+    if (key.isEncoder()) {
+        auto row = ListPage::selectedRow();
+        if (row == 5) {
+            _listModel.setSelectedScale();
+        }
     }
 }
 
