@@ -141,9 +141,9 @@ TrackEngine::TickResult NoteTrackEngine::tick(uint32_t tick) {
                 _sequenceState.advanceAligned(relativeTick / divisor, sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
                 recordStep(tick, divisor);
                 triggerStep(tick, divisor);
-                
+
                 _sequenceState.calculateNextStepAligned(
-                        (relativeTick + divisor) / divisor, 
+                        (relativeTick + divisor) / divisor,
                         sequence.runMode(),
                         sequence.firstStep(),
                         sequence.lastStep(),
@@ -166,11 +166,11 @@ TrackEngine::TickResult NoteTrackEngine::tick(uint32_t tick) {
                 recordStep(tick, divisor);
                 const auto &step = sequence.step(_sequenceState.step());
                 bool isLastStageStep = ((int) (step.stageRepeats()+1) - (int) _currentStageRepeat) <= 0;
-            
+
                 triggerStep(tick+divisor, divisor);
-                               
+
                 if (isLastStageStep) {
-                   _currentStageRepeat = 1; 
+                   _currentStageRepeat = 1;
                 } else {
                     _currentStageRepeat++;
                 }
@@ -332,7 +332,7 @@ void NoteTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextS
 
     // TODO do we need to encounter rotate?
     _currentStep = SequenceUtils::rotateStep(_sequenceState.step(), sequence.firstStep(), sequence.lastStep(), rotate);
-    
+
     int stepIndex;
 
     if (forNextStep) {
@@ -397,7 +397,7 @@ void NoteTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextS
                     case 6:
                         stepGate = stepGate && (_currentStageRepeat - 1) % 3 == 0;
                         break;
-                
+
                 }
                 break;
     }
