@@ -6,34 +6,7 @@ This is a fork of the [original repository](https://github.com/westlicht/perform
 
 [Full updated documentation](https://mebitek.github.io/performer/manual/)
 
-To find out more about improvements changes, check the table below.
-
-| Change             	| Documentation                                    	| Status |
-|--------------------	|--------------------------------------------------	| ------ |
-| Increase Retrigger    | Increase rettrigger value to 8 per step       	| done   |
-| import Metro like seq PR | [link](https://github.com/westlicht/performer/pull/259) | done |
-| import trigger negative offset PR | [link](https://github.com/westlicht/performer/pull/234) | done |
-| extend probability steps | turning the encoder results in more steps (min is 6.3%) | done |
-| add various curves | add curve half and double curves and missing reverse curves| done |
-| double click to toggle gates| double click on step to toggle a gate when editing layer other than gate| done |
-| cv outs on stop clock| cv outs remain to the last value when clock is stopped | done | 
-| random seed | each time we enter the random generator page a random seed is picked | done |
-| import curve improvements | merge jackpf shape improvements [link](https://github.com/jackpf/performer/blob/master/doc/improvements/shape-improvements.md) | done |
-| import MIDI improvements | merge jackpf MIDI improvements [link](https://github.com/jackpf/performer/blob/master/doc/improvements/midi-improvements.md) | done | 
-| import Noise Redection Improvements | merge jackpf Noise Reduction improvements [link](https://github.com/jackpf/performer/blob/master/doc/improvements/noise-reduction.md) | done |
-| track names | edit track name for each track (note, curve, midi) | done |
-| quick tie notes | select a step range, then click page+16 to tie notes. set gate lenght to max (except last selected step) and set note as first note selected | done |
-| launchpad follow mode| pressing button 6 access to follow mode per track | done |
-| launchpad slide | in slide mode now we can see the active gates | done |
-| improve solo perform | toggle solo feature and launchpad integration: pessing button 6 + A-H will toggle solo | done |
-| launchpad color theme | in user settings there is an option to chose between classic and blue launchapd color schema | done |
-| launchpad circuit note editor | novation circuit style note editor. on user setting you can choose it or leave the classic one | done |
-| step edit ui enhancements | on track and curve step edit pages, turning the encoder cycles through available layers of the selected tab | done |
-| Sync Song | sync song play with starting clock | done |
-| Perform Page | encoder to change tempo on Performer page | done
-| Metro like seq | add new repeat modes | done |
-
-[WIKI page ](https://github.com/mebitek/performer/wiki)
+To find out more about improvements changes, check [changelog](https://github.com/mebitek/performer/blob/master/CHANGELOG.md) and the [WIKI page ](https://github.com/mebitek/performer/wiki)
 
 --- original documentation below ---
 
