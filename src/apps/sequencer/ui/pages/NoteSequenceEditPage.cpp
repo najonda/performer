@@ -73,9 +73,13 @@ void NoteSequenceEditPage::exit() {
 void NoteSequenceEditPage::draw(Canvas &canvas) {
     WindowPainter::clear(canvas);
 
+    const auto &note_track = _project.selectedTrack().noteTrack();
+
     /* Prepare flags shown before mode name (top right header) */
     const char *mode_flags = NULL;
-    if (_sectionTracking) {
+
+    const auto pattern_follow = note_track.patternFollow();
+    if (pattern_follow == Types::PatternFollow::Display || pattern_follow == Types::PatternFollow::DispAndLP) {
         const char *st_flag = "F";
         mode_flags = st_flag;
     }
@@ -86,6 +90,7 @@ void NoteSequenceEditPage::draw(Canvas &canvas) {
     WindowPainter::drawFooter(canvas, functionNames, pageKeyState(), activeFunctionKey());
 
     const auto &trackEngine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
+
     const auto &sequence = _project.selectedNoteSequence();
     const auto &scale = sequence.selectedScale(_project.scale());
     int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
@@ -96,9 +101,8 @@ void NoteSequenceEditPage::draw(Canvas &canvas) {
 
     const int loopY = 16;
 
-
     // Track Pattern Section on the UI
-    if (_sectionTracking && _engine.state().running()) {
+    if (isSectionTracking() && _engine.state().running()) {
         bool section_change = bool((currentStep) % StepCount == 0); // StepCount is relative to screen
         int section_no = int((currentStep) / StepCount);
         if (section_change && section_no != _section) {
@@ -341,7 +345,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
     if (key.pageModifier()) {
         // XXX Added here, but should we move it to pageModifier structure?
         if (key.is(Key::Step5)) {
-            setSectionTracking(not _sectionTracking);
+            toggleSectionTracking();
             event.consume();
         }
         return;
@@ -944,8 +948,37 @@ void NoteSequenceEditPage::duplicateSequence() {
 /*
  * Makes the UI track the current step section
  */
-void NoteSequenceEditPage::setSectionTracking(bool track) {
-    _sectionTracking = track;
+void NoteSequenceEditPage::setSectionTracking(bool trackDisplay) {
+    auto &note_track = _project.selectedTrack().noteTrack();
+    const auto pattern_follow = note_track.patternFollow();
+
+    const bool lp_tracking =
+        (pattern_follow == Types::PatternFollow::LaunchPad ||
+         pattern_follow == Types::PatternFollow::DispAndLP);
+
+    note_track.setPatternFollow(trackDisplay, lp_tracking);
+}
+
+bool NoteSequenceEditPage::isSectionTracking() {
+    auto &note_track = _project.selectedTrack().noteTrack();
+    const auto pattern_follow = note_track.patternFollow();
+
+    return (pattern_follow == Types::PatternFollow::Display ||
+            pattern_follow == Types::PatternFollow::DispAndLP);
+}
+
+
+void NoteSequenceEditPage::toggleSectionTracking() {
+    auto &note_track = _project.selectedTrack().noteTrack();
+    const auto pattern_follow = note_track.patternFollow();
+
+    const bool disp_tracking = isSectionTracking();
+
+    const bool lp_tracking =
+        (pattern_follow == Types::PatternFollow::LaunchPad ||
+         pattern_follow == Types::PatternFollow::DispAndLP);
+
+    note_track.setPatternFollow(not disp_tracking, lp_tracking);
 }
 
 void NoteSequenceEditPage::tieNotes() {

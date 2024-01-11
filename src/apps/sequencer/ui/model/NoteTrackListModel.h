@@ -72,6 +72,7 @@ private:
         RetriggerProbabilityBias,
         LengthBias,
         NoteProbabilityBias,
+        PatternFollow,
         Last
     };
 
@@ -90,6 +91,7 @@ private:
         case RetriggerProbabilityBias: return "Retrig P. Bias";
         case LengthBias: return "Length Bias";
         case NoteProbabilityBias: return "Note P. Bias";
+        case PatternFollow: return "Pattern Follow";
         case Last:      break;
         }
         return nullptr;
@@ -140,6 +142,9 @@ private:
         case NoteProbabilityBias:
             _track->printNoteProbabilityBias(str);
             break;
+        case PatternFollow:
+            _track->printPatternFollow(str);
+            break;
         case Last:
             break;
         }
@@ -185,6 +190,9 @@ private:
             break;
         case NoteProbabilityBias:
             _track->editNoteProbabilityBias(value, shift);
+            break;
+        case PatternFollow:
+            _track->editPatternFollow(value, shift);
             break;
         case Last:
             break;
