@@ -56,12 +56,13 @@ private:
     void setSelectedStepsGate(bool gate);
 
     void setSectionTracking(bool track);
+    bool isSectionTracking();
+    void toggleSectionTracking();
 
     NoteSequence::Layer layer() const { return _project.selectedNoteSequenceLayer(); };
     void setLayer(NoteSequence::Layer layer) { _project.setSelectedNoteSequenceLayer(layer); }
 
     int _section = 0;
-    bool _sectionTracking = false;
     bool _showDetail;
     uint32_t _showDetailTicks;
 

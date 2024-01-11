@@ -14,7 +14,7 @@ public:
     //----------------------------------------
     // Types
     //----------------------------------------
-    static constexpr size_t NameLength = FileHeader::NameLength; 
+    static constexpr size_t NameLength = FileHeader::NameLength;
 
     typedef std::array<NoteSequence, CONFIG_PATTERN_COUNT + CONFIG_SNAPSHOT_COUNT> NoteSequenceArray;
 
@@ -270,6 +270,42 @@ public:
         str("%+.1f%%", noteProbabilityBias() * 12.5f);
     }
 
+    // patternFollow
+    Types::PatternFollow patternFollow() const { return _patternFollow; }
+    void setPatternFollow(const Types::PatternFollow patternFollow) {
+        _patternFollow = ModelUtils::clampedEnum(patternFollow);
+    }
+
+    void setPatternFollow(bool trackDisplay, bool trackLP) {
+
+        if (trackDisplay && trackLP) {
+            setPatternFollow(Types::PatternFollow::DispAndLP);
+            return;
+        }
+
+        else if (trackDisplay) {
+            setPatternFollow(Types::PatternFollow::Display);
+            return;
+        }
+
+        else if (trackLP) {
+            setPatternFollow(Types::PatternFollow::LaunchPad);
+            return;
+        }
+
+        setPatternFollow(Types::PatternFollow::Off);
+
+        return;
+    }
+
+    void editPatternFollow(int value, bool shift) {
+        setPatternFollow(ModelUtils::adjustedEnum(patternFollow(), value));
+    }
+
+    void printPatternFollow(StringBuilder &str) const {
+        str(Types::patternFollowName(patternFollow()));
+    }
+
     // sequences
 
     const NoteSequenceArray &sequences() const { return _sequences; }
@@ -319,6 +355,7 @@ private:
     Routable<int8_t> _retriggerProbabilityBias;
     Routable<int8_t> _lengthBias;
     Routable<int8_t> _noteProbabilityBias;
+    Types::PatternFollow _patternFollow;
 
     NoteSequenceArray _sequences;
 
