@@ -1831,8 +1831,8 @@ Requested patterns due to latching or syncing are shown in dim green.
 
 The visualization on the grid follows this schema:
 * First 2 rows represent the gates from `S[1-16]`
-* row 4 represents the semitones of a chromatic scale, selected note is highlighted
-* row 5 represents the tones of a chromatic scale, selected note is highlighted
+* row 4 represents the semitones of a chromatic scale, selected note is highlighted, available notes in the scale are highlighted
+* row 5 represents the tones of a chromatic scale, selected note is highlighted, available notes in the scale are highlighted
 * row 7 represents the octave switcher from -4 to 3 octave, selected octave is highlighted
 
 - if you press a button in the gates representation you will toggle the gate
