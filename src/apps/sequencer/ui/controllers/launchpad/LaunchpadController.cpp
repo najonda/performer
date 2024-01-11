@@ -105,7 +105,6 @@ static const RangeMap *curveSequenceLayerRangeMap[] = {
     [int(CurveSequence::Layer::GateProbability)]            = nullptr,
 };
 
-bool _followMode[8];
 std::map<int8_t, int> dict;
 
 UserSettings _userSettings;
@@ -327,74 +326,85 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
                 if (_noteStyle == 0) {
                     sequenceEditStep(button.row, button.col);
                 } else {
-                    const auto &sequence = _project.selectedNoteSequence();
-                            const auto &scale = sequence.selectedScale(_project.scale());
-                            int rootNote = sequence.selectedRootNote(_model.project().rootNote());
-                    switch ( _project.selectedNoteSequenceLayer()) {
-                        case NoteSequence::Layer::Note:
-                            
-                            if (button.row >=3 && button.row <= 4) {
-                                int ft = -1;
-                                if (button.row == 3) {
-                                    ft = semitones[button.col];
-                                } else if (button.row == 4) {
-                                    ft = tones[button.col];
-                                }
-                                 if (scale.isNotePresent(ft)) {
-                                        int noteIndex = scale.getNoteIndex(ft);
-                                        selectedNote = noteIndex + (scale.notesPerOctave()*selectedOctave);
-                                        if (button.col == 7) {
-                                            selectedNote = selectedNote + scale.notesPerOctave();
+                    switch (_project.selectedTrack().trackMode()) {
+                        case (Track::TrackMode::Note): {
+                            const auto &sequence = _project.selectedNoteSequence();
+                                    const auto &scale = sequence.selectedScale(_project.scale());
+                                    int rootNote = sequence.selectedRootNote(_model.project().rootNote());
+                            switch ( _project.selectedNoteSequenceLayer()) {
+                                case NoteSequence::Layer::Note:
+                                    
+                                    if (button.row >=3 && button.row <= 4) {
+                                        int ft = -1;
+                                        if (button.row == 3) {
+                                            ft = semitones[button.col];
+                                        } else if (button.row == 4) {
+                                            ft = tones[button.col];
+                                        }
+                                        if (scale.isNotePresent(ft)) {
+                                                int noteIndex = scale.getNoteIndex(ft);
+                                                selectedNote = noteIndex + (scale.notesPerOctave()*selectedOctave);
+                                                if (button.col == 7) {
+                                                    selectedNote = selectedNote + scale.notesPerOctave();
+                                                }
+                                            }
+                                        break;
+                                    } else if (button.row >= 0 && button.row <= 2) {
+                                        auto &sequence = _project.selectedNoteSequence();
+                                        auto layer = _project.selectedNoteSequenceLayer();
+                                        int ofs = _sequence.navigation.col * 16;
+                                        int linearIndex = button.col + ofs + (button.row*8);
+                                        if (isNoteKeyboardPressed()) { 
+                                            sequence.step(linearIndex).setLayerValue(layer, selectedNote);
+                                            if (!sequence.step(linearIndex).gate()) {
+                                                sequence.step(linearIndex).toggleGate();    
+                                            }
+                                        } else {
+                                            sequence.step(linearIndex).toggleGate();
+                                        }
+                                        break;
+                                    } else if (button.row == 6) {
+                                        switch (button.col) {
+                                            case 0:
+                                                selectedOctave = -4;
+                                                break;
+                                            case 1:
+                                                selectedOctave = -3;
+                                                break;
+                                            case 2:
+                                                selectedOctave = -2;
+                                                break;
+                                            case 3:
+                                                selectedOctave = -1;
+                                                break;
+                                            case 4:
+                                                selectedOctave = 0;
+                                                break;
+                                            case 5:
+                                                selectedOctave = 1;
+                                                break;
+                                            case 6:
+                                                selectedOctave = 2;
+                                                break;
+                                            case 7:
+                                                selectedOctave = 3;
+                                                break;
+                                            default:
+                                                break;
                                         }
                                     }
+                                default:
+                                    sequenceEditStep(button.row, button.col);
+                                    break;
                                 break;
-                            } else if (button.row >= 0 && button.row <= 2) {
-                                auto &sequence = _project.selectedNoteSequence();
-                                auto layer = _project.selectedNoteSequenceLayer();
-                                int ofs = _sequence.navigation.col * 16;
-                                int linearIndex = button.col + ofs + (button.row*8);
-                                if (isNoteKeyboardPressed()) { 
-                                    sequence.step(linearIndex).setLayerValue(layer, selectedNote);
-                                    if (!sequence.step(linearIndex).gate()) {
-                                        sequence.step(linearIndex).toggleGate();    
-                                    }
-                                } else {
-                                    sequence.step(linearIndex).toggleGate();
-                                }
-                                break;
-                            } else if (button.row == 6) {
-                                switch (button.col) {
-                                    case 0:
-                                        selectedOctave = -4;
-                                        break;
-                                    case 1:
-                                        selectedOctave = -3;
-                                        break;
-                                    case 2:
-                                        selectedOctave = -2;
-                                        break;
-                                    case 3:
-                                        selectedOctave = -1;
-                                        break;
-                                    case 4:
-                                        selectedOctave = 0;
-                                        break;
-                                    case 5:
-                                        selectedOctave = 1;
-                                        break;
-                                    case 6:
-                                        selectedOctave = 2;
-                                        break;
-                                    case 7:
-                                        selectedOctave = 3;
-                                        break;
-                                    default:
-                                        break;
-                                }
                             }
-                        default:
+                        }
+                        case Track::TrackMode::Curve:
                             sequenceEditStep(button.row, button.col);
                             break;
+                        default:
+                            break;
+                        
                     }
                 }
                 
@@ -546,10 +556,15 @@ void LaunchpadController::sequenceSetRunMode(int mode) {
 }
 
 void LaunchpadController::sequenceSetFollowMode(int col) {
-    if (_followMode[col]) {
-        _followMode[col] = false;
-    } else {
-        _followMode[col] = true;
+    switch (_project.selectedTrack().trackMode()) {
+    case Track::TrackMode::Note:
+        _project.selectedTrack().noteTrack().setPatternFollow(Types::PatternFollow(col));
+        break;
+    case Track::TrackMode::Curve:
+        _project.selectedTrack().curveTrack().setPatternFollow(Types::PatternFollow(col));
+        break;
+    default:
+        break;
     }
 }
 
@@ -691,10 +706,18 @@ void LaunchpadController::sequenceDrawRunMode() {
 }
 
 void LaunchpadController::sequenceDrawFollowMode() {
-    for (int i= 0; i < 8; ++i) {
-        setGridLed(0, i, _followMode[i] ? colorGreen() : colorRed());
+    switch (_project.selectedTrack().trackMode()) {
+        case Track::TrackMode::Note: {
+            drawEnum(_project.selectedTrack().noteTrack().patternFollow());
+            break;
+        }
+        case Track::TrackMode::Curve: {
+            drawEnum(_project.selectedTrack().curveTrack().patternFollow());
+            break;
+        }
+        default:
+            break;
     }
-    
 }
 
 void LaunchpadController::sequenceDrawSequence() {
@@ -1170,19 +1193,40 @@ void LaunchpadController::drawCurveSequenceDots(const CurveSequence &sequence, C
 void LaunchpadController::followModeAction(int currentStep, int lastStep) {
 
     int trackIndex = _project.selectedTrack().trackIndex();
-    if (_followMode[trackIndex] && _engine.state().running()) {
 
-            int g = currentStep / 8;
-            if (_project.selectedNoteSequenceLayer()==NoteSequence::Layer::Note) {
-                g = currentStep / 16;
+    if (_engine.state().running()) {
+        bool followMode = false;
+        int g = currentStep / 8;
+        switch (_project.selectedTrack().trackMode()) {
+            case Track::TrackMode::Note: {
+                auto mode = _project.selectedTrack().noteTrack().patternFollow();
+                if (mode == Types::PatternFollow::LaunchPad || mode == Types::PatternFollow::DispAndLP) {
+                    followMode = true;
+                    if (_project.selectedNoteSequenceLayer()==NoteSequence::Layer::Note) {
+                        g = currentStep / 16;
+                    }
+                }
+                break;
             }
+            case Track::TrackMode::Curve: {
+                auto mode = _project.selectedTrack().curveTrack().patternFollow();
+                if (mode == Types::PatternFollow::LaunchPad || mode == Types::PatternFollow::DispAndLP) {
+                    followMode = true;
+                }
+                break;
+            }
+            default:
+                break;
+        }
             
+        if (followMode) {
             int row = dict.at(_sequence.navigation.row);
             Button button = Button(row,g);
             if (currentStep == lastStep) {
                 button = Button(row,0);
             }
             navigationButtonDown(_sequence.navigation, button);    
+        }
     }
 }
 

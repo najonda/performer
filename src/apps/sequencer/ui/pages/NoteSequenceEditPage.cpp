@@ -344,7 +344,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
 
     if (key.pageModifier()) {
         // XXX Added here, but should we move it to pageModifier structure?
-        if (key.is(Key::Step5)) {
+        if (key.is(Key::Step15)) {
             toggleSectionTracking();
             event.consume();
         }
@@ -394,6 +394,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
         } else {
             setSelectedStepsGate(true);
         }
+        event.consume();
     }
 
 
