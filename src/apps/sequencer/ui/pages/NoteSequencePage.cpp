@@ -71,7 +71,7 @@ void NoteSequencePage::keyPress(KeyPressEvent &event) {
     if (key.isEncoder()) {
         auto row = ListPage::selectedRow();
         if (row == 5) {
-            _listModel.setSelectedScale();
+            _listModel.setSelectedScale(_project.scale());
         }
     }
 }

@@ -92,9 +92,9 @@ public:
         }
     }
 
-    void setSelectedScale() {
+    void setSelectedScale(int defaultScale) {
         if (_editScale) {
-            _sequence->editScale(_scales[_selectedScale[_sequence->trackIndex()]], false);
+            _sequence->editScale(_scales[_selectedScale[_sequence->trackIndex()]], false, defaultScale);
         }
         _editScale = !_editScale;
     }

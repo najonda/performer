@@ -135,14 +135,13 @@ public:
 
     int scale() const { return _scale; }
     void setScale(int s) {
-        int pScaleIndex = scale();
         auto &pScale = Scale::get(scale());
 
         _scale = clamp(s, 0, Scale::Count - 1);
 
         auto &aScale = Scale::get(s);
 
-        if (s != -1 && pScaleIndex != -1 && aScale.isChromatic() && pScale.isChromatic()) {
+        if (s != -1 && aScale.isChromatic() && pScale.isChromatic()) {
 
             for (int trackIndex = 0; trackIndex < 8; ++trackIndex) {    
                     auto &t = track(trackIndex);
