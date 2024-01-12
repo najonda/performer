@@ -117,6 +117,8 @@ private:
     void sequenceDrawNoteSequence();
     void sequenceDrawCurveSequence();
 
+    void manageCircuitKeyboard(const Button &button);
+
     // Pattern mode
     void patternEnter();
     void patternExit();
@@ -176,6 +178,10 @@ private:
     template<typename T>
     bool buttonState() const {
         return buttonState(T::row, T::col);
+    }
+
+    int getMapValue(const std::map<int, int> map, int index) {
+        return map.find(index) != map.end() ? map.at(index) : -1;
     }
 
     struct {

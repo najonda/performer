@@ -113,12 +113,12 @@ int _patternChangeDefault = 0;
 int _noteStyle = 0;
 
 int noteGridValues[] = { 0,1,1,0,1,1,1,0, 1, 1, 1, 1, 1, 1, 1, 1};
-std::set<int> semitonesIndex = { 1,3,6,8,10};
-std::map<int, int> semitones = {{1, 1}, {2, 3}, {4, 6}, {5,8}, {6, 10 }};
-std::map<int, int> tones = {{0,0}, {1,2}, {2, 4}, {3, 5}, {4, 7}, {5, 9}, {6, 11}, {7, 12}};
+std::set<int> semitonesIndex = { 1, 3, 6, 8, 10 };
+static const std::map<int, int> semitones = {{1, 1}, {2, 3}, {4, 6}, {5,8}, {6, 10 }};
+static const std::map<int, int> tones = {{0,0}, {1,2}, {2, 4}, {3, 5}, {4, 7}, {5, 9}, {6, 11}, {7, 12}};
 int selectedNote = 0;
 int selectedOctave = 0;
-std::map<int, int> octaveMap = { {0, -4}, {1, -3}, {2, -2}, {3, -1}, {4, 0}, {5, 1}, {6, 2}, {7, 3}};
+static const std::map<int, int> octaveMap = { {0, -4}, {1, -3}, {2, -2}, {3, -1}, {4, 0}, {5, 1}, {6, 2}, {7, 3}};
 
 LaunchpadController::LaunchpadController(ControllerManager &manager, Model &model, Engine &engine, const ControllerInfo &info) :
     Controller(manager, model, engine),
@@ -328,76 +328,7 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
                 } else {
                     switch (_project.selectedTrack().trackMode()) {
                         case (Track::TrackMode::Note): {
-                            const auto &sequence = _project.selectedNoteSequence();
-                                    const auto &scale = sequence.selectedScale(_project.scale());
-                                    int rootNote = sequence.selectedRootNote(_model.project().rootNote());
-                            switch ( _project.selectedNoteSequenceLayer()) {
-                                case NoteSequence::Layer::Note:
-                                    
-                                    if (button.row >=3 && button.row <= 4) {
-                                        int ft = -1;
-                                        if (button.row == 3) {
-                                            ft = semitones[button.col];
-                                        } else if (button.row == 4) {
-                                            ft = tones[button.col];
-                                        }
-                                        if (scale.isNotePresent(ft)) {
-                                                int noteIndex = scale.getNoteIndex(ft);
-                                                selectedNote = noteIndex + (scale.notesPerOctave()*selectedOctave);
-                                                if (button.col == 7) {
-                                                    selectedNote = selectedNote + scale.notesPerOctave();
-                                                }
-                                            }
-                                        break;
-                                    } else if (button.row >= 0 && button.row <= 2) {
-                                        auto &sequence = _project.selectedNoteSequence();
-                                        auto layer = _project.selectedNoteSequenceLayer();
-                                        int ofs = _sequence.navigation.col * 16;
-                                        int linearIndex = button.col + ofs + (button.row*8);
-                                        if (isNoteKeyboardPressed()) { 
-                                            sequence.step(linearIndex).setLayerValue(layer, selectedNote);
-                                            if (!sequence.step(linearIndex).gate()) {
-                                                sequence.step(linearIndex).toggleGate();    
-                                            }
-                                        } else {
-                                            sequence.step(linearIndex).toggleGate();
-                                        }
-                                        break;
-                                    } else if (button.row == 6) {
-                                        switch (button.col) {
-                                            case 0:
-                                                selectedOctave = -4;
-                                                break;
-                                            case 1:
-                                                selectedOctave = -3;
-                                                break;
-                                            case 2:
-                                                selectedOctave = -2;
-                                                break;
-                                            case 3:
-                                                selectedOctave = -1;
-                                                break;
-                                            case 4:
-                                                selectedOctave = 0;
-                                                break;
-                                            case 5:
-                                                selectedOctave = 1;
-                                                break;
-                                            case 6:
-                                                selectedOctave = 2;
-                                                break;
-                                            case 7:
-                                                selectedOctave = 3;
-                                                break;
-                                            default:
-                                                break;
-                                        }
-                                    }
-                                default:
-                                    sequenceEditStep(button.row, button.col);
-                                    break;
-                                break;
-                            }
+                            manageCircuitKeyboard(button);
                         }
                         case Track::TrackMode::Curve:
                             sequenceEditStep(button.row, button.col);
@@ -438,18 +369,94 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
     }
 }
 
+void LaunchpadController::manageCircuitKeyboard(const Button &button) {
+    const auto &sequence = _project.selectedNoteSequence();
+    const auto &scale = sequence.selectedScale(_project.scale());
+    switch ( _project.selectedNoteSequenceLayer()) {
+        case NoteSequence::Layer::Note:
+            
+            if (button.row >=3 && button.row <= 4) {
+                int ft = -1;
+                if (button.row == 3) {
+                    ft = getMapValue(semitones, button.col);
+                } else if (button.row == 4) {
+                    ft = getMapValue(tones, button.col);
+                }
+                if (scale.isNotePresent(ft)) {
+                        int noteIndex = scale.getNoteIndex(ft);
+                        selectedNote = noteIndex + (scale.notesPerOctave()*selectedOctave);
+                        if (button.col == 7) {
+                            selectedNote = selectedNote + scale.notesPerOctave();
+                        }
+                    }
+                break;
+            } else if (button.row >= 0 && button.row <= 2) {
+                auto &sequence = _project.selectedNoteSequence();
+                auto layer = _project.selectedNoteSequenceLayer();
+                int ofs = _sequence.navigation.col * 16;
+                int linearIndex = button.col + ofs + (button.row*8);
+                if (isNoteKeyboardPressed()) { 
+                    sequence.step(linearIndex).setLayerValue(layer, selectedNote);
+                    if (!sequence.step(linearIndex).gate()) {
+                        sequence.step(linearIndex).toggleGate();    
+                    }
+                } else {
+                    sequence.step(linearIndex).toggleGate();
+                }
+                break;
+            } else if (button.row == 6) {
+                switch (button.col) {
+                    case 0:
+                        selectedOctave = -4;
+                        break;
+                    case 1:
+                        selectedOctave = -3;
+                        break;
+                    case 2:
+                        selectedOctave = -2;
+                        break;
+                    case 3:
+                        selectedOctave = -1;
+                        break;
+                    case 4:
+                        selectedOctave = 0;
+                        break;
+                    case 5:
+                        selectedOctave = 1;
+                        break;
+                    case 6:
+                        selectedOctave = 2;
+                        break;
+                    case 7:
+                        selectedOctave = 3;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        default:
+            sequenceEditStep(button.row, button.col);
+            break;
+        break;
+    }   
+}
+
 bool LaunchpadController::isNoteKeyboardPressed() {
     const auto &sequence = _project.selectedNoteSequence();
     const auto &scale = sequence.selectedScale(_project.scale());
     for (int col = 0; col <= 7; ++col) {
         if (buttonState(3, col)) {
-            if (scale.isNotePresent(semitones[col])) {
-                return true;
+            if (semitones.find(col) != semitones.end()) {
+                if (scale.isNotePresent(semitones.at(col))) {
+                    return true;
+                }
             }
         }
         if (buttonState(4, col)) {
-            if (scale.isNotePresent(tones[col])) {
-                return true;
+            if (tones.find(col) != tones.end()) {
+                if (scale.isNotePresent(tones.at(col))) {
+                    return true;
+                }
             }
         }
    
@@ -1074,9 +1081,9 @@ void LaunchpadController::drawNoteSequenceNotes(const NoteSequence &sequence, No
                 int index = (col+((row-3)*8));
             
                 if (noteGridValues[index]==1) {
-                    int n = semitones[index];
+                    int n = getMapValue(semitones, index);
                     if (row == 4) {
-                        n = tones[col];
+                        n = getMapValue(tones, col);
                     }
                     if (scale.isNotePresent(n)) {
                         n = scale.getNoteIndex(n);
@@ -1122,7 +1129,7 @@ void LaunchpadController::drawNoteSequenceNotes(const NoteSequence &sequence, No
 
         // draw octave
         for (int col = 0; col < 8; ++col) {
-            int o = octaveMap.at(col);
+            int o = getMapValue(octaveMap, col);
             setGridLed(6, col, o==selectedOctave ? colorYellow(): colorYellow(1));
 
             if (_engine.state().running()) {
@@ -1191,9 +1198,6 @@ void LaunchpadController::drawCurveSequenceDots(const CurveSequence &sequence, C
 }
 
 void LaunchpadController::followModeAction(int currentStep, int lastStep) {
-
-    int trackIndex = _project.selectedTrack().trackIndex();
-
     if (_engine.state().running()) {
         bool followMode = false;
         int g = currentStep / 8;
