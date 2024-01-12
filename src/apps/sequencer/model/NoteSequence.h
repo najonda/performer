@@ -318,11 +318,7 @@ public:
 
     void editScale(int value, bool shift, int defaultScale = 0) {
         if (!isRouted(Routing::Target::Scale)) {
-<<<<<<< HEAD
             setScale(value, false, defaultScale);
-=======
-            setScale(value, defaultScale);
->>>>>>> a49b50ed21597be27e386033ceffa41def74e5b2
         }
     }
 
