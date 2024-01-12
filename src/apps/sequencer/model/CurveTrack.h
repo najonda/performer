@@ -1,5 +1,7 @@
 #pragma once
 
+#include "BaseTrack.h"
+#include "BaseTrackPatternFollow.h"
 #include "Config.h"
 #include "Types.h"
 #include "CurveSequence.h"
@@ -8,13 +10,11 @@
 #include "FileDefs.h"
 #include "core/utils/StringUtils.h"
 
-class CurveTrack {
+class CurveTrack : public BaseTrack, public BaseTrackPatternFollow {
 public:
     //----------------------------------------
     // Types
     //----------------------------------------
-
-    static constexpr size_t NameLength = FileHeader::NameLength; 
 
     typedef std::array<CurveSequence, CONFIG_PATTERN_COUNT + CONFIG_SNAPSHOT_COUNT> CurveSequenceArray;
 
@@ -61,13 +61,6 @@ public:
     //----------------------------------------
     // Properties
     //----------------------------------------
-
-    // name
-        // name
-    const char *name() const { return _name; }
-    void setName(const char *name) {
-        StringUtils::copy(_name, name, sizeof(_name));
-    }
 
     // playMode
 
@@ -205,42 +198,6 @@ public:
         str("%+.1f%%", gateProbabilityBias() * 12.5f);
     }
 
-        // patternFollow
-    Types::PatternFollow patternFollow() const { return _patternFollow; }
-    void setPatternFollow(const Types::PatternFollow patternFollow) {
-        _patternFollow = ModelUtils::clampedEnum(patternFollow);
-    }
-
-    void setPatternFollow(bool trackDisplay, bool trackLP) {
-
-        if (trackDisplay && trackLP) {
-            setPatternFollow(Types::PatternFollow::DispAndLP);
-            return;
-        }
-
-        else if (trackDisplay) {
-            setPatternFollow(Types::PatternFollow::Display);
-            return;
-        }
-
-        else if (trackLP) {
-            setPatternFollow(Types::PatternFollow::LaunchPad);
-            return;
-        }
-
-        setPatternFollow(Types::PatternFollow::Off);
-
-        return;
-    }
-
-    void editPatternFollow(int value, bool shift) {
-        setPatternFollow(ModelUtils::adjustedEnum(patternFollow(), value));
-    }
-
-    void printPatternFollow(StringBuilder &str) const {
-        str(Types::patternFollowName(patternFollow()));
-    }
-
     // sequences
 
     const CurveSequenceArray &sequences() const { return _sequences; }
@@ -277,7 +234,6 @@ private:
     }
 
     int8_t _trackIndex = -1;
-    char _name[NameLength + 1];
     Types::PlayMode _playMode;
     FillMode _fillMode;
     MuteMode _muteMode;
@@ -286,7 +242,6 @@ private:
     Routable<int8_t> _rotate;
     Routable<int8_t> _shapeProbabilityBias;
     Routable<int8_t> _gateProbabilityBias;
-    Types::PatternFollow _patternFollow;
 
     CurveSequenceArray _sequences;
 
