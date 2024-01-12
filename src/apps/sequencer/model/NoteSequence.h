@@ -273,20 +273,19 @@ public:
     // scale
 
     int scale() const { return _scale.get(isRouted(Routing::Target::Scale)); }
-    void setScale(int s, bool routed = false) {
+    void setScale(int s, bool routed = false, int defaultScale = 0) {
 
-        int pScaleIndex = scale();
-        auto &pScale = selectedScale(scale());
+        auto &pScale = selectedScale(defaultScale);
 
         _scale.set(clamp(s, -1, Scale::Count - 1), routed);
 
         auto &aScale = selectedScale(s);
 
-        if (pScaleIndex == s) {
+        if (pScale == aScale) {
             return;
         }
 
-        if (s != -1 && pScaleIndex != -1 && aScale.isChromatic() && pScale.isChromatic() > 0) {
+        if (s != -1 && aScale.isChromatic() && pScale.isChromatic() > 0) {
             for (int i = 0; i < 64; ++i) {
 
                 auto pStep = _steps[i];
@@ -317,9 +316,9 @@ public:
         setScale(index - 1);
     }
 
-    void editScale(int value, bool shift) {
+    void editScale(int value, bool shift, int defaultScale = 0) {
         if (!isRouted(Routing::Target::Scale)) {
-            setScale(value);
+            setScale(value, false, defaultScale);
         }
     }
 

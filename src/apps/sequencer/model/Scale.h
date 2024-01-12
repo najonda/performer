@@ -37,6 +37,12 @@ public:
     static const Scale &get(int index);
     static const char *name(int index);
 
+    bool operator==(const Scale& rhs) const
+    {
+        return (_displayName == rhs._displayName);
+    
+    }
+
 private:
     const char *displayName() const { return _displayName; }
 
