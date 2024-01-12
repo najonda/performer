@@ -105,20 +105,19 @@ static const RangeMap *curveSequenceLayerRangeMap[] = {
     [int(CurveSequence::Layer::GateProbability)]            = nullptr,
 };
 
-static const std::map<int8_t, int> nativationRowMap = {{'\x03', 0}, {'\x02', 1}, {'\x01', 2}, {'\x00', 3}, {'\xff', 4}, {'\xfe', 5}, {'\xfd', 6}, {'\xfe', 7}};
-
 UserSettings _userSettings;
 int _style = 0;
 int _patternChangeDefault = 0;
 int _noteStyle = 0;
 
-int noteGridValues[] = { 0,1,1,0,1,1,1,0, 1, 1, 1, 1, 1, 1, 1, 1};
-std::set<int> semitonesIndex = { 1, 3, 6, 8, 10 };
+static const std::map<int8_t, int> nativationRowMap = {{'\x03', 0}, {'\x02', 1}, {'\x01', 2}, {'\x00', 3}, {'\xff', 4}, {'\xfe', 5}, {'\xfd', 6}, {'\xfe', 7}};
+static const int noteGridValues[] = { 0,1,1,0,1,1,1,0, 1, 1, 1, 1, 1, 1, 1, 1};
 static const std::map<int, int> semitones = {{1, 1}, {2, 3}, {4, 6}, {5,8}, {6, 10 }};
 static const std::map<int, int> tones = {{0,0}, {1,2}, {2, 4}, {3, 5}, {4, 7}, {5, 9}, {6, 11}, {7, 12}};
+static const std::map<int, int> octaveMap = { {0, -4}, {1, -3}, {2, -2}, {3, -1}, {4, 0}, {5, 1}, {6, 2}, {7, 3}};
+
 int selectedNote = 0;
 int selectedOctave = 0;
-static const std::map<int, int> octaveMap = { {0, -4}, {1, -3}, {2, -2}, {3, -1}, {4, 0}, {5, 1}, {6, 2}, {7, 3}};
 
 LaunchpadController::LaunchpadController(ControllerManager &manager, Model &model, Engine &engine, const ControllerInfo &info) :
     Controller(manager, model, engine),
