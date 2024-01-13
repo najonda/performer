@@ -8,6 +8,7 @@
 #include "model/StochasticSequence.h"
 #include "StepRecorder.h"
 #include <valarray>
+#include <vector>
 
 class StochasticStep {
         public:
@@ -70,7 +71,7 @@ public:
 
     void setMonitorStep(int index);
 
-    int getNextWeightedPitch(StochasticStep *distr, bool reseed = false, int notesPerOctave = 12);
+    int getNextWeightedPitch(std::vector<StochasticStep> distr, bool reseed = false, int notesPerOctave = 12);
 
 private:
     void triggerStep(uint32_t tick, uint32_t divisor, bool nextStep);

@@ -347,11 +347,11 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
     auto &scale = sequence.selectedScale(_model.project().scale());
 
-    StochasticStep probability[12];
+    std::vector<StochasticStep> probability;
     int sum =0;
     for (int i = 0; i < scale.notesPerOctave(); i++) {
-        probability[i] = StochasticStep(i, clamp(sequence.step(i).noteVariationProbability() + _stochasticTrack.noteProbabilityBias(), -1, StochasticSequence::NoteVariationProbability::Max));
-        sum = sum + probability[i].probability();
+        probability.insert(probability.end(), StochasticStep(i, clamp(sequence.step(i).noteVariationProbability() + _stochasticTrack.noteProbabilityBias(), -1, StochasticSequence::NoteVariationProbability::Max)));
+        sum = sum + probability.at(i).probability();
     }
     if (sum==0) { return;}
 
@@ -360,7 +360,7 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     }
     std::sort (std::begin(probability), std::end(probability), sortTaskByProbRev);
 
-    stepIndex= getNextWeightedPitch(probability, sequence.reseed(), scale.notesPerOctave());
+    stepIndex = getNextWeightedPitch(probability, sequence.reseed(), scale.notesPerOctave());
 
     auto &step = sequence.step(stepIndex);
     
@@ -448,11 +448,11 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 }
 
 
-int StochasticEngine::getNextWeightedPitch(StochasticStep *distr, bool reseed, int notesPerOctave) {
+int StochasticEngine::getNextWeightedPitch(std::vector<StochasticStep> distr, bool reseed, int notesPerOctave) {
         int total_weights = 0;
 
         for(int i = 0; i < notesPerOctave; i++) {
-            total_weights += distr[i % notesPerOctave].probability();
+            total_weights += distr.at(i % notesPerOctave).probability();
         }
 
         if (reseed) {
@@ -462,9 +462,9 @@ int StochasticEngine::getNextWeightedPitch(StochasticStep *distr, bool reseed, i
         int rnd = 1 + ( std::rand() % ( (total_weights) - 1 + 1 ) );
 
         for(int i = 0; i < notesPerOctave; i++) {
-            int weight = distr[i % notesPerOctave].probability();
+            int weight = distr.at(i % notesPerOctave).probability();
             if (rnd <= weight && weight > 0) {
-                return distr[i % notesPerOctave].index();
+                return distr.at(i % notesPerOctave).index();
             }
             rnd -= weight;
         }
