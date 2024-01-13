@@ -85,7 +85,6 @@ static float evalStepNote(const StochasticSequence::Step &step, int probabilityB
         } else {
             oct = step.noteOctave() + (std::rand() % ( 0 - step.noteOctave() + 1 ) );
         }
-        std::cerr << oct << "\n";
         note = StochasticSequence::Note::clamp(note + (scale.notesPerOctave()*oct));
     }
     return scale.noteToVolts(note) + (scale.isChromatic() ? rootNote : 0) * (1.f / 12.f);
