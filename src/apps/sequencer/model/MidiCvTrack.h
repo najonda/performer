@@ -1,5 +1,6 @@
 #pragma once
 
+#include "BaseTrack.h"
 #include "Config.h"
 #include "Types.h"
 #include "MidiConfig.h"
@@ -12,12 +13,11 @@
 
 #include "core/math/Math.h"
 
-class MidiCvTrack {
+class MidiCvTrack : public BaseTrack {
 public:
     //----------------------------------------
     // Types
     //----------------------------------------
-    static constexpr size_t NameLength = FileHeader::NameLength; 
     enum class VoiceSignal : uint8_t { Pitch, Velocity, Pressure };
 
     enum class VoiceConfig : uint8_t {
@@ -61,12 +61,6 @@ public:
     //----------------------------------------
     // Properties
     //----------------------------------------
-
-    // trackName
-    const char *name() const { return _name; }
-    void setName(const char *name) {
-        StringUtils::copy(_name, name, sizeof(_name));
-    }
 
     // source
 
@@ -269,7 +263,6 @@ private:
     }
 
     int8_t _trackIndex = -1;
-    char _name[NameLength + 1];
     MidiSourceConfig _source;
     uint8_t _voices;
     VoiceConfig _voiceConfig;

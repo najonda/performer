@@ -13,9 +13,11 @@
 
 #include <array>
 #include <bitset>
+#include <cstddef>
 #include <cstdint>
 #include <initializer_list>
 #include <iostream>
+#include <map>
 
 class NoteSequence {
 public:
@@ -271,8 +273,42 @@ public:
     // scale
 
     int scale() const { return _scale.get(isRouted(Routing::Target::Scale)); }
-    void setScale(int scale, bool routed = false) {
-        _scale.set(clamp(scale, -1, Scale::Count - 1), routed);
+    void setScale(int s, bool routed = false, int defaultScale = 0) {
+
+        auto &pScale = selectedScale(defaultScale);
+
+        _scale.set(clamp(s, -1, Scale::Count - 1), routed);
+
+        auto &aScale = selectedScale(s);
+
+        if (pScale == aScale) {
+            return;
+        }
+
+        if (s != -1 && aScale.isChromatic() && pScale.isChromatic() > 0) {
+            for (int i = 0; i < 64; ++i) {
+
+                auto pStep = _steps[i];
+
+                int rN = pScale.noteIndex(pStep.note(), selectedRootNote(0));
+                if (rN > 0) {
+                    if (aScale.isNotePresent(rN)) {
+                        int pNoteIndex = aScale.getNoteIndex(rN);
+                        step(i).setNote(pNoteIndex);
+                    } else {
+                        // search nearest note
+                        while (!aScale.isNotePresent(rN)) {
+                            rN--;
+                        }
+                        int pNoteIndex = aScale.getNoteIndex(rN);
+                        step(i).setNote(pNoteIndex);
+                    }
+                }
+
+                
+            }
+        }
+
     }
 
     int indexedScale() const { return scale() + 1; }
@@ -280,9 +316,9 @@ public:
         setScale(index - 1);
     }
 
-    void editScale(int value, bool shift) {
+    void editScale(int value, bool shift, int defaultScale = 0) {
         if (!isRouted(Routing::Target::Scale)) {
-            setScale(scale() + value);
+            setScale(value, false, defaultScale);
         }
     }
 
@@ -473,6 +509,10 @@ public:
     void write(VersionedSerializedWriter &writer) const;
     void read(VersionedSerializedReader &reader);
 
+    int trackIndex() {
+        return _trackIndex;
+    }
+
 private:
     void setTrackIndex(int trackIndex) { _trackIndex = trackIndex; }
 
@@ -489,6 +529,9 @@ private:
 
     int8_t _trackIndex = -1;
     Routable<int8_t> _scale;
+
+    int _previousScale;
+
     Routable<int8_t> _rootNote;
     Routable<uint16_t> _divisor;
     uint8_t _resetMeasure;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "BaseTrackPatternFollow.h"
 #include "Config.h"
 #include "Types.h"
 #include "NoteSequence.h"
@@ -7,14 +8,14 @@
 #include "Routing.h"
 #include "FileDefs.h"
 #include "core/utils/StringUtils.h"
+#include "BaseTrack.h"
 
 
-class NoteTrack {
+class NoteTrack : public BaseTrack, public BaseTrackPatternFollow {
 public:
     //----------------------------------------
     // Types
     //----------------------------------------
-    static constexpr size_t NameLength = FileHeader::NameLength; 
 
     typedef std::array<NoteSequence, CONFIG_PATTERN_COUNT + CONFIG_SNAPSHOT_COUNT> NoteSequenceArray;
 
@@ -59,12 +60,6 @@ public:
     //----------------------------------------
     // Properties
     //----------------------------------------
-
-    // trackName
-    const char *name() const { return _name; }
-    void setName(const char *name) {
-        StringUtils::copy(_name, name, sizeof(_name));
-    }
 
     // playMode
 
@@ -306,7 +301,6 @@ private:
     }
 
     int8_t _trackIndex = -1;
-    char _name[NameLength + 1];
     Types::PlayMode _playMode;
     FillMode _fillMode;
     bool _fillMuted;

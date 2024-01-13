@@ -14,7 +14,7 @@ static void drawNoteTrack(Canvas &canvas, int trackIndex, const NoteTrackEngine 
         int stepIndex = stepOffset + i;
         const auto &step = sequence.step(stepIndex);
 
-        int x = 64 + i * 8;
+        int x = 68 + i * 8;
 
         if (trackEngine.currentStep() == stepIndex) {
             canvas.setColor(step.gate() ? Color::Bright : Color::MediumBright);
@@ -128,10 +128,10 @@ void OverviewPage::draw(Canvas &canvas) {
     canvas.setBlendMode(BlendMode::Set);
     canvas.setColor(Color::Medium);
 
-    canvas.vline(64 - 3, 0, 64);
-    canvas.vline(64 - 2, 0, 64);
-    canvas.vline(192 + 1, 0, 64);
-    canvas.vline(192 + 2, 0, 64);
+    canvas.vline(68 - 3, 0, 68);
+    canvas.vline(68 - 2, 0, 68);
+    canvas.vline(196 + 1, 0, 68);
+    canvas.vline(196 + 2, 0, 68);
 
     for (int trackIndex = 0; trackIndex < 8; trackIndex++) {
         const auto &track = _project.track(trackIndex);
@@ -145,9 +145,28 @@ void OverviewPage::draw(Canvas &canvas) {
 
         // track number / pattern number
         canvas.setColor(trackState.mute() ? Color::Medium : Color::Bright);
-        canvas.drawText(2, y, FixedStringBuilder<8>("T%d", trackIndex + 1));
-        canvas.drawText(18, y, FixedStringBuilder<8>("P%d", trackState.pattern() + 1));
+        switch (track.trackMode()) {
+            case Track::TrackMode::Note:
+                canvas.drawText(2, y, track.noteTrack().name());
+                break;
+            case Track::TrackMode::Curve:
+                canvas.drawText(2, y, track.curveTrack().name());
+                break;
+            case Track::TrackMode::MidiCv:
+                canvas.drawText(2, y, track.midiCvTrack().name());
+                break;
+            default:
+                break;
+        }  
 
+        std::string s = std::to_string(trackState.pattern() + 1);
+        char const *pchar = s.c_str(); 
+        char const p[] = {'P'};
+
+        canvas.fillRect(46 - 1, y - 5, canvas.textWidth(p)+canvas.textWidth(pchar) + 1, 7);
+        canvas.setBlendMode(BlendMode::Sub);
+        canvas.drawText(46, y, FixedStringBuilder<8>("P%d", trackState.pattern() + 1));
+        canvas.setBlendMode(BlendMode::Set);
         // gate output
         bool gate = _engine.gateOutput() & (1 << trackIndex);
         canvas.setColor(gate ? Color::Bright : Color::Medium);

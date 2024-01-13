@@ -62,6 +62,7 @@ private:
         Rotate,
         ShapeProbabilityBias,
         GateProbabilityBias,
+        PatternFollow,
         Last
     };
 
@@ -76,6 +77,7 @@ private:
         case Rotate:                return "Rotate";
         case ShapeProbabilityBias:  return "Shape P. Bias";
         case GateProbabilityBias:   return "Gate P. Bias";
+        case PatternFollow:         return "Pattern Follow";
         case Last:                  break;
         }
         return nullptr;
@@ -114,6 +116,9 @@ private:
         case GateProbabilityBias:
             _track->printGateProbabilityBias(str);
             break;
+        case PatternFollow:
+            _track->printPatternFollow(str);
+            break;
         case Last:
             break;
         }
@@ -146,6 +151,9 @@ private:
             break;
         case GateProbabilityBias:
             _track->editGateProbabilityBias(value, shift);
+            break;
+        case PatternFollow:
+            _track->editPatternFollow(value, shift);
             break;
         case Last:
             break;

@@ -138,6 +138,27 @@ public:
         return nullptr;
     }
 
+    // Pattern Follow
+    enum class PatternFollow : uint8_t {
+        Off,
+        Display,
+        LaunchPad,
+        DispAndLP,
+        Last
+    };
+
+    static const char *patternFollowName(PatternFollow patternFollow) {
+        switch (patternFollow) {
+        case PatternFollow::Off:      return "Off";
+        case PatternFollow::Display:      return "Display";
+        case PatternFollow::LaunchPad:      return "LaunchPad";
+        case PatternFollow::DispAndLP:      return "Display+LP";
+        case PatternFollow::Last:         break;
+        }
+        return nullptr;
+    }
+
+
     // Condition
 
     enum class Condition : uint8_t {
@@ -308,6 +329,8 @@ public:
         static const char *names[] = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
         str(names[note]);
     }
+
+    
 
     static void printMidiNote(StringBuilder &str, int midiNote) {
         printNote(str, midiNote % 12);

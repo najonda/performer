@@ -29,7 +29,7 @@ private:
     inline uint8_t mapColor(int red, int green, int style) const {
         static const uint8_t map[] = {
         //  g0 g1 g2 g3
-            0, 23, 22, 21, // r0
+            0, 23, 25, 21, // r0
             7, 2, 18, 21, // r1
             6, 10, 14, 17, // r2
             5,  5,  9, 13, // r3
@@ -37,7 +37,7 @@ private:
 
         static const uint8_t mapBlue[] = {
         //  g0 g1 g2 g3
-            0, 77, 78, 79, // r0
+            0, 43, 78, 79, // r0
             71, 2, 39, 79, // r1
             2, 118, 55, 41, // r2
             3,  3,  2, 82, // r3

@@ -175,6 +175,18 @@ public:
         return -1;
     }
 
+    int noteIndex(int note, int rootNote) const override {
+        int octave = roundDownDivide(note, _size);
+
+        int noteIndex = _items[note - octave * _size] + rootNote;
+        while (noteIndex >= 12) {
+            noteIndex -= 12;
+            octave += 1;
+        }
+
+       return noteIndex;
+    }
+
     void noteName(StringBuilder &str, int note, int rootNote, Format format) const override {
         switch (_mode) {
         case Mode::Chromatic:
