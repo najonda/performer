@@ -21,7 +21,7 @@ Types::LayerRange StochasticSequence::layerRange(Layer layer) {
     CASE(LengthVariationRange)
     CASE(LengthVariationProbability)
     CASE(Note)
-    CASE(NoteVariationRange)
+    CASE(NoteOctave)
     CASE(NoteVariationProbability)
     CASE(Condition)
     CASE(StageRepeats)
@@ -60,8 +60,8 @@ int StochasticSequence::layerDefaultValue(Layer layer)
         return step.lengthVariationProbability();
     case Layer::Note:
         return step.note();
-    case Layer::NoteVariationRange:
-        return step.noteVariationRange();
+    case Layer::NoteOctave:
+        return step.noteOctave();
     case Layer::NoteVariationProbability:
         return step.noteVariationProbability();
     case Layer::Condition:
@@ -99,8 +99,8 @@ int StochasticSequence::Step::layerValue(Layer layer) const {
         return lengthVariationProbability();
     case Layer::Note:
         return note();
-    case Layer::NoteVariationRange:
-        return noteVariationRange();
+    case Layer::NoteOctave:
+        return noteOctave();
     case Layer::NoteVariationProbability:
         return noteVariationProbability();
     case Layer::Condition:
@@ -148,8 +148,11 @@ void StochasticSequence::Step::setLayerValue(Layer layer, int value) {
     case Layer::Note:
         setNote(value);
         break;
-    case Layer::NoteVariationRange:
-        setNoteVariationRange(value);
+    case Layer::NoteOctave:
+        setNoteOctave(value);
+        break;
+    case Layer::NoteOctaveProbability:
+        setNoteOctaveProbability(value);
         break;
     case Layer::NoteVariationProbability:
         setNoteVariationProbability(value);
@@ -181,7 +184,8 @@ void StochasticSequence::Step::clear() {
     setLengthVariationRange(0);
     setLengthVariationProbability(LengthVariationProbability::Max);
     setNote(0);
-    setNoteVariationRange(0);
+    setNoteOctave(0);
+    setNoteOctaveProbability(NoteOctaveProbability::min());
     setNoteVariationProbability(NoteVariationProbability::Max);
     setCondition(Types::Condition::Off);
     setStageRepeats(0);

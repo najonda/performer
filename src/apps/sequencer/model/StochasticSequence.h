@@ -31,8 +31,9 @@ public:
     typedef SignedValue<4> LengthVariationRange;
     typedef UnsignedValue<4> LengthVariationProbability;
     typedef SignedValue<7> Note;
-    typedef SignedValue<7> NoteVariationRange;
     typedef UnsignedValue<4> NoteVariationProbability;
+    typedef SignedValue<3> NoteOctave;
+    typedef UnsignedValue<4> NoteOctaveProbability;
     typedef UnsignedValue<7> Condition;
     typedef UnsignedValue<3> StageRepeats;
     typedef UnsignedValue<3> StageRepeatsMode;
@@ -51,7 +52,8 @@ public:
         LengthVariationRange,
         LengthVariationProbability,
         Note,
-        NoteVariationRange,
+        NoteOctave,
+        NoteOctaveProbability,
         NoteVariationProbability,
         Slide,
         Condition,
@@ -70,7 +72,8 @@ public:
         case Layer::LengthVariationRange:       return "LENGTH RANGE";
         case Layer::LengthVariationProbability: return "LENGTH PROB";
         case Layer::Note:                       return "NOTE";
-        case Layer::NoteVariationRange:         return "NOTE RANGE";
+        case Layer::NoteOctave:                 return "OCTAVE";
+        case Layer::NoteOctaveProbability:      return "OCTAVE PROB";
         case Layer::NoteVariationProbability:   return "NOTE PROB";
         case Layer::Condition:                  return "CONDITION";
         case Layer::StageRepeats:               return "REPEAT";
@@ -189,11 +192,18 @@ public:
             _data0.note = Note::clamp(note) - Note::Min;
         }
 
-        // noteVariationRange
+        // noteOctave
 
-        int noteVariationRange() const { return NoteVariationRange::Min + _data0.noteVariationRange; }
-        void setNoteVariationRange(int noteVariationRange) {
-            _data0.noteVariationRange = NoteVariationRange::clamp(noteVariationRange) - NoteVariationRange::Min;
+        int noteOctave() const { return NoteOctave::Min + _data0.noteOctave; }
+        void setNoteOctave(int noteOctave) {
+            _data0.noteOctave = NoteOctave::clamp(noteOctave) - NoteOctave::Min;
+        }
+
+        // noteOctaveProbability
+
+        int noteOctaveProbability() const { return _data0.noteOctaveProbability; }
+        void setNoteOctaveProbability(int noteOctaveProbability) {
+            _data0.noteOctaveProbability = NoteOctaveProbability::clamp(noteOctaveProbability);
         }
 
         // noteVariationProbability
@@ -241,8 +251,9 @@ public:
             BitField<uint32_t, 5, LengthVariationRange::Bits> lengthVariationRange;
             BitField<uint32_t, 9, LengthVariationProbability::Bits> lengthVariationProbability;
             BitField<uint32_t, 13, Note::Bits> note;
-            BitField<uint32_t, 20, NoteVariationRange::Bits> noteVariationRange;
-            BitField<uint32_t, 27, NoteVariationProbability::Bits> noteVariationProbability;
+            BitField<uint32_t, 20, NoteOctave::Bits> noteOctave;
+            BitField<uint32_t, 23, NoteVariationProbability::Bits> noteVariationProbability;
+            BitField<uint32_t, 27, NoteOctaveProbability::Bits> noteOctaveProbability;
             // 1 bits left
         } _data0;
         union {
