@@ -319,7 +319,12 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
                 } else {
                     switch (_project.selectedTrack().trackMode()) {
                         case (Track::TrackMode::Note): {
-                            manageCircuitKeyboard(button);
+                            if (_project.selectedNoteSequenceLayer()==NoteSequence::Layer::Note) {
+                                manageCircuitKeyboard(button);    
+                            } else {
+                                sequenceEditStep(button.row, button.col);
+                            }
+                            break;
                         }
                         case Track::TrackMode::Curve:
                             sequenceEditStep(button.row, button.col);
