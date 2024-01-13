@@ -7,6 +7,30 @@
 #include "RecordHistory.h"
 #include "model/StochasticSequence.h"
 #include "StepRecorder.h"
+#include <valarray>
+
+class StochasticStep {
+        public:
+
+            StochasticStep() {}
+            StochasticStep(int index, int probability) {
+                _index = index;
+                _probability = probability;
+            }
+
+            int index() {
+                return _index;
+            }
+
+            int probability() const {
+                return _probability;
+            }
+
+        private:
+            int _index;
+            int _probability;
+
+    };
 
 class StochasticEngine : public TrackEngine {
 public:
@@ -46,7 +70,7 @@ public:
 
     void setMonitorStep(int index);
 
-    int getNextWeightedPitch(int *distr, bool reseed = false, int notesPerOctave = 12);
+    int getNextWeightedPitch(StochasticStep *distr, bool reseed = false, int notesPerOctave = 12);
 
 private:
     void triggerStep(uint32_t tick, uint32_t divisor, bool nextStep);

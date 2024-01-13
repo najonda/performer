@@ -116,6 +116,7 @@ public:
     // RunMode
 
     enum class RunMode : uint8_t {
+        None,
         Forward,
         Backward,
         Pendulum,
@@ -127,6 +128,7 @@ public:
 
     static const char *runModeName(RunMode runMode) {
         switch (runMode) {
+        case RunMode::None:         return "None";
         case RunMode::Forward:      return "Forward";
         case RunMode::Backward:     return "Backward";
         case RunMode::Pendulum:     return "Pendulum";

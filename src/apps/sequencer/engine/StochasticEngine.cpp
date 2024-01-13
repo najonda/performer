@@ -12,9 +12,11 @@
 #include "model/StochasticSequence.h"
 #include "model/Scale.h"
 #include "ui/MatrixMap.h"
+#include <algorithm>
 #include <climits>
 #include <iostream>
 #include <ctime>
+#include <iterator>
 #include <random>
 #include <vector>
 
@@ -142,17 +144,17 @@ TrackEngine::TickResult StochasticEngine::tick(uint32_t tick) {
         switch (_stochasticTrack.playMode()) {
         case Types::PlayMode::Aligned:
             if (relativeTick % divisor == 0) {
-                _sequenceState.advanceAligned(relativeTick / divisor, sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
-                recordStep(tick, divisor);
+                //_sequenceState.advanceAligned(relativeTick / divisor, sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
+                //recordStep(tick, divisor);
                 triggerStep(tick, divisor);
                 
-                _sequenceState.calculateNextStepAligned(
+                /*_sequenceState.calculateNextStepAligned(
                         (relativeTick + divisor) / divisor, 
                         sequence.runMode(),
                         sequence.firstStep(),
                         sequence.lastStep(),
                         rng
-                    );
+                    );*/
                 triggerStep(tick + divisor, divisor, true);
             }
             break;
@@ -307,6 +309,17 @@ void StochasticEngine::setMonitorStep(int index) {
         _stepRecorder.setStepIndex(index);
     }
 }
+
+    bool sortTaskByProb(const StochasticStep& lhs, const StochasticStep& rhs)
+    {
+        return lhs.probability() < rhs.probability();
+    }
+
+    bool sortTaskByProbRev(const StochasticStep& lhs, const StochasticStep& rhs)
+    {
+        return lhs.probability() > rhs.probability();
+    }
+
 void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextStep) {
     int octave = _stochasticTrack.octave();
     int transpose = _stochasticTrack.transpose();
@@ -334,13 +347,37 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
     auto &scale = sequence.selectedScale(_model.project().scale());
 
-    int probability[scale.notesPerOctave()];
+    StochasticStep probability[12];
     int sum =0;
-    for (int i = 0; i < scale.notesPerOctave(); ++i) {
-        probability[i] = clamp(sequence.step(i).noteVariationProbability() + _stochasticTrack.noteProbabilityBias(), -1, StochasticSequence::NoteVariationProbability::Max);
-        sum = sum + probability[i];
+    for (int i = 0; i < scale.notesPerOctave(); i++) {
+        probability[i] = StochasticStep(i, clamp(sequence.step(i).noteVariationProbability() + _stochasticTrack.noteProbabilityBias(), -1, StochasticSequence::NoteVariationProbability::Max));
+        sum = sum + probability[i].probability();
     }
     if (sum==0) { return;}
+
+
+    auto runMode = sequence.runMode();
+    switch (runMode) {
+        case Types::RunMode::None:
+            break;
+        case Types::RunMode::Forward: 
+            std::sort (std::begin(probability), std::end(probability), sortTaskByProb);
+            break;
+        case Types::RunMode::Backward:
+            std::sort (std::begin(probability), std::end(probability), sortTaskByProbRev);
+
+            break;
+        case Types::RunMode::Pendulum:
+            break;
+        case Types::RunMode::PingPong:
+            break;
+        case Types::RunMode::Random:
+            std::random_shuffle(std::begin(probability), std::end(probability));
+
+            break;
+        case Types::RunMode::RandomWalk:
+            break;
+    }
 
     stepIndex= getNextWeightedPitch(probability, sequence.reseed(), scale.notesPerOctave());
 
@@ -430,11 +467,11 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 }
 
 
-int StochasticEngine::getNextWeightedPitch(int *distr, bool reseed, int notesPerOctave) {
+int StochasticEngine::getNextWeightedPitch(StochasticStep *distr, bool reseed, int notesPerOctave) {
         int total_weights = 0;
 
         for(int i = 0; i < notesPerOctave; i++) {
-            total_weights += distr[i % notesPerOctave];
+            total_weights += distr[i % notesPerOctave].probability();
         }
 
         if (reseed) {
@@ -444,14 +481,16 @@ int StochasticEngine::getNextWeightedPitch(int *distr, bool reseed, int notesPer
         int rnd = 1 + ( std::rand() % ( (total_weights) - 1 + 1 ) );
 
         for(int i = 0; i < notesPerOctave; i++) {
-            int weight = distr[i % notesPerOctave];
+            int weight = distr[i % notesPerOctave].probability();
             if (rnd <= weight && weight > 0) {
-                return i;
+                return distr[i % notesPerOctave].index();
             }
             rnd -= weight;
         }
         return -1;
     }
+
+
 
 void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor) {
     triggerStep(tick, divisor, false);
