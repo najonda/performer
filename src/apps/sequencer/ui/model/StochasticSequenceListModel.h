@@ -17,6 +17,7 @@ public:
         ResetMeasure,
         Scale,
         RootNote,
+        RestProbability,
         Last
     };
 
@@ -77,6 +78,8 @@ public:
             return Routing::Target::Scale;
         case RootNote:
             return Routing::Target::RootNote;
+        case RestProbability:
+            return Routing::Target::RestProbability;
         default:
             return Routing::Target::None;
         }
@@ -92,6 +95,7 @@ private:
         case ResetMeasure:      return "Reset Measure";
         case Scale:             return "Scale";
         case RootNote:          return "Root Note";
+        case RestProbability:   return "Rest Prob.";
         case Last:              break;
         }
         return nullptr;
@@ -124,6 +128,8 @@ private:
         case RootNote:
             _sequence->printRootNote(str);
             break;
+        case RestProbability:
+            _sequence->printRestProbability(str);
         case Last:
             break;
         }
@@ -152,6 +158,9 @@ private:
         case RootNote:
             _sequence->editRootNote(value, shift);
             break;
+        case RestProbability:
+            _sequence->editRestProbability(value, shift);
+            break;
         case Last:
             break;
         }
@@ -171,6 +180,8 @@ private:
             return Scale::Count + 1;
         case RootNote:
             return 12 + 1;
+        case RestProbability:
+            return 0;
         case Last:
             break;
         }
@@ -193,6 +204,8 @@ private:
             return _sequence->indexedScale();
         case RootNote:
             return _sequence->indexedRootNote();
+        case RestProbability:
+            return _sequence->restProbability();
         case Last:
             break;
         }
@@ -215,6 +228,8 @@ private:
             return _sequence->setIndexedScale(index);
         case RootNote:
             return _sequence->setIndexedRootNote(index);
+        case RestProbability:
+            return _sequence->setRestProbability(index);
         case Last:
             break;
         }

@@ -452,6 +452,22 @@ public:
         _lastStep.set(index, false);
     }
 
+    int restProbability() const { return _restProbability.get(isRouted(Routing::Target::RestProbability)); }
+    void setRestProbability(int restProbability, bool routed = false) {
+        _restProbability.set(clamp(restProbability, 0, 8), routed);
+    }
+
+    void editRestProbability(int value, bool shift) {
+        if (!isRouted(Routing::Target::RestProbability)) {
+            setRestProbability(restProbability() + value);
+        }
+    }
+
+    void printRestProbability(StringBuilder &str) const {
+        printRouted(str, Routing::Target::RestProbability);
+        str("%+.1f%%", restProbability() * 12.5f);
+    }
+
     // steps
 
     const StepArray &steps() const { return _steps; }
@@ -519,9 +535,9 @@ private:
     Routable<Types::RunMode> _runMode;
     Routable<uint8_t> _firstStep;
     Routable<uint8_t> _lastStep;
-
     Routable<uint8_t> _reseed;
-
+    Routable<int8_t> _restProbability;
+    
     StepArray _steps;
 
     uint8_t _edited;

@@ -28,6 +28,11 @@ static bool evalStepGate(const StochasticSequence::Step &step, int probabilityBi
     return step.gate() && int(rng.nextRange(StochasticSequence::GateProbability::Range)) <= probability;
 }
 
+// evaluate if step gate is active
+static bool evalRestProbability(int restProbability) {
+    return int(rng.nextRange(8)) <= restProbability;
+}
+
 // evaluate step condition
 static bool evalStepCondition(const StochasticSequence::Step &step, int iteration, bool fill, bool &prevCondition) {
     auto condition = step.condition();
@@ -310,15 +315,10 @@ void StochasticEngine::setMonitorStep(int index) {
     }
 }
 
-    bool sortTaskByProb(const StochasticStep& lhs, const StochasticStep& rhs)
-    {
-        return lhs.probability() < rhs.probability();
-    }
 
-    bool sortTaskByProbRev(const StochasticStep& lhs, const StochasticStep& rhs)
-    {
-        return lhs.probability() > rhs.probability();
-    }
+bool sortTaskByProbRev(const StochasticStep& lhs, const StochasticStep& rhs) {
+    return lhs.probability() > rhs.probability();
+}
 
 void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextStep) {
     int octave = _stochasticTrack.octave();
@@ -355,29 +355,10 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     }
     if (sum==0) { return;}
 
-
-    auto runMode = sequence.runMode();
-    switch (runMode) {
-        case Types::RunMode::None:
-            break;
-        case Types::RunMode::Forward: 
-            std::sort (std::begin(probability), std::end(probability), sortTaskByProb);
-            break;
-        case Types::RunMode::Backward:
-            std::sort (std::begin(probability), std::end(probability), sortTaskByProbRev);
-
-            break;
-        case Types::RunMode::Pendulum:
-            break;
-        case Types::RunMode::PingPong:
-            break;
-        case Types::RunMode::Random:
-            std::random_shuffle(std::begin(probability), std::end(probability));
-
-            break;
-        case Types::RunMode::RandomWalk:
-            break;
+    if (evalRestProbability(sequence.restProbability())) {
+        return;
     }
+    std::sort (std::begin(probability), std::end(probability), sortTaskByProbRev);
 
     stepIndex= getNextWeightedPitch(probability, sequence.reseed(), scale.notesPerOctave());
 
