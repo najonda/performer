@@ -77,13 +77,16 @@ static int evalTransposition(const Scale &scale, int octave, int transpose) {
 // evaluate note voltage
 static float evalStepNote(const StochasticSequence::Step &step, int probabilityBias, const Scale &scale, int rootNote, int octave, int transpose, bool useVariation = true) {
     int note = step.note() + evalTransposition(scale, octave, transpose);
-    int probability = clamp(step.noteVariationProbability() + probabilityBias, -1, StochasticSequence::NoteVariationProbability::Max);
-    if (useVariation && int(rng.nextRange(StochasticSequence::NoteVariationProbability::Range)) <= probability) {
-        int offset = step.noteVariationRange() == 0 ? 0 : rng.nextRange(std::abs(step.noteVariationRange()) + 1);
-        if (step.noteVariationRange() < 0) {
-            offset = -offset;
+    int probability = clamp(step.noteOctaveProbability() + probabilityBias, -1, StochasticSequence::NoteOctaveProbability::Max);
+    if (useVariation && int(rng.nextRange(StochasticSequence::NoteOctaveProbability::Range)) <= probability) {
+        int oct = 0;
+        if (step.noteOctave() > 0) {
+            oct = 0 + ( std::rand() % ( step.noteOctave() - 0 + 1 ) );
+        } else {
+            oct = step.noteOctave() + (std::rand() % ( 0 - step.noteOctave() + 1 ) );
         }
-        note = StochasticSequence::Note::clamp(note + offset);
+        std::cerr << oct << "\n";
+        note = StochasticSequence::Note::clamp(note + (scale.notesPerOctave()*oct));
     }
     return scale.noteToVolts(note) + (scale.isChromatic() ? rootNote : 0) * (1.f / 12.f);
 }
@@ -474,7 +477,7 @@ void StochasticEngine::recordStep(uint32_t tick, uint32_t divisor) {
         step.setLengthVariationRange(0);
         step.setLengthVariationProbability(StochasticSequence::LengthVariationProbability::Max);
         step.setNote(noteFromMidiNote(note));
-        step.setNoteVariationRange(0);
+        step.setNoteOctave(0);
         step.setNoteVariationProbability(StochasticSequence::NoteVariationProbability::Max);
         step.setCondition(Types::Condition::Off);
         step.setStageRepeats(1);
