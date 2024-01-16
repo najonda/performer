@@ -370,10 +370,9 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     if (index == 0) {
         std::cerr << "START\n";
     }
-    if (index == 15) {
+    if (index == sequence.sequenceLength()) {
         std::cerr << "END\n";
     }
-
 
     stepIndex = getNextWeightedPitch(probability, sequence.reseed(), scale.notesPerOctave());
 
