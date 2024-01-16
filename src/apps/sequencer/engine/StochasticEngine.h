@@ -33,6 +33,33 @@ class StochasticStep {
 
     };
 
+class StochasticLoopStep {
+    public:
+        StochasticLoopStep() {}
+        StochasticLoopStep(int index, bool gate, StochasticSequence::Step step) {
+            _index = index;
+            _gate = gate;
+            _step = step;
+        }
+
+        int index() {
+            return _index;
+        }
+
+        bool gate() {
+            return _gate;
+        }
+
+        StochasticSequence::Step step() {
+            return _step;
+        }
+
+    private:
+        int _index;
+        bool _gate;
+        StochasticSequence::Step _step;
+};
+
 class StochasticEngine : public TrackEngine {
 public:
     StochasticEngine(Engine &engine, const Model &model, Track &track, const TrackEngine *linkedTrackEngine) :

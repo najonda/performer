@@ -320,7 +320,7 @@ bool sortTaskByProbRev(const StochasticStep& lhs, const StochasticStep& rhs) {
     return lhs.probability() > rhs.probability();
 }
 
-std::vector<int> inMemSteps;
+std::vector<StochasticLoopStep> inMemSteps;
 
 void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextStep) {
     int octave = _stochasticTrack.octave();
@@ -370,11 +370,72 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     if (index == 0) {
         std::cerr << "START\n";
     }
-    if (index == sequence.sequenceLength()) {
-        std::cerr << "END\n";
-    }
 
-    stepIndex = getNextWeightedPitch(probability, sequence.reseed(), scale.notesPerOctave());
+    StochasticSequence::Step step;
+    uint32_t stepTick;
+    bool stepGate = false;
+    if (!sequence.useLoop()) { 
+        stepIndex = getNextWeightedPitch(probability, sequence.reseed(), scale.notesPerOctave());
+
+        step = sequence.step(stepIndex);    
+        
+        int gateOffset = ((int) divisor * step.gateOffset()) / (StochasticSequence::GateOffset::Max + 1);
+        stepTick = (int) tick + gateOffset;
+
+        stepGate = evalStepGate(step, _stochasticTrack.gateProbabilityBias()) || useFillGates;
+        if (stepGate) {
+            stepGate = evalStepCondition(step, _sequenceState.iteration(), useFillCondition, _prevCondition);
+        }
+        switch (step.stageRepeatMode()) {
+            case StochasticSequence::StageRepeatMode::Each:
+                break;
+            case StochasticSequence::StageRepeatMode::First:
+                stepGate = stepGate && _currentStageRepeat == 1;
+                break;
+            case StochasticSequence::StageRepeatMode::Last:
+                stepGate = stepGate && _currentStageRepeat == step.stageRepeats()+1;
+                break;
+            case StochasticSequence::StageRepeatMode::Middle:
+                stepGate = stepGate && _currentStageRepeat == (step.stageRepeats()+1)/2;
+                break;
+            case StochasticSequence::StageRepeatMode::Odd:
+                stepGate = stepGate && _currentStageRepeat % 2 != 0;
+                break;
+            case StochasticSequence::StageRepeatMode::Even:
+                stepGate = stepGate && _currentStageRepeat % 2 == 0;
+                break;
+            case StochasticSequence::StageRepeatMode::Triplets:
+                stepGate = stepGate && (_currentStageRepeat - 1) % 3 == 0;
+                break;
+            case StochasticSequence::StageRepeatMode::Random:
+                    srand((unsigned int)time(NULL));
+                    int rndMode = 0 + ( std::rand() % ( 6 - 0 + 1 ) );
+                    switch (rndMode) {
+                        case 0:
+                            break;
+                        case 1:
+                            stepGate = stepGate && _currentStageRepeat == 1;
+                            break;
+                        case 2:
+                            stepGate = stepGate && _currentStageRepeat == step.stageRepeats()+1;
+                            break;
+                        case 3:
+                            stepGate = stepGate && _currentStageRepeat % ((step.stageRepeats()+1)/2)+1 == 0;
+                            break;
+                        case 4:
+                            stepGate = stepGate && _currentStageRepeat % 2 != 0;
+                            break;
+                        case 5:
+                            stepGate = stepGate && _currentStageRepeat % 2 == 0;
+                            break;
+                        case 6:
+                            stepGate = stepGate && (_currentStageRepeat - 1) % 3 == 0;
+                            break;
+                    
+                    }
+                    break;
+        }
+    }
 
 
     if (!sequence.useLoop() && inMemSteps.end() - inMemSteps.begin() == sequence.sequenceLength()) {
@@ -382,76 +443,20 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     }
 
     if (sequence.useLoop() && inMemSteps.end() - inMemSteps.begin() < sequence.sequenceLength()) {
-        inMemSteps.insert(inMemSteps.end(), stepIndex);
+        inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(stepIndex, stepGate, step));
     } else {
         if (!sequence.useLoop()) {
-            inMemSteps.insert(inMemSteps.end(), stepIndex);
+            inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(stepIndex, stepGate, step));
         } else {
-            stepIndex = inMemSteps.at(index);
+            stepIndex = inMemSteps.at(index).index();
+            stepGate = inMemSteps.at(index).gate();
+            step = inMemSteps.at(index).step();
+            int gateOffset = ((int) divisor * step.gateOffset()) / (StochasticSequence::GateOffset::Max + 1);
+            stepTick = (int) tick + gateOffset;
         }
     }
 
     std::cerr << stepIndex << "\n";
-
-
-    auto &step = sequence.step(stepIndex);    
-    
-    int gateOffset = ((int) divisor * step.gateOffset()) / (StochasticSequence::GateOffset::Max + 1);
-    uint32_t stepTick = (int) tick + gateOffset;
-
-    bool stepGate = evalStepGate(step, _stochasticTrack.gateProbabilityBias()) || useFillGates;
-    if (stepGate) {
-        stepGate = evalStepCondition(step, _sequenceState.iteration(), useFillCondition, _prevCondition);
-    }
-    switch (step.stageRepeatMode()) {
-        case StochasticSequence::StageRepeatMode::Each:
-            break;
-        case StochasticSequence::StageRepeatMode::First:
-            stepGate = stepGate && _currentStageRepeat == 1;
-            break;
-        case StochasticSequence::StageRepeatMode::Last:
-            stepGate = stepGate && _currentStageRepeat == step.stageRepeats()+1;
-            break;
-        case StochasticSequence::StageRepeatMode::Middle:
-            stepGate = stepGate && _currentStageRepeat == (step.stageRepeats()+1)/2;
-            break;
-        case StochasticSequence::StageRepeatMode::Odd:
-            stepGate = stepGate && _currentStageRepeat % 2 != 0;
-            break;
-        case StochasticSequence::StageRepeatMode::Even:
-            stepGate = stepGate && _currentStageRepeat % 2 == 0;
-            break;
-        case StochasticSequence::StageRepeatMode::Triplets:
-            stepGate = stepGate && (_currentStageRepeat - 1) % 3 == 0;
-            break;
-        case StochasticSequence::StageRepeatMode::Random:
-                srand((unsigned int)time(NULL));
-                int rndMode = 0 + ( std::rand() % ( 6 - 0 + 1 ) );
-                switch (rndMode) {
-                    case 0:
-                        break;
-                    case 1:
-                        stepGate = stepGate && _currentStageRepeat == 1;
-                        break;
-                    case 2:
-                        stepGate = stepGate && _currentStageRepeat == step.stageRepeats()+1;
-                        break;
-                    case 3:
-                        stepGate = stepGate && _currentStageRepeat % ((step.stageRepeats()+1)/2)+1 == 0;
-                        break;
-                    case 4:
-                        stepGate = stepGate && _currentStageRepeat % 2 != 0;
-                        break;
-                    case 5:
-                        stepGate = stepGate && _currentStageRepeat % 2 == 0;
-                        break;
-                    case 6:
-                        stepGate = stepGate && (_currentStageRepeat - 1) % 3 == 0;
-                        break;
-                
-                }
-                break;
-    }
 
     if (stepGate) {
         sequence.setStepBounds(stepIndex);
