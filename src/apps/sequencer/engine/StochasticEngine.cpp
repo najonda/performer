@@ -349,19 +349,6 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
     auto &scale = sequence.selectedScale(_model.project().scale());
 
-    std::vector<StochasticStep> probability;
-    int sum =0;
-    for (int i = 0; i < scale.notesPerOctave(); i++) {
-        probability.insert(probability.end(), StochasticStep(i, clamp(sequence.step(i).noteVariationProbability() + _stochasticTrack.noteProbabilityBias(), -1, StochasticSequence::NoteVariationProbability::Max)));
-        sum = sum + probability.at(i).probability();
-    }
-    if (sum==0) { return;}
-
-    if (evalRestProbability(sequence.restProbability())) {
-        return;
-    }
-    std::sort (std::begin(probability), std::end(probability), sortTaskByProbRev);
-
     uint32_t resetDivisor = sequence.resetMeasure() * _engine.measureDivisor();
     uint32_t relativeTick = resetDivisor == 0 ? tick : tick % resetDivisor;
     auto abstoluteStep = (relativeTick + divisor) / divisor;
@@ -371,10 +358,25 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         std::cerr << "START\n";
     }
 
+
     StochasticSequence::Step step;
     uint32_t stepTick;
     bool stepGate = false;
     if (!sequence.useLoop()) { 
+
+        if (evalRestProbability(sequence.restProbability())) {
+            inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(-1, false, step));
+            return;
+        }
+
+        std::vector<StochasticStep> probability;
+        int sum =0;
+        for (int i = 0; i < scale.notesPerOctave(); i++) {
+            probability.insert(probability.end(), StochasticStep(i, clamp(sequence.step(i).noteVariationProbability() + _stochasticTrack.noteProbabilityBias(), -1, StochasticSequence::NoteVariationProbability::Max)));
+            sum = sum + probability.at(i).probability();
+        }
+        if (sum==0) { return;}
+        std::sort (std::begin(probability), std::end(probability), sortTaskByProbRev);
         stepIndex = getNextWeightedPitch(probability, sequence.reseed(), scale.notesPerOctave());
 
         step = sequence.step(stepIndex);    
@@ -437,18 +439,24 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         }
     }
 
+    std::cerr << "USELOOP: " << sequence.useLoop() << "\n";
+    std::cerr << "INMEM SIZE: " << inMemSteps.size() << "\n";
+    std::cerr << "SEQ LE: " << sequence.sequenceLength() << "\n";
 
-    if (!sequence.useLoop() && inMemSteps.end() - inMemSteps.begin() == sequence.sequenceLength()) {
+    if (!sequence.useLoop() && inMemSteps.size() >= sequence.sequenceLength()) {
         inMemSteps.clear();
     }
 
-    if (sequence.useLoop() && inMemSteps.end() - inMemSteps.begin() < sequence.sequenceLength()) {
+    if (sequence.useLoop() && inMemSteps.size() < sequence.sequenceLength()) {
         inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(stepIndex, stepGate, step));
     } else {
         if (!sequence.useLoop()) {
             inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(stepIndex, stepGate, step));
         } else {
             stepIndex = inMemSteps.at(index).index();
+            if (stepIndex == -1) {
+                return;
+            }
             stepGate = inMemSteps.at(index).gate();
             step = inMemSteps.at(index).step();
             int gateOffset = ((int) divisor * step.gateOffset()) / (StochasticSequence::GateOffset::Max + 1);
