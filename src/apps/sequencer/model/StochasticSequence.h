@@ -513,6 +513,33 @@ public:
         _reseed.set(r, routed);
     }
 
+    int sequenceLength() const {
+        return _sequenceLength.get(isRouted(Routing::Target::SequenceLength));
+    }
+
+    void setSequenceLength(int l, bool routed = false) {
+        _sequenceLength.set(clamp(l, 1, CONFIG_STEP_COUNT), routed);
+    }
+
+    void editSequenceLength(int value, bool shift) {
+        if (!isRouted(Routing::Target::RestProbability)) {
+            setSequenceLength(sequenceLength() + value);
+        }
+    }
+
+    void printSequenceLength(StringBuilder &str) const {
+        printRouted(str, Routing::Target::SequenceLength);
+        str("%d", sequenceLength());
+    }
+
+    void setUseLoop() {
+        _useLoop = !_useLoop;
+    }
+
+    bool useLoop() {
+        return _useLoop;
+    }
+
 private:
     void setTrackIndex(int trackIndex) { _trackIndex = trackIndex; }
 
@@ -537,10 +564,12 @@ private:
     Routable<uint8_t> _lastStep;
     Routable<uint8_t> _reseed;
     Routable<int8_t> _restProbability;
+    Routable<uint8_t> _sequenceLength;
     
     StepArray _steps;
 
     uint8_t _edited;
+    bool _useLoop = false;
 
     friend class StochasticTrack;
 };

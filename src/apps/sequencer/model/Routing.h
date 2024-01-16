@@ -74,7 +74,8 @@ public:
         RootNote,
         Reseed,
         RestProbability,
-        SequenceLast = RestProbability,
+        SequenceLength,
+        SequenceLast = SequenceLength,
 
         Last,
     };
@@ -116,6 +117,7 @@ public:
         case Target::RootNote:                  return "Root Note";
         case Target::Reseed:                    return "Reseed";
         case Target::RestProbability:           return "Rest Prob.";
+        case Target::SequenceLength:            return "Sequence Lenght";
 
         case Target::Last:                      break;
         }
@@ -160,6 +162,7 @@ public:
         case Target::RecordToggle:              return 27;
         case Target::Reseed:                    return 28;
         case Target::RestProbability:           return 29;
+        case Target::SequenceLength:            return 30;
 
         case Target::Last:                      break;
         }

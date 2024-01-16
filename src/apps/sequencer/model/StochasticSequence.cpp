@@ -261,6 +261,7 @@ void StochasticSequence::clear() {
     setFirstStep(0);
     setLastStep(0);
     setRestProbability(0);
+    setSequenceLength(16);
 
     clearSteps();
 }

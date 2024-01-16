@@ -18,6 +18,7 @@ public:
         Scale,
         RootNote,
         RestProbability,
+        SequenceLength,
         Last
     };
 
@@ -80,6 +81,8 @@ public:
             return Routing::Target::RootNote;
         case RestProbability:
             return Routing::Target::RestProbability;
+        case SequenceLength:
+            return Routing::Target::SequenceLength;
         default:
             return Routing::Target::None;
         }
@@ -96,6 +99,7 @@ private:
         case Scale:             return "Scale";
         case RootNote:          return "Root Note";
         case RestProbability:   return "Rest Prob.";
+        case SequenceLength:    return "Sequence Length";
         case Last:              break;
         }
         return nullptr;
@@ -130,6 +134,10 @@ private:
             break;
         case RestProbability:
             _sequence->printRestProbability(str);
+            break;
+        case SequenceLength:
+            _sequence->printSequenceLength(str);
+            break;
         case Last:
             break;
         }
@@ -161,6 +169,9 @@ private:
         case RestProbability:
             _sequence->editRestProbability(value, shift);
             break;
+        case SequenceLength:
+            _sequence->editSequenceLength(value, shift);
+            break;
         case Last:
             break;
         }
@@ -170,6 +181,7 @@ private:
         switch (item) {
         case FirstStep:
         case LastStep:
+        case SequenceLength:
             return 16;
         case RunMode:
             return int(Types::RunMode::Last);
@@ -206,6 +218,8 @@ private:
             return _sequence->indexedRootNote();
         case RestProbability:
             return _sequence->restProbability();
+        case SequenceLength:
+            return _sequence->sequenceLength();
         case Last:
             break;
         }
@@ -230,6 +244,8 @@ private:
             return _sequence->setIndexedRootNote(index);
         case RestProbability:
             return _sequence->setRestProbability(index);
+        case SequenceLength:
+            return _sequence->setSequenceLength(index);
         case Last:
             break;
         }

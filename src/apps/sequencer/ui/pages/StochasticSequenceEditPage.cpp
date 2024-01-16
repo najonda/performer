@@ -391,6 +391,11 @@ void StochasticSequenceEditPage::keyPress(KeyPressEvent &event) {
             sequence.setReseed(1, false);
             event.consume();
         }
+
+        if (key.is(Key::Step6)) {
+            sequence.setUseLoop();
+            event.consume();
+        }
         return;
     }
 

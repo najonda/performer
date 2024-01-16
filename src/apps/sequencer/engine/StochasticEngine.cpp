@@ -157,10 +157,10 @@ TrackEngine::TickResult StochasticEngine::tick(uint32_t tick) {
                         (relativeTick + divisor) / divisor, 
                         sequence.runMode(),
                         sequence.firstStep(),
-                        sequence.lastStep(),
+                        sequence.sequenceLength(),
                         rng
-                    );*/
-                triggerStep(tick + divisor, divisor, true);
+                    );
+                triggerStep(tick + divisor, divisor, true);*/
             }
             break;
         case Types::PlayMode::Free:
@@ -320,6 +320,8 @@ bool sortTaskByProbRev(const StochasticStep& lhs, const StochasticStep& rhs) {
     return lhs.probability() > rhs.probability();
 }
 
+std::vector<int> inMemSteps;
+
 void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextStep) {
     int octave = _stochasticTrack.octave();
     int transpose = _stochasticTrack.transpose();
@@ -360,9 +362,40 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     }
     std::sort (std::begin(probability), std::end(probability), sortTaskByProbRev);
 
+    uint32_t resetDivisor = sequence.resetMeasure() * _engine.measureDivisor();
+    uint32_t relativeTick = resetDivisor == 0 ? tick : tick % resetDivisor;
+    auto abstoluteStep = (relativeTick + divisor) / divisor;
+    auto index = abstoluteStep % sequence.sequenceLength();
+
+    if (index == 0) {
+        std::cerr << "START\n";
+    }
+    if (index == 15) {
+        std::cerr << "END\n";
+    }
+
+
     stepIndex = getNextWeightedPitch(probability, sequence.reseed(), scale.notesPerOctave());
 
-    auto &step = sequence.step(stepIndex);
+
+    if (!sequence.useLoop() && inMemSteps.end() - inMemSteps.begin() == sequence.sequenceLength()) {
+        inMemSteps.clear();
+    }
+
+    if (sequence.useLoop() && inMemSteps.end() - inMemSteps.begin() < sequence.sequenceLength()) {
+        inMemSteps.insert(inMemSteps.end(), stepIndex);
+    } else {
+        if (!sequence.useLoop()) {
+            inMemSteps.insert(inMemSteps.end(), stepIndex);
+        } else {
+            stepIndex = inMemSteps.at(index);
+        }
+    }
+
+    std::cerr << stepIndex << "\n";
+
+
+    auto &step = sequence.step(stepIndex);    
     
     int gateOffset = ((int) divisor * step.gateOffset()) / (StochasticSequence::GateOffset::Max + 1);
     uint32_t stepTick = (int) tick + gateOffset;

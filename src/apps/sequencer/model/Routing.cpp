@@ -318,6 +318,7 @@ static const TargetInfo targetInfos[int(Routing::Target::Last)] = {
     [int(Routing::Target::RootNote)]                        = { 0,      11,     0,      11,     1       },
     [int(Routing::Target::Reseed)]                          = { 0,      1,      0,      1,      1       },
     [int(Routing::Target::RestProbability)]                 = { -8,     8,      -8,     8,      8       },
+    [int(Routing::Target::SequenceLength)]                  = { 1,      32,      1,     32,     1       },
 };
 
 float Routing::normalizeTargetValue(Routing::Target target, float value) {
@@ -369,6 +370,7 @@ void Routing::printTargetValue(Routing::Target target, float normalized, StringB
     case Target::NoteProbabilityBias:
     case Target::ShapeProbabilityBias:
     case Target::RestProbability:
+    case Target::SequenceLength:
         str("%+.1f%%", value * 12.5f);
         break;
     case Target::Divisor:
