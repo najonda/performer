@@ -3,6 +3,7 @@
 #include "LaunchpadDevice.h"
 #include "core/Debug.h"
 #include "os/os.h"
+#include <functional>
 #include <iostream>
 #include <map>
 #include <set>
@@ -738,7 +739,12 @@ void LaunchpadController::sequenceDrawSequence() {
 
 void LaunchpadController::sequenceDrawNoteSequence() {
     const auto &trackEngine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
-    const auto &sequence = _project.selectedNoteSequence();
+
+    auto sequence = std::ref(_project.selectedNoteSequence());
+    if (_project.playState().songState().playing()) {
+        auto trackIndex = _project.selectedTrackIndex() ;   
+        sequence = std::ref(_project.selectedTrack().noteTrack().sequence(_project.playState().trackState(trackIndex).pattern()));
+    }
     auto layer = _project.selectedNoteSequenceLayer();
     int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
 
@@ -761,7 +767,14 @@ void LaunchpadController::sequenceDrawNoteSequence() {
 
 void LaunchpadController::sequenceDrawCurveSequence() {
     const auto &trackEngine = _engine.selectedTrackEngine().as<CurveTrackEngine>();
-    const auto &sequence = _project.selectedCurveSequence();
+
+    auto sequence = std::ref(_project.selectedCurveSequence());
+    if (_project.playState().songState().playing()) {
+        auto trackIndex = _project.selectedTrackIndex() ;   
+        sequence = std::ref(_project.selectedTrack().curveTrack().sequence(_project.playState().trackState(trackIndex).pattern()));
+    }
+
+
     auto layer = _project.selectedCurveSequenceLayer();
     int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
 
