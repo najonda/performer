@@ -141,6 +141,10 @@ public:
 
         auto &aScale = Scale::get(s);
 
+        if (pScale == aScale) {
+            return;
+        }
+
         if (s != -1 && aScale.isChromatic() && pScale.isChromatic()) {
 
             for (int trackIndex = 0; trackIndex < 8; ++trackIndex) {    

@@ -21,7 +21,7 @@ public:
     virtual void keyPress(KeyPressEvent &event) override;
     virtual void encoder(EncoderEvent &event) override;
 
-    virtual int selectedRow() const { return _selectedRow; }
+    int selectedRow() const { return _selectedRow; }
     void setSelectedRow(int selectedRow);
 
     bool edit() const { return _edit; }

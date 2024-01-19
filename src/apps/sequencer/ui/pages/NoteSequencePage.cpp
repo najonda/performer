@@ -7,7 +7,6 @@
 #include "ui/painters/WindowPainter.h"
 
 #include "core/utils/StringBuilder.h"
-#include <iostream>
 
 enum class ContextAction {
     Init,
