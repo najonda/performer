@@ -337,17 +337,12 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
     }
 
     if (key.isQuickEdit()) {
-        quickEdit(key.quickEdit());
-        event.consume();
-        return;
-    }
-
-    if (key.pageModifier()) {
-        // XXX Added here, but should we move it to pageModifier structure?
-        if (key.is(Key::Step15)) {
+         if (key.is(Key::Step15)) {
             toggleSectionTracking();
-            event.consume();
+        } else {
+            quickEdit(key.quickEdit());
         }
+        event.consume();
         return;
     }
 
