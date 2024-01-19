@@ -503,7 +503,7 @@ The following parameters are available:
 | Time Signature | Beats/Note | Time signature defining the musical measure/bar length for _Sync Measure_ and _Reset Measure_ on sequences. The time signature is also used to define the length of a bar in song mode. | 
 | Sync Measure   | 1 - 128 bars | Multiple of measures/bars at which to execute _syncing_ (see [Pattern](#pages-pattern) and [Performer](#pages-performer) pages).                                                        |
  page).         |
-| Scale          | [Scales](#appendix-scales) | Default scale. Can be overwritten per sequence on the [Sequence](#pages-sequence) page.                                                                                                 |
+| Scale          | [Scales](#appendix-scales) | Default scale. Can be overwritten per sequence on the [Sequence](#pages-sequence) page. The scale will bechanged on encoder press.                                                      |
 | Root Note      | C, C#, D, D#, E, F, F#, G, G#, A, B | Default root note. Can be overwritten per sequence on the [Sequence](#pages-sequence) page.                                                                                             |
 | Monitor Mode   | Always, Stopped, Off | Live monitoring mode. _Always_ enables monitoring always, _Stopped_ only if clock is stopped and _Off_ disables it.                                                                     |
 | Record Mode    | Overdub, Overwrite, Step Record | Recording mode (see [Recording](#appendix-recording)).                                                                                                                                  |
@@ -692,15 +692,15 @@ Hold `SHIFT` + `PAGE` to open the context menu and access the following function
 
 If a track is in _Note_ mode, the following parameters are available:
 
-| Parameter | Range | Description |
-| :--- | :--- | :--- |
-| First Step | 1 - 64 | First step to play. Hold `SHIFT` to edit both first and last step together. |
-| Last Step | 1 - 64 | Last step to play. Hold `SHIFT` to edit both first and last step together. |
-| Run Mode | [Run Modes](#appendix-run-modes) | Mode in which to play the sequence.  |
-| Divisor | [Divisors](#appendix-divisors) | Time divisor for this sequence. |
-| Reset Measure | off, 1 - 128 bars | Number of measures/bars at which to reset the sequence. |
-| Scale | [Scales](#appendix-scales) | Scale to use for this sequence. If set to _Default_, uses the default scale set on the [Project](#pages-project) page. |
-| Root Note | C, C#, D, D#, E, F, F#, G, G#, A, B | Root note to use for this sequence. If set to _Default_, uses the default root note set on the [Project](#pages-project) page. |
+| Parameter | Range | Description                                                                                                                                                                                                                                                                                                                                                            |
+| :--- | :--- |:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| First Step | 1 - 64 | First step to play. Hold `SHIFT` to edit both first and last step together.                                                                                                                                                                                                                                                                                            |
+| Last Step | 1 - 64 | Last step to play. Hold `SHIFT` to edit both first and last step together.                                                                                                                                                                                                                                                                                             |
+| Run Mode | [Run Modes](#appendix-run-modes) | Mode in which to play the sequence.                                                                                                                                                                                                                                                                                                                                    |
+| Divisor | [Divisors](#appendix-divisors) | Time divisor for this sequence.                                                                                                                                                                                                                                                                                                                                        |
+| Reset Measure | off, 1 - 128 bars | Number of measures/bars at which to reset the sequence.                                                                                                                                                                                                                                                                                                                |
+| Scale | [Scales](#appendix-scales) | Scale to use for this sequence. If set to _Default_, uses the default scale set on the [Project](#pages-project) page. The scale will change on encoder press and new notes will be calculated based on the previous scale: if a note of the previous scale is present in the new scale it will be preserved. If a note is not present the nearest one will be picked. |
+| Root Note | C, C#, D, D#, E, F, F#, G, G#, A, B | Root note to use for this sequence. If set to _Default_, uses the default root note set on the [Project](#pages-project) page.                                                                                                                                                                                                                                         |
 
 > Note: _First Step_, _Last Step_, _Run Mode_, _Divisor_, _Scale_ and _Root Note_ are routable parameters.
 
@@ -1830,7 +1830,7 @@ Requested patterns due to latching or syncing are shown in dim green.
 <h4 id="appendix-circuit">Circuit note editor</h4>
 
 The visualization on the grid follows this schema:
-* First 2 rows represent the gates from `S[1-16]`
+* First 2 rows represent the gates from `S[1-16]`t
 * row 4 represents the semitones of a chromatic scale, selected note is highlighted, available notes in the scale are highlighted
 * row 5 represents the tones of a chromatic scale, selected note is highlighted, available notes in the scale are highlighted
 * row 7 represents the octave switcher from -4 to 3 octave, selected octave is highlighted
