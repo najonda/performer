@@ -49,10 +49,6 @@ private:
     void generateSequence();
 
     void quickEdit(int index);
-    
-    void setSectionTracking(bool track);
-    bool isSectionTracking();
-    void toggleSectionTracking();
 
     CurveSequence::Layer layer() const { return _project.selectedCurveSequenceLayer(); }
     void setLayer(CurveSequence::Layer layer) { _project.setSelectedCurveSequenceLayer(layer); }
