@@ -1,6 +1,6 @@
 # Changelog
 
-# v0.1.4.37 ()
+# v0.1.4.47 (24 January 2024)
 - launchpad circuit mode improvements
 - random generator: random seed just on init method
 - patter follow
