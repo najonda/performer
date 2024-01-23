@@ -165,7 +165,15 @@ void CurveSequenceEditPage::exit() {
 
 void CurveSequenceEditPage::draw(Canvas &canvas) {
     WindowPainter::clear(canvas);
-    WindowPainter::drawHeader(canvas, _model, _engine, "STEPS");
+
+    /* Prepare flags shown before mode name (top right header) */
+    auto &track = _project.selectedTrack().curveTrack();
+
+    const auto pattern_follow = track.patternFollow();
+    const char* pf_repr = Types::patternFollowShortRepresentation(pattern_follow);
+
+    WindowPainter::drawHeader(canvas, _model, _engine, "STEPS", pf_repr);
+
     WindowPainter::drawActiveFunction(canvas, CurveSequence::layerName(layer()));
     WindowPainter::drawFooter(canvas, functionNames, pageKeyState(), activeFunctionKey());
 
@@ -189,7 +197,7 @@ void CurveSequenceEditPage::draw(Canvas &canvas) {
 
 
     // Track Pattern Section on the UI
-    if (isSectionTracking() && _engine.state().running()) {
+    if (track.isPatternFollowDisplayOn() && _engine.state().running()) {
         bool section_change = bool((currentStep) % StepCount == 0); // StepCount is relative to screen
         int section_no = int((currentStep) / StepCount);
         if (section_change && section_no != _section) {
@@ -366,6 +374,7 @@ void CurveSequenceEditPage::keyUp(KeyEvent &event) {
 void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
     auto &sequence = _project.selectedCurveSequence();
+    auto &track = _project.selectedTrack().curveTrack();
 
     if (key.isContextMenu()) {
         contextShow();
@@ -374,19 +383,16 @@ void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
     }
 
     if (key.isQuickEdit()) {
-        quickEdit(key.quickEdit());
+        // XXX Added here, but should we move it to pageModifier structure?
+        if (key.is(Key::Step15)) {
+            track.togglePatternFollowDisplay();
+        } else {
+            quickEdit(key.quickEdit());
+        }
         event.consume();
         return;
     }
 
-    if (key.pageModifier()) {
-        // XXX Added here, but should we move it to pageModifier structure?
-        if (key.is(Key::Step15)) {
-            toggleSectionTracking();
-            event.consume();
-        }
-        return;
-    }
 
     if (key.isEncoder() && layer() == Layer::Shape && globalKeyState()[Key::Shift] && _stepSelection.count() > 1) {
         for (size_t stepIndex = 0; stepIndex < _stepSelection.size(); ++stepIndex) {
@@ -405,9 +411,9 @@ void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
         switchLayer(key.function(), key.shiftModifier());
         event.consume();
     }
-    
+
     if (key.isEncoder()) {
-        setSectionTracking(false);
+        track.setPatternFollowDisplay(false);
         event.consume();
     }
 
@@ -415,7 +421,7 @@ void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
         if (key.shiftModifier()) {
             sequence.shiftSteps(_stepSelection.selected(), -1);
         } else {
-            setSectionTracking(false);
+            track.setPatternFollowDisplay(false);
             _section = std::max(0, _section - 1);
         }
         event.consume();
@@ -424,7 +430,7 @@ void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
         if (key.shiftModifier()) {
             sequence.shiftSteps(_stepSelection.selected(), 1);
         } else {
-            setSectionTracking(false);
+            track.setPatternFollowDisplay(false);
             _section = std::min(3, _section + 1);
         }
         event.consume();
@@ -724,41 +730,6 @@ void CurveSequenceEditPage::duplicateSequence() {
     showMessage("STEPS DUPLICATED");
 }
 
-/*
- * Makes the UI track the current step section
- */
-void CurveSequenceEditPage::setSectionTracking(bool trackDisplay) {
-    auto &curve_track = _project.selectedTrack().curveTrack();
-    const auto pattern_follow = curve_track.patternFollow();
-
-    const bool lp_tracking =
-        (pattern_follow == Types::PatternFollow::LaunchPad ||
-         pattern_follow == Types::PatternFollow::DispAndLP);
-
-    curve_track.setPatternFollow(trackDisplay, lp_tracking);
-}
-
-bool CurveSequenceEditPage::isSectionTracking() {
-    auto &curve_track = _project.selectedTrack().curveTrack();
-    const auto pattern_follow = curve_track.patternFollow();
-
-    return (pattern_follow == Types::PatternFollow::Display ||
-            pattern_follow == Types::PatternFollow::DispAndLP);
-}
-
-
-void CurveSequenceEditPage::toggleSectionTracking() {
-    auto &curve_track = _project.selectedTrack().curveTrack();
-    const auto pattern_follow = curve_track.patternFollow();
-
-    const bool disp_tracking = isSectionTracking();
-
-    const bool lp_tracking =
-        (pattern_follow == Types::PatternFollow::LaunchPad ||
-         pattern_follow == Types::PatternFollow::DispAndLP);
-
-    curve_track.setPatternFollow(not disp_tracking, lp_tracking);
-}
 
 void CurveSequenceEditPage::generateSequence() {
     _manager.pages().generatorSelect.show([this] (bool success, Generator::Mode mode) {

@@ -158,6 +158,18 @@ public:
         return nullptr;
     }
 
+    static const char* patternFollowShortRepresentation(PatternFollow patternFollow) {
+        switch (patternFollow) {
+        case PatternFollow::Off:      return nullptr;
+        case Types::PatternFollow::Display:      return "F";
+        case Types::PatternFollow::LaunchPad:    return "F:LP";
+        case Types::PatternFollow::DispAndLP:    return "F:D+LP";
+        case PatternFollow::Last:           break;
+        }
+        return nullptr;
+    }
+
+
 
     // Condition
 
@@ -330,7 +342,7 @@ public:
         str(names[note]);
     }
 
-    
+
 
     static void printMidiNote(StringBuilder &str, int midiNote) {
         printNote(str, midiNote % 12);
