@@ -2,6 +2,7 @@
 
 #include "Config.h"
 #include "Observable.h"
+#include "Scale.h"
 #include "Types.h"
 #include "TimeSignature.h"
 #include "ClockSetup.h"
@@ -133,12 +134,57 @@ public:
     // scale
 
     int scale() const { return _scale; }
-    void setScale(int scale) {
-        _scale = clamp(scale, 0, Scale::Count - 1);
+    void setScale(int s) {
+        auto &pScale = Scale::get(scale());
+
+        _scale = clamp(s, 0, Scale::Count - 1);
+
+        auto &aScale = Scale::get(s);
+
+        if (pScale == aScale) {
+            return;
+        }
+
+        if (s != -1 && aScale.isChromatic() && pScale.isChromatic()) {
+
+            for (int trackIndex = 0; trackIndex < 8; ++trackIndex) {    
+                    auto &t = track(trackIndex);
+                    switch (t.trackMode()) {
+                        case Track::TrackMode::Note: {
+                            for (auto &seq : t.noteTrack().sequences()) {
+                                if (seq.scale()==-1) {
+                                    for (int i = 0; i < 64; ++i) {
+                                        auto pStep = seq.step(i);
+
+                                        int rN = pScale.noteIndex(pStep.note(), rootNote());
+                                        if (rN > 0) {
+                                            if (aScale.isNotePresent(rN)) {
+                                                int pNoteIndex = aScale.getNoteIndex(rN);
+                                                seq.step(i).setNote(pNoteIndex);
+                                            } else {
+                                                // search nearest note
+                                                while (!aScale.isNotePresent(rN)) {
+                                                    rN--;
+                                                }
+                                                int pNoteIndex = aScale.getNoteIndex(rN);
+                                                seq.step(i).setNote(pNoteIndex);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                        default:
+                            break;
+                    }                    
+                }
+        }
+        
     }
 
     void editScale(int value, bool shift) {
-        setScale(scale() + value);
+        setScale(value);
     }
 
     void printScale(StringBuilder &str) const {

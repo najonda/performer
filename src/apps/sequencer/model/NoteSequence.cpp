@@ -215,6 +215,7 @@ void NoteSequence::Step::read(VersionedSerializedReader &reader) {
 void NoteSequence::writeRouted(Routing::Target target, int intValue, float floatValue) {
     switch (target) {
     case Routing::Target::Scale:
+        //_model._selectedScale[0] = intValue;
         setScale(intValue, true);
         break;
     case Routing::Target::RootNote:

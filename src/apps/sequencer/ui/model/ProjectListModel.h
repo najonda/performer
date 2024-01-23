@@ -10,7 +10,11 @@ class ProjectListModel : public RoutableListModel {
 public:
     ProjectListModel(Project &project) :
         _project(project)
-    {}
+    {
+        for (int i = 0; i < 23; ++i) {
+            _scales[i] = i;
+        }
+    }
 
     virtual int rows() const override {
         return Last;
@@ -43,6 +47,13 @@ public:
         default:
             return Routing::Target::None;
         }
+    }
+
+    void setSelectedScale() {
+        if (_editScale) {
+            _project.editScale(_scales[_selectedScale], false);
+        }
+        _editScale = !_editScale;
     }
 
 private:
@@ -104,8 +115,10 @@ private:
         case SyncMeasure:
             _project.printSyncMeasure(str);
             break;
-        case Scale:
-            _project.printScale(str);
+        case Scale: {
+            auto name = _scales[_selectedScale] < 0 ? "Default" : Scale::name(_scales[_selectedScale]);
+            str(name);
+            }
             break;
         case RootNote:
             _project.printRootNote(str);
@@ -150,7 +163,7 @@ private:
             _project.editSyncMeasure(value, shift);
             break;
         case Scale:
-            _project.editScale(value, shift);
+            _selectedScale = clamp(_selectedScale + value, 0, 23);
             break;
         case RootNote:
             _project.editRootNote(value, shift);
@@ -179,4 +192,8 @@ private:
     }
 
     Project &_project;
+    private:
+        std::array<int, 23> _scales;
+        int _selectedScale = 0;
+        bool _editScale = false;
 };

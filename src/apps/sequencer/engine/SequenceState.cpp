@@ -163,7 +163,7 @@ void SequenceState::advanceAligned(int absoluteStep, Types::RunMode runMode, int
         calculateNextStepAligned(absoluteStep, runMode, firstStep, lastStep, rng);
     }
 
-    _iteration = _nextIteration;
+    //_iteration = _nextIteration;
     _prevStep = _step;
     _step = _nextStep;
     _nextStep = -1;

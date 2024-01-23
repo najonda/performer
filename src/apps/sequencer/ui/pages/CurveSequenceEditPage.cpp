@@ -165,12 +165,22 @@ void CurveSequenceEditPage::exit() {
 
 void CurveSequenceEditPage::draw(Canvas &canvas) {
     WindowPainter::clear(canvas);
-    WindowPainter::drawHeader(canvas, _model, _engine, "STEPS");
+
+    /* Prepare flags shown before mode name (top right header) */
+    auto &track = _project.selectedTrack().curveTrack();
+
+    const auto pattern_follow = track.patternFollow();
+    const char* pf_repr = Types::patternFollowShortRepresentation(pattern_follow);
+
+    WindowPainter::drawHeader(canvas, _model, _engine, "STEPS", pf_repr);
+
     WindowPainter::drawActiveFunction(canvas, CurveSequence::layerName(layer()));
     WindowPainter::drawFooter(canvas, functionNames, pageKeyState(), activeFunctionKey());
 
     const auto &trackEngine = _engine.selectedTrackEngine().as<CurveTrackEngine>();
     const auto &sequence = _project.selectedCurveSequence();
+    int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
+
     bool isActiveSequence = trackEngine.isActiveSequence(sequence);
 
     canvas.setBlendMode(BlendMode::Add);
@@ -184,6 +194,16 @@ void CurveSequenceEditPage::draw(Canvas &canvas) {
     const int bottomY = 48;
 
     bool drawShapeVariation = layer() == Layer::ShapeVariation || layer() == Layer::ShapeVariationProbability;
+
+
+    // Track Pattern Section on the UI
+    if (track.isPatternFollowDisplayOn() && _engine.state().running()) {
+        bool section_change = bool((currentStep) % StepCount == 0); // StepCount is relative to screen
+        int section_no = int((currentStep) / StepCount);
+        if (section_change && section_no != _section) {
+            _section = section_no;
+        }
+    }
 
     // draw loop points
     canvas.setBlendMode(BlendMode::Set);
@@ -354,6 +374,7 @@ void CurveSequenceEditPage::keyUp(KeyEvent &event) {
 void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
     auto &sequence = _project.selectedCurveSequence();
+    auto &track = _project.selectedTrack().curveTrack();
 
     if (key.isContextMenu()) {
         contextShow();
@@ -362,14 +383,16 @@ void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
     }
 
     if (key.isQuickEdit()) {
-        quickEdit(key.quickEdit());
+        // XXX Added here, but should we move it to pageModifier structure?
+        if (key.is(Key::Step15)) {
+            track.togglePatternFollowDisplay();
+        } else {
+            quickEdit(key.quickEdit());
+        }
         event.consume();
         return;
     }
 
-    if (key.pageModifier()) {
-        return;
-    }
 
     if (key.isEncoder() && layer() == Layer::Shape && globalKeyState()[Key::Shift] && _stepSelection.count() > 1) {
         for (size_t stepIndex = 0; stepIndex < _stepSelection.size(); ++stepIndex) {
@@ -389,10 +412,16 @@ void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
         event.consume();
     }
 
+    if (key.isEncoder()) {
+        track.setPatternFollowDisplay(false);
+        event.consume();
+    }
+
     if (key.isLeft()) {
         if (key.shiftModifier()) {
             sequence.shiftSteps(_stepSelection.selected(), -1);
         } else {
+            track.setPatternFollowDisplay(false);
             _section = std::max(0, _section - 1);
         }
         event.consume();
@@ -401,6 +430,7 @@ void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
         if (key.shiftModifier()) {
             sequence.shiftSteps(_stepSelection.selected(), 1);
         } else {
+            track.setPatternFollowDisplay(false);
             _section = std::min(3, _section + 1);
         }
         event.consume();
@@ -699,6 +729,7 @@ void CurveSequenceEditPage::duplicateSequence() {
     _project.selectedCurveSequence().duplicateSteps();
     showMessage("STEPS DUPLICATED");
 }
+
 
 void CurveSequenceEditPage::generateSequence() {
     _manager.pages().generatorSelect.show([this] (bool success, Generator::Mode mode) {
