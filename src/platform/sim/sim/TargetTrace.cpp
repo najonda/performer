@@ -5,7 +5,6 @@
 #include "tinyformat.h"
 
 #include <iomanip>
-#include <memory>
 
 namespace sim {
 
