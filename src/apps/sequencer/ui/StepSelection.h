@@ -109,6 +109,23 @@ public:
         _first = 0;
     }
 
+    void shiftLeft() {
+        rotateL(_selected, 1);
+    }
+
+    void shiftRight() {
+        rotateR(_selected, 1);
+
+    }
+
+    inline void rotateR(std::bitset<N>& b, unsigned m) {
+        b = b << m | b >> (N-m);
+    }
+
+    inline void rotateL(std::bitset<N>& b, unsigned m) {
+        b = b >> m | b << (N-m);
+    }
+
     void selectEqualSteps(int stepIndex) {
         _mode = Mode::Persist;
         for (int i = 0; i < int(_selected.size()); ++i) {

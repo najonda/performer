@@ -396,6 +396,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
     if (key.isLeft()) {
         if (key.shiftModifier()) {
             sequence.shiftSteps(_stepSelection.selected(), -1);
+            _stepSelection.shiftLeft();
         } else {
             track.setPatternFollowDisplay(false);
             _section = std::max(0, _section - 1);
@@ -405,6 +406,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
     if (key.isRight()) {
         if (key.shiftModifier()) {
             sequence.shiftSteps(_stepSelection.selected(), 1);
+            _stepSelection.shiftRight();
         } else {
             track.setPatternFollowDisplay(false);
             _section = std::min(3, _section + 1);
