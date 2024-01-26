@@ -213,7 +213,11 @@ void GeneratorPage::drawRandomGenerator(Canvas &canvas, const RandomGenerator &g
     for (int i = 0; i < steps; ++i) {
         int h = stepHeight - 2;
         int h2 = (h * pattern[i]) / 255;
-        canvas.setColor(Color::Low);
+        if ( i / 16 == _section ) {
+            canvas.setColor(Color::Medium);
+        } else {
+            canvas.setColor(Color::Low);
+        }
         canvas.drawRect(x + 1, y + 1, stepWidth - 2, h);
         canvas.setColor(Color::Bright);
         canvas.hline(x + 1, y + 1 + h - h2, stepWidth - 2);
