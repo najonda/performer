@@ -177,7 +177,7 @@ void CurveSequenceEditPage::draw(Canvas &canvas) {
     WindowPainter::drawActiveFunction(canvas, CurveSequence::layerName(layer()));
     WindowPainter::drawFooter(canvas, functionNames, pageKeyState(), activeFunctionKey());
 
-    const auto &trackEngine = _engine.selectedTrackEngine().as<CurveTrackEngine>();
+    auto &trackEngine = _engine.selectedTrackEngine().as<CurveTrackEngine>();
     const auto &sequence = _project.selectedCurveSequence();
     int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
 
@@ -314,7 +314,18 @@ void CurveSequenceEditPage::draw(Canvas &canvas) {
     // draw cursor
     if (isActiveSequence) {
         canvas.setColor(Color::Bright);
-        int x = ((trackEngine.currentStep() - stepOffset) + trackEngine.currentStepFraction()) * stepWidth;
+
+        int x;
+
+
+        auto dir = trackEngine.sequenceState().direction();
+        std::cerr << dir << "\n";
+        if (dir == 1) {
+            x = ((trackEngine.currentStep() - stepOffset) + trackEngine.currentStepFraction()) * stepWidth;
+        } else if (dir == -1) {
+            x = ((trackEngine.currentStep() + stepOffset)- trackEngine.currentStepFraction()) * stepWidth;
+        }
+
         canvas.vline(x, curveY, curveHeight);
     }
 

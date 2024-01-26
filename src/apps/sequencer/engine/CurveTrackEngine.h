@@ -45,6 +45,10 @@ public:
     void setMonitorStep(int index) { _monitorStepIndex = (index >= 0 && index < CONFIG_STEP_COUNT) ? index : -1; }
     void setMonitorStepLevel(MonitorLevel level) { _monitorStepLevel = level; }
 
+    SequenceState sequenceState() {
+        return _sequenceState;
+    }
+
 private:
     void triggerStep(uint32_t tick, uint32_t divisor);
     void updateOutput(uint32_t relativeTick, uint32_t divisor);
