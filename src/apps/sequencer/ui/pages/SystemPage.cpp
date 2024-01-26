@@ -42,7 +42,8 @@ static const ContextMenuModel::Item contextMenuItems[] = {
 SystemPage::SystemPage(PageManager &manager, PageContext &context) :
     ListPage(manager, context, _cvOutputListModel),
     _settings(context.model.settings()),
-    _settingsListModel(_settings.userSettings())
+    _settingsListModel(_settings.userSettings()),
+    _lpSettingsListModel(_settings.launchpadSettings())
 {
     setOutputIndex(0);
 }
@@ -243,7 +244,11 @@ void SystemPage::setMode(Mode mode) {
         setListModel(_utilitiesListModel);
         break;
     case Mode::Settings:
-        setListModel(_settingsListModel);
+        if (_engine.isLaunchpadConnected()) {
+            setListModel(_lpSettingsListModel);
+        } else {
+            setListModel(_settingsListModel);
+        }
         break;
     default:
         break;

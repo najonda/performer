@@ -59,5 +59,7 @@ private:
     UtilitiesListModel _utilitiesListModel;
     SettingsListModel _settingsListModel;
 
+    LpSettingsListModel _lpSettingsListModel;
+
     uint32_t _encoderDownTicks;
 };
