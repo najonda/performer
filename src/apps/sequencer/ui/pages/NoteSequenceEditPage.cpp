@@ -12,6 +12,7 @@
 #include "os/os.h"
 
 #include "core/utils/StringBuilder.h"
+#include <iostream>
 
 enum class ContextAction {
     Init,
@@ -334,7 +335,9 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
 
     if (key.isQuickEdit()) {
          if (key.is(Key::Step15)) {
-             track.togglePatternFollowDisplay();
+            bool lpConnected = _engine.isLaunchpadConnected();
+
+             track.togglePatternFollowDisplay(lpConnected);
         } else {
             quickEdit(key.quickEdit());
         }
