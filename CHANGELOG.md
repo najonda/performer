@@ -4,6 +4,7 @@
 - Moving steps in a sequence
 - INIT by step selected
 - smart cycling on patter follow modes (check if launchpad is connected)
+- Show launchpad settings only when a launchpad is connected
 
 # v0.1.4.47 (24 January 2024)
 - launchpad circuit mode improvements
