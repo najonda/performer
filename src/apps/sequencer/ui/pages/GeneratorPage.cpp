@@ -87,26 +87,38 @@ void GeneratorPage::draw(Canvas &canvas) {
 }
 
 void GeneratorPage::updateLeds(Leds &leds) {
-    // value range
-    /*for (int i = 0; i < 8; ++i) {
-        bool inRange = (i >= _valueRange.first && i <= _valueRange.second) || (i >= _valueRange.second && i <= _valueRange.first);
-        bool inverted = _valueRange.first > _valueRange.second;
-        leds.set(MatrixMap::toStep(i), inRange && inverted, inRange && !inverted);
-    }
-    for (int i = 0; i < 7; ++i) {
-        leds.set(MatrixMap::toStep(8 + i), false, false);
-    }*/
 
-    const auto &trackEngine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
-    const auto &sequence = _project.selectedNoteSequence();
-    int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
-
-    for (int i = 0; i < 16; ++i) {
-        int stepIndex = stepOffset() + i;
-        bool red = (stepIndex == currentStep) || _stepSelection->at(stepIndex);
-        bool green = (stepIndex != currentStep) && (sequence.step(stepIndex).gate() || _stepSelection->at(stepIndex));
-        leds.set(MatrixMap::fromStep(i), red, green);
+    int currentStep;
+    switch (_project.selectedTrack().trackMode()) {
+        case Track::TrackMode::Note: {
+                const auto &trackEngine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
+                const auto &sequence = _project.selectedNoteSequence();
+                currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
+                for (int i = 0; i < 16; ++i) {
+                    int stepIndex = stepOffset() + i;
+                    bool red = (stepIndex == currentStep) || _stepSelection->at(stepIndex);
+                    bool green = (stepIndex != currentStep) && (sequence.step(stepIndex).gate() || _stepSelection->at(stepIndex));
+                    leds.set(MatrixMap::fromStep(i), red, green);
+                }
+            }
+            break;
+        case Track::TrackMode::Curve: {
+                const auto &trackEngine = _engine.selectedTrackEngine().as<CurveTrackEngine>();
+                const auto &sequence = _project.selectedCurveSequence();
+                currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
+                for (int i = 0; i < 16; ++i) {
+                    int stepIndex = stepOffset() + i;
+                    bool red = (stepIndex == currentStep) || _stepSelection->at(stepIndex);
+                    bool green = (stepIndex != currentStep) && (sequence.step(stepIndex).gate() || _stepSelection->at(stepIndex));
+                    leds.set(MatrixMap::fromStep(i), red, green);
+                }
+            }
+            break;
+        default:
+            return;
     }
+
+    
 }
 
 void GeneratorPage::keyDown(KeyEvent &event) {
@@ -119,7 +131,6 @@ void GeneratorPage::keyUp(KeyEvent &event) {
 
 void GeneratorPage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
-    auto &track = _project.selectedTrack().noteTrack();
 
     if (key.isContextMenu()) {
         contextShow();
@@ -152,12 +163,10 @@ void GeneratorPage::keyPress(KeyPressEvent &event) {
     }
 
     if (key.isLeft()) {
-        track.setPatternFollowDisplay(false);
         _section = std::max(0, _section - 1);
         event.consume();
     }
     if (key.isRight()) {
-        track.setPatternFollowDisplay(false);
         _section = std::min(3, _section + 1);
         event.consume();
     }
