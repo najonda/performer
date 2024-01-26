@@ -12,6 +12,7 @@
 #include "os/os.h"
 
 #include "core/utils/StringBuilder.h"
+#include <bitset>
 #include <iostream>
 
 enum class ContextAction {
@@ -980,9 +981,14 @@ void NoteSequenceEditPage::generateSequence() {
     _manager.pages().generatorSelect.show([this] (bool success, Generator::Mode mode) {
         if (success) {
             auto builder = _builderContainer.create<NoteSequenceBuilder>(_project.selectedNoteSequence(), layer());
-            auto generator = Generator::execute(mode, *builder);
+
+            if (_stepSelection.none()) {
+                _stepSelection.selectAll();
+            }
+
+            auto generator = Generator::execute(mode, *builder, _stepSelection.selected());
             if (generator) {
-                _manager.pages().generator.show(generator);
+                _manager.pages().generator.show(generator, &_stepSelection);
             }
         }
     });

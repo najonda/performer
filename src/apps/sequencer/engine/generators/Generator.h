@@ -51,7 +51,7 @@ public:
 
     virtual void update() = 0;
 
-    static Generator *execute(Generator::Mode mode, SequenceBuilder &builder);
+    static Generator *execute(Generator::Mode mode, SequenceBuilder &builder, std::bitset<CONFIG_STEP_COUNT> &selected);
 
 protected:
     SequenceBuilder &_builder;
