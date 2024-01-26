@@ -924,7 +924,7 @@ bool NoteSequenceEditPage::contextActionEnabled(int index) const {
 }
 
 void NoteSequenceEditPage::initSequence() {
-    _project.selectedNoteSequence().clearSteps();
+    _project.selectedNoteSequence().clearStepsSelected(_stepSelection.selected());
     showMessage("STEPS INITIALIZED");
 }
 

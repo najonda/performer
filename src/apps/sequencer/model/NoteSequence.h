@@ -495,6 +495,7 @@ public:
 
     void clear();
     void clearSteps();
+    void clearStepsSelected(const std::bitset<CONFIG_STEP_COUNT> &selected);
 
     bool isEdited() const;
 

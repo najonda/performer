@@ -256,6 +256,18 @@ void NoteSequence::clearSteps() {
     }
 }
 
+void NoteSequence::clearStepsSelected(const std::bitset<CONFIG_STEP_COUNT> &selected) {
+    if (selected.any()) {
+        for (size_t i = 0; i < CONFIG_STEP_COUNT; ++i) {
+            if (selected[i]) {
+                _steps[i].clear();
+            }
+    }
+    } else {
+        clearSteps();
+    }
+}
+
 bool NoteSequence::isEdited() const {
     auto clearStep = Step();
     for (const auto &step : _steps) {
