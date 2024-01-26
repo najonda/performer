@@ -1,5 +1,9 @@
 # Changelog
 
+# v0.1.4.48 ()
+- Moving steps in a sequence
+- INIT by step selected
+
 # v0.1.4.47 (24 January 2024)
 - launchpad circuit mode improvements
 - random generator: random seed just on init method
