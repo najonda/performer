@@ -60,6 +60,13 @@ void NoteSequencePage::keyPress(KeyPressEvent &event) {
         return;
     }
 
+
+    if (key.pageModifier() && event.count() == 2) {
+        contextShow(true);
+        event.consume();
+        return;
+    }
+
     if (key.pageModifier()) {
         return;
     }
@@ -75,12 +82,13 @@ void NoteSequencePage::keyPress(KeyPressEvent &event) {
     }
 }
 
-void NoteSequencePage::contextShow() {
+void NoteSequencePage::contextShow(bool doubleClick) {
     showContextMenu(ContextMenu(
         contextMenuItems,
         int(ContextAction::Last),
         [&] (int index) { contextAction(index); },
-        [&] (int index) { return contextActionEnabled(index); }
+        [&] (int index) { return contextActionEnabled(index); },
+        doubleClick
     ));
 }
 

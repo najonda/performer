@@ -316,10 +316,7 @@ void CurveSequenceEditPage::draw(Canvas &canvas) {
         canvas.setColor(Color::Bright);
 
         int x;
-
-
         auto dir = trackEngine.sequenceState().direction();
-        std::cerr << dir << "\n";
         if (dir == 1) {
             x = ((trackEngine.currentStep() - stepOffset) + trackEngine.currentStepFraction()) * stepWidth;
         } else if (dir == -1) {
@@ -389,6 +386,12 @@ void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
 
     if (key.isContextMenu()) {
         contextShow();
+        event.consume();
+        return;
+    }
+
+    if (key.pageModifier() && event.count() == 2) {
+        contextShow(true);
         event.consume();
         return;
     }
@@ -681,12 +684,13 @@ void CurveSequenceEditPage::drawDetail(Canvas &canvas, const CurveSequence::Step
     }
 }
 
-void CurveSequenceEditPage::contextShow() {
+void CurveSequenceEditPage::contextShow(bool doubleClick) {
     showContextMenu(ContextMenu(
         contextMenuItems,
         int(ContextAction::Last),
         [&] (int index) { contextAction(index); },
-        [&] (int index) { return contextActionEnabled(index); }
+        [&] (int index) { return contextActionEnabled(index); },
+        doubleClick
     ));
 }
 

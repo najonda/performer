@@ -3,18 +3,31 @@
 #include "ui/painters/WindowPainter.h"
 
 #include "core/math/Math.h"
+#include <cstdint>
 
 ContextMenuPage::ContextMenuPage(PageManager &manager, PageContext &context) :
     BasePage(manager, context)
-{}
+{}    
+
+uint32_t lastTicks;
 
 void ContextMenuPage::show(ContextMenuModel &contextMenuModel, ResultCallback callback) {
     _contextMenuModel = &contextMenuModel;
     _callback = callback;
+    lastTicks = os::ticks();
     BasePage::show();
 }
 
 void ContextMenuPage::draw(Canvas &canvas) {
+
+
+    uint32_t currentTicks = os::ticks();
+    uint32_t deltaTicks = currentTicks - lastTicks;
+    if (deltaTicks > os::time::ms(2000)) {
+        close();
+    }
+
+
     canvas.setFont(Font::Tiny);
     canvas.setBlendMode(BlendMode::Set);
 
@@ -53,6 +66,9 @@ void ContextMenuPage::draw(Canvas &canvas) {
 void ContextMenuPage::keyUp(KeyEvent &event) {
     const auto &key = event.key();
 
+    if (_contextMenuModel->doubleClick()) {
+        return;
+    }
     if (!key.pageModifier() || !key.shiftModifier()) {
         close();
         event.consume();

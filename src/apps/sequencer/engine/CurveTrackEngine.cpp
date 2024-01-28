@@ -218,7 +218,7 @@ void CurveTrackEngine::updateOutput(uint32_t relativeTick, uint32_t divisor) {
         const auto &evalSequence = fillNextPattern ? *_fillSequence : *_sequence;
         const auto &step = evalSequence.step(_currentStep);
 
-        float value = evalStepShape(step, _shapeVariation || fillVariation, fillInvert, _currentStepFraction);
+        float value = evalStepShape(step, _shapeVariation || fillVariation, fillInvert || _sequenceState.direction() == -1, _currentStepFraction);
         value = range.denormalize(value);
         _cvOutputTarget = value;
     }

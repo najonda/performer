@@ -333,6 +333,11 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
         event.consume();
         return;
     }
+    if (key.pageModifier() && event.count() == 2) {
+        contextShow(true);
+        event.consume();
+        return;
+    }
 
     if (key.isQuickEdit()) {
          if (key.is(Key::Step15)) {
@@ -887,12 +892,12 @@ void NoteSequenceEditPage::drawDetail(Canvas &canvas, const NoteSequence::Step &
     }
 }
 
-void NoteSequenceEditPage::contextShow() {
+void NoteSequenceEditPage::contextShow(bool doubleClick) {
     showContextMenu(ContextMenu(
         contextMenuItems,
         int(ContextAction::Last),
         [&] (int index) { contextAction(index); },
-        [&] (int index) { return contextActionEnabled(index); }
+        [&] (int index) { return contextActionEnabled(index); }, doubleClick
     ));
 }
 

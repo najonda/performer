@@ -167,6 +167,13 @@ void SystemPage::keyPress(KeyPressEvent &event) {
         }
     }
 
+
+    if (key.pageModifier() && event.count() == 2) {
+        contextShow(true);
+        event.consume();
+        return;
+    }
+
     if (key.isFunction()) {
         if (_mode == Mode::Calibration && edit()) {
             if (CalibrationEditFunction(key.function()) == CalibrationEditFunction::Auto) {
@@ -277,12 +284,13 @@ void SystemPage::executeUtilityItem(UtilitiesListModel::Item item) {
     }
 }
 
-void SystemPage::contextShow() {
+void SystemPage::contextShow(bool doubleClick) {
     showContextMenu(ContextMenu(
         contextMenuItems,
         int(ContextAction::Last),
         [&] (int index) { contextAction(index); },
-        [&] (int index) { return contextActionEnabled(index); }
+        [&] (int index) { return contextActionEnabled(index); },
+        doubleClick
     ));
 }
 
