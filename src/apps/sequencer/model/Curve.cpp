@@ -207,3 +207,11 @@ Curve::Function Curve::function(Type type) {
 float Curve::eval(Type type, float x) {
     return functions[type](x);
 }
+
+Curve::Type Curve::invAt(int i) {
+        return INV_SHAPE_MAP.at(i);
+}
+
+Curve::Type Curve::revAt(int i) {
+        return REV_SHAPE_MAP.at(i);
+}

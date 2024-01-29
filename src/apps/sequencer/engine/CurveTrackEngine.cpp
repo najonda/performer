@@ -14,8 +14,11 @@
 
 static Random rng;
 
-static float evalStepShape(const CurveSequence::Step &step, bool variation, bool invert, float fraction) {
+static float evalStepShape(const CurveSequence::Step &step, bool variation, bool invert, float fraction, int direction) {
     auto function = Curve::function(Curve::Type(variation ? step.shapeVariation() : step.shape()));
+    if (direction == -1) {
+        function = Curve::function(Curve::Type(variation ? step.shapeVariation() : Curve::revAt(step.shape())));
+    }
     float value = function(fraction);
     if (invert) {
         value = 1.f - value;
@@ -218,7 +221,7 @@ void CurveTrackEngine::updateOutput(uint32_t relativeTick, uint32_t divisor) {
         const auto &evalSequence = fillNextPattern ? *_fillSequence : *_sequence;
         const auto &step = evalSequence.step(_currentStep);
 
-        float value = evalStepShape(step, _shapeVariation || fillVariation, fillInvert || _sequenceState.direction() == -1, _currentStepFraction);
+        float value = evalStepShape(step, _shapeVariation || fillVariation, fillInvert, _currentStepFraction, _sequenceState.direction());
         value = range.denormalize(value);
         _cvOutputTarget = value;
     }
