@@ -42,7 +42,6 @@ enum class Function {
 
 static const char *functionNames[] = { "GATE", "RETRIG", "LENGTH", "NOTE", "COND" };
 
-NoteSequence _inMemorySequence;
 
 static const NoteSequenceListModel::Item quickEditItems[8] = {
     NoteSequenceListModel::Item::FirstStep,
@@ -369,6 +368,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
 
              track.togglePatternFollowDisplay(lpConnected);
         } else {
+            _inMemorySequence = _project.selectedNoteSequence();
             quickEdit(key.quickEdit());
         }
         event.consume();

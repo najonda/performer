@@ -443,6 +443,10 @@ public:
     CurveSequence::Layer selectedCurveSequenceLayer() const { return _selectedCurveSequenceLayer; }
     void setSelectedCurveSequenceLayer(CurveSequence::Layer layer) { _selectedCurveSequenceLayer = layer; }
 
+    void setSelectedCurveSequence(CurveSequence seq) {
+        _tracks[_selectedTrackIndex].curveTrack().setSequence(selectedPatternIndex(), seq);
+    }
+
     // selectedTrack
 
     const Track &selectedTrack() const { return _tracks[_selectedTrackIndex]; }

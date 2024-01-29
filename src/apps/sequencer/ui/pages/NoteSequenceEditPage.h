@@ -74,4 +74,6 @@ private:
     StepSelection<CONFIG_STEP_COUNT> _stepSelection;
 
     Container<NoteSequenceBuilder> _builderContainer;
+
+    NoteSequence _inMemorySequence;
 };
