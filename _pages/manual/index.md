@@ -11,7 +11,7 @@ nav: 20
 > The user manual is also available as a PDF [here](./manual.pdf).
 <!-- pdf-exclude-end -->
 
-> This document is written for firmware version 0.1.46
+> This document is written for firmware version 0.1.47
 
 <!-- TOC -->
 
@@ -503,7 +503,7 @@ The following parameters are available:
 | Time Signature | Beats/Note | Time signature defining the musical measure/bar length for _Sync Measure_ and _Reset Measure_ on sequences. The time signature is also used to define the length of a bar in song mode. | 
 | Sync Measure   | 1 - 128 bars | Multiple of measures/bars at which to execute _syncing_ (see [Pattern](#pages-pattern) and [Performer](#pages-performer) pages).                                                        |
  page).         |
-| Scale          | [Scales](#appendix-scales) | Default scale. Can be overwritten per sequence on the [Sequence](#pages-sequence) page.                                                                                                 |
+| Scale          | [Scales](#appendix-scales) | Default scale. Can be overwritten per sequence on the [Sequence](#pages-sequence) page. The scale will bechanged on encoder press.                                                      |
 | Root Note      | C, C#, D, D#, E, F, F#, G, G#, A, B | Default root note. Can be overwritten per sequence on the [Sequence](#pages-sequence) page.                                                                                             |
 | Monitor Mode   | Always, Stopped, Off | Live monitoring mode. _Always_ enables monitoring always, _Stopped_ only if clock is stopped and _Off_ disables it.                                                                     |
 | Record Mode    | Overdub, Overwrite, Step Record | Recording mode (see [Recording](#appendix-recording)).                                                                                                                                  |
@@ -595,20 +595,21 @@ Hold `SHIFT` + `PAGE` to open the context menu and access the following function
 
 If a track is in _Note_ mode, the following parameters are available:
 
-| Parameter | Range | Description |
-| :--- | :--- | :--- |
-| Track Name | - | Press `ENCODER` to enter text editor for changing the project name. |
-| Play Mode | [Play Modes](#appendix-play-modes) | Mode used for playing sequences in this track. |
+| Parameter | Range                                | Description                                                                                                                                                                                                                                                                                                                                                           |
+| :--- |:-------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Track Name | -                                    | Press `ENCODER` to enter text editor for changing the project name.                                                                                                                                                                                                                                                                                                   |
+| Play Mode | [Play Modes](#appendix-play-modes)   | Mode used for playing sequences in this track.                                                                                                                                                                                                                                                                                                                        |
 | Fill Mode | None, Gates, Next Pattern, Condition | Mode used when fill is activated for the track. _None_ does nothing. _Gates_ plays each step of the sequence independent of whether the step gate is active or not. _Next Pattern_ uses the step data of the next pattern on the same track. _Condition_ plays steps that have the _Fill_ condition set, and does not play steps that have the _!Fill_ condition set. |
-| CV Update Mode | Gate, Always | Mode used for updating the CV output of this track. _Gate_ only updates the CV output if the step gate is active, _Always_ always updates the CV output independent of the step gate. |
-| Slide Time | 0% - 100% | Duration of pitch slides for steps that have _Slide_ enabled. |
-| Octave | -10 - +10 | Number of octaves to transpose the sequence up or down. |
-| Transpose | -100 - +100 | Number of notes to transpose the sequence up or down. Note that this depends on the current [Scale](#appendix-scales) of the sequence.
-| Rotate | [Rotation](#appendix-rotation) |Amount of rotation applied to the sequence. |
-| Gate P. Bias | -100% - +100% | Gate probability bias that is added to the sequence. |
-| Retrig P. Bias | -100% - +100% | Retrigger probability bias that is added to the sequence. |
-| Length Bias | -100% - +100% | Length bias bias that is added to the sequence. |
-| Note P. Bias | -100% - +100% | Note variation probability bias that is added to the sequence. |
+| CV Update Mode | Gate, Always                         | Mode used for updating the CV output of this track. _Gate_ only updates the CV output if the step gate is active, _Always_ always updates the CV output independent of the step gate.                                                                                                                                                                                 |
+| Slide Time | 0% - 100%                            | Duration of pitch slides for steps that have _Slide_ enabled.                                                                                                                                                                                                                                                                                                         |
+| Octave | -10 - +10                            | Number of octaves to transpose the sequence up or down.                                                                                                                                                                                                                                                                                                               |
+| Transpose | -100 - +100                          | Number of notes to transpose the sequence up or down. Note that this depends on the current [Scale](#appendix-scales) of the sequence.                                                                                                                                                                                                                                
+| Rotate | [Rotation](#appendix-rotation)       | Amount of rotation applied to the sequence.                                                                                                                                                                                                                                                                                                                           |
+| Gate P. Bias | -100% - +100%                        | Gate probability bias that is added to the sequence.                                                                                                                                                                                                                                                                                                                  |
+| Retrig P. Bias | -100% - +100%                        | Retrigger probability bias that is added to the sequence.                                                                                                                                                                                                                                                                                                             |
+| Length Bias | -100% - +100%                        | Length bias bias that is added to the sequence.                                                                                                                                                                                                                                                                                                                       |
+| Note P. Bias | -100% - +100%                        | Note variation probability bias that is added to the sequence.                                                                                                                                                                                                                                                                                                        |
+| Pattern Follow | Off, Display, Launchpad, Display+LP  | Enable pattern follow Use `PAGE`+`S16` tio cycle between modes                                                                                                                                                                                                                                                                                                                                                  | 
 
 > Note: _Slide Time_, _Octave_, _Transpose_, _Rotate_, _Gate P. Bias_, _Retrig P. Bias_, _Length Bias_ and _Note P. Bias_ are routable parameters. These parameters are great for live performance, as they allow to change how the sequence is played back without actually changing the sequence itself.
 
@@ -618,17 +619,18 @@ If a track is in _Note_ mode, the following parameters are available:
 
 If a track is in _Curve_, the following parameters are available:
 
-| Parameter | Range | Description |
-| :--- | :--- | :--- |
-| Track Name | - | Press `ENCODER` to enter text editor for changing the project name. |
-| Play Mode | [Play Modes](#appendix-play-modes) | Mode used for playing sequences in this track. |
+| Parameter | Range | Description                                                                                                                                                                                                                                                                                         |
+| :--- | :--- |:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Track Name | - | Press `ENCODER` to enter text editor for changing the project name.                                                                                                                                                                                                                                 |
+| Play Mode | [Play Modes](#appendix-play-modes) | Mode used for playing sequences in this track.                                                                                                                                                                                                                                                      |
 | Fill Mode | None, Variation, Next Pattern, Invert | Mode used when fill is activated for the track. _None_ does nothing. _Variation_ plays the curve shapes defined in the _Shape Variation_ layer independent of their probability. _Next Pattern_ uses the step data of the next pattern on the same track. _Invert_ plays the curve shapes inverted. |
-| Mute Mode | Last Value, 0V, Min, Max | Voltage that is output when track is muted. _Last Value_ keeps the last value before mute is engaged. _0V_ outputs zero volts. _Min_ and _Max_ sets the voltage to the minimum or maximum value of the selected voltage range. |
-| Slide Time | 0% - 100% | Global slide time (slew limiter) applied to curve. |
-| Offset | -5.00V - 5.00V | Voltage to offset the CV output by. |
-| Rotate | [Rotation](#appendix-rotation) | Amount of rotation applied to the sequence. |
-| Shape P. Bias | -100% - +100% | Shape probability bias that is added to the sequence. |
-| Gate P. Bias | -100% - +100% | Gate probability bias that is added to the sequence. |
+| Mute Mode | Last Value, 0V, Min, Max | Voltage that is output when track is muted. _Last Value_ keeps the last value before mute is engaged. _0V_ outputs zero volts. _Min_ and _Max_ sets the voltage to the minimum or maximum value of the selected voltage range.                                                                      |
+| Slide Time | 0% - 100% | Global slide time (slew limiter) applied to curve.                                                                                                                                                                                                                                                  |
+| Offset | -5.00V - 5.00V | Voltage to offset the CV output by.                                                                                                                                                                                                                                                                 |
+| Rotate | [Rotation](#appendix-rotation) | Amount of rotation applied to the sequence.                                                                                                                                                                                                                                                         |
+| Shape P. Bias | -100% - +100% | Shape probability bias that is added to the sequence.                                                                                                                                                                                                                                               |
+| Gate P. Bias | -100% - +100% | Gate probability bias that is added to the sequence.                                                                                                                                                                                                                                                |
+| Pattern Follow | Off, Display, Launchpad, Display+LP  | Enable pattern follow. Use `PAGE`+`S16` tio cycle between modes                                                                                                                                                                                                                                     |
 
 > Note: _Slide Time_, _Offset_, _Rotate_, _Shape P. Bias_ and _Gate P. Bias_ are routable parameters.
 
@@ -692,15 +694,15 @@ Hold `SHIFT` + `PAGE` to open the context menu and access the following function
 
 If a track is in _Note_ mode, the following parameters are available:
 
-| Parameter | Range | Description |
-| :--- | :--- | :--- |
-| First Step | 1 - 64 | First step to play. Hold `SHIFT` to edit both first and last step together. |
-| Last Step | 1 - 64 | Last step to play. Hold `SHIFT` to edit both first and last step together. |
-| Run Mode | [Run Modes](#appendix-run-modes) | Mode in which to play the sequence.  |
-| Divisor | [Divisors](#appendix-divisors) | Time divisor for this sequence. |
-| Reset Measure | off, 1 - 128 bars | Number of measures/bars at which to reset the sequence. |
-| Scale | [Scales](#appendix-scales) | Scale to use for this sequence. If set to _Default_, uses the default scale set on the [Project](#pages-project) page. |
-| Root Note | C, C#, D, D#, E, F, F#, G, G#, A, B | Root note to use for this sequence. If set to _Default_, uses the default root note set on the [Project](#pages-project) page. |
+| Parameter | Range | Description                                                                                                                                                                                                                                                                                                                                                            |
+| :--- | :--- |:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| First Step | 1 - 64 | First step to play. Hold `SHIFT` to edit both first and last step together.                                                                                                                                                                                                                                                                                            |
+| Last Step | 1 - 64 | Last step to play. Hold `SHIFT` to edit both first and last step together.                                                                                                                                                                                                                                                                                             |
+| Run Mode | [Run Modes](#appendix-run-modes) | Mode in which to play the sequence.                                                                                                                                                                                                                                                                                                                                    |
+| Divisor | [Divisors](#appendix-divisors) | Time divisor for this sequence.                                                                                                                                                                                                                                                                                                                                        |
+| Reset Measure | off, 1 - 128 bars | Number of measures/bars at which to reset the sequence.                                                                                                                                                                                                                                                                                                                |
+| Scale | [Scales](#appendix-scales) | Scale to use for this sequence. If set to _Default_, uses the default scale set on the [Project](#pages-project) page. The scale will change on encoder press and new notes will be calculated based on the previous scale: if a note of the previous scale is present in the new scale it will be preserved. If a note is not present the nearest one will be picked. |
+| Root Note | C, C#, D, D#, E, F, F#, G, G#, A, B | Root note to use for this sequence. If set to _Default_, uses the default root note set on the [Project](#pages-project) page.                                                                                                                                                                                                                                         |
 
 > Note: _First Step_, _Last Step_, _Run Mode_, _Divisor_, _Scale_ and _Root Note_ are routable parameters.
 
@@ -906,6 +908,11 @@ A quick way to create songs on the fly is pattern chaining. This function is spe
 To create a pattern chain, hold `F1` and press `S[1-16]` to select the pattern to be played for the newly created slot. If the same pattern is added multiple times by pressing `S[1-16]` again, the bar/measure count of the last added slot is incremented. For example, holding `F1` and pressing the sequence `S1`, `S1`, `S1`, `S2`, `S1`, `S1`, `S1`, `S3` will create the following slot list:
 
 ![](images/page-song-chain-example.png)
+
+To create a pattern chain from the _pattern_ page, simply hold `S[1-16]` for the first pattern and press `S[1-16]` for the second pattern.
+Holding `S1` and pressing `S6` will create the following slot list:
+
+![](images/page-song-pattern-chain.png)
 
 > Note: When creating a pattern chain, the song is immediately activated for playback and the sequencer clock is started if not already running.
 
@@ -1825,9 +1832,9 @@ Requested patterns due to latching or syncing are shown in dim green.
 <h4 id="appendix-circuit">Circuit note editor</h4>
 
 The visualization on the grid follows this schema:
-* First 2 rows represent the gates from `S[1-16]`
-* row 4 represents the semitones of a chromatic scale, selected note is highlighted
-* row 5 represents the tones of a chromatic scale, selected note is highlighted
+* First 2 rows represent the gates from `S[1-16]`t
+* row 4 represents the semitones of a chromatic scale, selected note is highlighted, available notes in the scale are highlighted
+* row 5 represents the tones of a chromatic scale, selected note is highlighted, available notes in the scale are highlighted
 * row 7 represents the octave switcher from -4 to 3 octave, selected octave is highlighted
 
 - if you press a button in the gates representation you will toggle the gate
