@@ -780,7 +780,7 @@ To adjust the values of the currently selected layer, hold `S[1-16]` and rotate 
 - When editing a _Curve_ track elect multiple steps `SHIFT` + `S[1-16]` and press the `SHIFT` + `ENCODER` will reverse the shapes
 - When editing a _Note_ track select any steps you want and pressing `SHIFT` + `next|prev` will move the selected step by 1 step
 - When editing a _Note_ or a _Curve_ track selecting any steps and using the _INIT_ context menu function will init just the selected steps.
-- when editing a _Note_ track pressing `PAGE` + `S7` will undo the last change.
+- when editing a _Note_ or a _Curve_ track pressing `PAGE` + `S7` will undo the last change.
 
 <h4>Advanced Step Selection</h4>
 
