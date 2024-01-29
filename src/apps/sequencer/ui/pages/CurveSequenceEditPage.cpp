@@ -38,6 +38,7 @@ enum class Function {
 
 static const char *functionNames[] = { "SHAPE", "MIN", "MAX", "GATE", nullptr };
 
+
 static const CurveSequenceListModel::Item quickEditItems[8] = {
     CurveSequenceListModel::Item::FirstStep,
     CurveSequenceListModel::Item::LastStep,
@@ -116,6 +117,8 @@ CurveSequenceEditPage::CurveSequenceEditPage(PageManager &manager, PageContext &
 
 void CurveSequenceEditPage::enter() {
     updateMonitorStep();
+
+     _inMemorySequence = _project.selectedCurveSequence();
 
     _showDetail = false;
 }
@@ -336,6 +339,7 @@ void CurveSequenceEditPage::keyDown(KeyEvent &event) {
 
 void CurveSequenceEditPage::keyUp(KeyEvent &event) {
     _stepSelection.keyUp(event, stepOffset());
+
     updateMonitorStep();
 }
 
@@ -361,13 +365,22 @@ void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
         if (key.is(Key::Step15)) {
             track.togglePatternFollowDisplay();
         } else {
+            _inMemorySequence = _project.selectedCurveSequence();
             quickEdit(key.quickEdit());
         }
         event.consume();
         return;
     }
 
+    if (key.pageModifier() && key.is(Key::Step6)) {
+        // undo function
+        _project.setSelectedCurveSequence(_inMemorySequence);
+        event.consume();
+        return;
+    }
+
     if (key.isEncoder() && layer() == Layer::Shape && globalKeyState()[Key::Shift] && _stepSelection.count() > 1) {
+        _inMemorySequence = _project.selectedCurveSequence();
         for (size_t stepIndex = 0; stepIndex < _stepSelection.size(); ++stepIndex) {
         if (_stepSelection[stepIndex]) {
             auto &step = sequence.step(stepIndex);
@@ -386,12 +399,15 @@ void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
     }
 
     if (key.isEncoder()) {
+        _inMemorySequence = _project.selectedCurveSequence();
+
         track.setPatternFollowDisplay(false);
         event.consume();
     }
 
     if (key.isLeft()) {
         if (key.shiftModifier()) {
+            _inMemorySequence = _project.selectedCurveSequence();
             sequence.shiftSteps(_stepSelection.selected(), -1);
         } else {
             track.setPatternFollowDisplay(false);
@@ -401,6 +417,7 @@ void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
     }
     if (key.isRight()) {
         if (key.shiftModifier()) {
+            _inMemorySequence = _project.selectedCurveSequence();
             sequence.shiftSteps(_stepSelection.selected(), 1);
         } else {
             track.setPatternFollowDisplay(false);
@@ -412,7 +429,6 @@ void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
 
 void CurveSequenceEditPage::encoder(EncoderEvent &event) {
     auto &sequence = _project.selectedCurveSequence();
-
     if (!_stepSelection.any()) {
         switch (layer()) {
         case Layer::Shape:

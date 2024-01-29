@@ -438,6 +438,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
 
     if (key.isLeft()) {
         if (key.shiftModifier()) {
+            _inMemorySequence = _project.selectedNoteSequence();
             sequence.shiftSteps(_stepSelection.selected(), -1);
             _stepSelection.shiftLeft();
         } else {
@@ -448,6 +449,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
     }
     if (key.isRight()) {
         if (key.shiftModifier()) {
+            _inMemorySequence = _project.selectedNoteSequence();
             sequence.shiftSteps(_stepSelection.selected(), 1);
             _stepSelection.shiftRight();
         } else {

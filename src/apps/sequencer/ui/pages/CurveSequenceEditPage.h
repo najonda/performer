@@ -64,4 +64,6 @@ private:
     StepSelection<CONFIG_STEP_COUNT> _stepSelection;
 
     Container<CurveSequenceBuilder> _builderContainer;
+
+    CurveSequence _inMemorySequence;
 };
