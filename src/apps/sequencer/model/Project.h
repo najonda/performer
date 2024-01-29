@@ -458,6 +458,10 @@ public:
     const NoteSequence &selectedNoteSequence() const { return noteSequence(_selectedTrackIndex, selectedPatternIndex()); }
           NoteSequence &selectedNoteSequence()       { return noteSequence(_selectedTrackIndex, selectedPatternIndex()); }
 
+    void setSelectedNoteSequence(NoteSequence seq) {
+        _tracks[_selectedTrackIndex].noteTrack().setSequence(selectedPatternIndex(), seq);
+    }
+
     // curveSequence
 
     const CurveSequence &curveSequence(int trackIndex, int patternIndex) const { return _tracks[trackIndex].curveTrack().sequence(patternIndex); }

@@ -41,6 +41,8 @@ enum class Function {
 
 static const char *functionNames[] = { "GATE", "RETRIG", "LENGTH", "NOTE", "COND" };
 
+NoteSequence _inMemorySequence;
+
 static const NoteSequenceListModel::Item quickEditItems[8] = {
     NoteSequenceListModel::Item::FirstStep,
     NoteSequenceListModel::Item::LastStep,
@@ -64,6 +66,8 @@ NoteSequenceEditPage::NoteSequenceEditPage(PageManager &manager, PageContext &co
 
 void NoteSequenceEditPage::enter() {
     updateMonitorStep();
+
+    _inMemorySequence = _project.selectedNoteSequence();
 
     _showDetail = false;
 }
@@ -351,6 +355,13 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
         return;
     }
 
+    if (key.pageModifier() && key.is(Key::Step6)) {
+        // undo function
+        _project.setSelectedNoteSequence(_inMemorySequence);
+        event.consume();
+        return;
+    }
+
     if (key.pageModifier()) {
         return;
     }
@@ -362,6 +373,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
         int stepIndex = stepOffset() + key.step();
         switch (layer()) {
         case Layer::Gate:
+            _inMemorySequence = _project.selectedNoteSequence();
             sequence.step(stepIndex).toggleGate();
             event.consume();
             break;
@@ -375,6 +387,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
     if (!key.shiftModifier() && key.isStep() && keyPressEvent.count() == 2) {
         int stepIndex = stepOffset() + key.step();
         if (layer() != Layer::Gate) {
+            _inMemorySequence = _project.selectedNoteSequence();
             sequence.step(stepIndex).toggleGate();
             event.consume();
         }
@@ -382,6 +395,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
 
     if (key.isFunction()) {
         if(key.shiftModifier() && key.function() == 2 && _stepSelection.any()) {
+            _inMemorySequence = _project.selectedNoteSequence();
             tieNotes();
             event.consume();
             return;
@@ -392,7 +406,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
 
     if (key.isEncoder()) {
         track.setPatternFollowDisplay(false);
-
+        _inMemorySequence = _project.selectedNoteSequence();
         if (!_showDetail && _stepSelection.any() && allSelectedStepsActive()) {
             setSelectedStepsGate(false);
         } else {

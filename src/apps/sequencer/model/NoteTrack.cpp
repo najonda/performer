@@ -54,6 +54,7 @@ void NoteTrack::clear() {
     }
 }
 
+
 void NoteTrack::write(VersionedSerializedWriter &writer) const {
     writer.write(_name, NameLength + 1);
     writer.write(_playMode);
