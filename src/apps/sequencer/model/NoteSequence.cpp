@@ -219,6 +219,9 @@ void NoteSequence::Step::read(VersionedSerializedReader &reader) {
     } else {
         reader.read(_data0.raw);
         reader.read(_data1.raw);
+        if (reader.dataVersion() < ProjectVersion::Version34) {
+            setBypassScale(false);
+        }
     }
 }
 
