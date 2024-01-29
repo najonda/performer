@@ -180,7 +180,7 @@ In the default configuration, each track controls one of the CV/gate output pair
 
 <h4>Track Linking</h4>
 
-In _Note_ or _Curve_ mode, a track generates a single CV signal, typically a pitch or modulation signal. To control a voice with multiple signals, for example a pitch and velocity signal, two tracks have to be used in combination. The first track is used to generate the pitch signal while the second track generates the velocity signal. Using two tracks allows to use different sequence lengths, time divison and other properties that affect playback. If that is not desired, the second track can be linked to the first track, essentially doubling the playback behavior.
+In _Note_ or _Curve_ mode, a track generates a single CV signal, typically a pitch or modulation signal. To control a voice with multiple signals, for example a pitch and velocity signal, two tracks have to be used in combination. The first track is used to generate the pitch signal while the second track generates the velocity signal. Using two tracks allows to use different sequence lengths, time division and other properties that affect playback. If that is not desired, the second track can be linked to the first track, essentially doubling the playback behavior.
 
 Track modes, the physical routing to CV/gate outputs and track linking can be configured on the [Layout](#pages-layout) page.
 
@@ -202,7 +202,7 @@ The _Retrigger_ layer allows each gate signal to be retriggered multiple times w
 
 Inside the _Retrigger_ layer a metropolix style mode can be activated wwhen the track is in _free_mode. 
 
-The generated CV signal is controlled by the _Note_ layer, which basically defines the voltage to be output for each step. Each note is stored as an index to an entry in a [Scale](#concepts-scale), allowing the generated CV signals to be used both for controlling note pitch as well as other arbitrary modulation signals. Using the _Note Variation Range_ and _Note Variation Probability_ layers some random variation can be applied to the CV signal. The _Slide_ layer controls if the generate CV signal is changed immediately on the start of a gate or smoothly slides to the new voltage.
+The generated CV signal is controlled by the _Note_ layer, which basically defines the voltage to be output for each step. Each note is stored as an index to an entry in a [Scale](#concepts-scale), allowing the generated CV signals to be used both for controlling note pitch as well as other arbitrary modulation signals. Using the _Note Variation Range_ and _Note Variation Probability_ layers some random variation can be applied to the CV signal. The _Slide_ layer controls if the generate CV signal is changed immediately on the start of a gate or smoothly slides to the new voltage. Activating a step in the _Bypass Scale_ layer will allow to bypass the selected scale and enter one of 12 chromatic notes available. 
 
 Finally, the _Condition_ layer is used to conditionally trigger steps based on certain rules. This allows to create relatively short sequences that feel more complex, for example by only playing steps every few iterations. See [Step Conditions](#appendix-step-conditions) for additional information.
 
@@ -449,7 +449,7 @@ The _footer_ is used to display the labels of the function buttons for the curre
 
 On pages such as the [Layout](#pages-layout) page, the function buttons are used to switch between different sub-pages. In that case, the currently active sub-page is highlighted in the footer.
 
-On pages that provide a context menu, the labels dynamically change to the context menu actions when `SHIFT` + `PAGE` is hold.
+On pages that provide a context menu, the labels dynamically change to the context menu actions when `SHIFT` + `PAGE` is hold or double click `PAGE` to enter the context menu for 2 seconds.
 
 <!-- List Pages -->
 
@@ -471,7 +471,7 @@ To allow moving and copying data, a copy/paste system is implemented that allows
 - Pattern (see [Pattern](#pages-pattern) page)
 - User Scale (see [User Scale](#pages-user-scale) page)
 
-Copy/paste actions are provided in the context menu when holding `SHIFT` + `PAGE`.
+Copy/paste actions are provided in the context menu when holding `SHIFT` + `PAGE` or double clicking `PAGE` (2 seconds menu availability)
 
 > Note: Due to memory limitations, the clipboard can only hold one object at a time and shares memory across all different types. This means that copying an object always results in the previously copied object being cleared from the clipboard.
 
@@ -516,7 +516,7 @@ The following parameters are available:
 
 <h4>Context Menu</h4>
 
-Hold `SHIFT` + `PAGE` to open the context menu and access the following functions:
+Hold `SHIFT` + `PAGE` or double click `PAGE` (context menu will least for 2 seconds)  to open the context menu and access the following functions:
 
 | Button | Function | Description |
 | :--- | :--- | :--- |
@@ -580,7 +580,7 @@ This page allows to change track wide settings. Note that the shown parameters d
 
 <h4>Context Menu</h4>
 
-Hold `SHIFT` + `PAGE` to open the context menu and access the following functions:
+Hold `SHIFT` + `PAGE` or double click `PAGE` (context menu will least for 2 seconds)  to open the context menu and access the following functions:
 
 | Button | Function | Description |
 | :--- | :--- | :--- |
@@ -677,7 +677,7 @@ For quick access to most of the sequence parameters, there is also a quick edit 
 
 <h4>Context Menu</h4>
 
-Hold `SHIFT` + `PAGE` to open the context menu and access the following functions:
+Hold `SHIFT` + `PAGE` or double click `PAGE` (context menu will least for 2 seconds)  to open the context menu and access the following functions:
 
 | Button | Function | Description |
 | :--- | :--- | :--- |
@@ -777,7 +777,10 @@ To adjust the values of the currently selected layer, hold `S[1-16]` and rotate 
 - When editing the _Min_ or _Max_ layer on a sequence of a _Curve_ track, pressing `SHIFT` or `ENCODER` and rotating the `ENCODER` will adjust the value in smaller steps.
 - When editing the _Min_ or _Max_ layer on a sequence of a _Curve_ track while holding `F2` or `F3`, the curve shape is offset up and down (adjusting min/max at the same time).
 - When editing a _Curve_ track select multiple steps `SHIFT` + `S[1-16]` then hold `SHIFT` and turn the `ENCODER` to select a shape. The shape will be spread across the selected steps.
-- When editing a _Curve_ track elect multiple steps `SHIFT` + `S[1-16]` and press the `SHIFT' + ENCODER` will reverse the shapes
+- When editing a _Curve_ track elect multiple steps `SHIFT` + `S[1-16]` and press the `SHIFT` + `ENCODER` will reverse the shapes
+- When editing a _Note_ track select any steps you want and pressing `SHIFT` + `next|prev` will move the selected step by 1 step
+- When editing a _Note_ or a _Curve_ track selecting any steps and using the _INIT_ context menu function will init just the selected steps.
+- when editing a _Note_ track pressing `PAGE` + `S7` will undo the last change.
 
 <h4>Advanced Step Selection</h4>
 
@@ -793,7 +796,7 @@ Press `SHIFT` + `PREV` or `SHIFT` + `NEXT` to shift all steps in the sequence be
 
 <h4>Context Menu</h4>
 
-Hold `SHIFT` + `PAGE` to open the context menu and access the following functions:
+Hold `SHIFT` + `PAGE` or double click `PAGE` (context menu will least for 2 seconds)  to open the context menu and access the following functions:
 
 | Button | Function | Description |
 | :--- | :--- | :--- |
@@ -848,7 +851,7 @@ You can access generators in each sequence layer to generate their values access
 
 <h4>Context Menu </h4>
 
-Hold `SHIFT` + `PAGE` in each generator page to open the context menu and access the following functions:
+Hold `SHIFT` + `PAGE` or double click `PAGE` (context menu will least for 2 seconds)  in each generator page to open the context menu and access the following functions:
 
 | Button | Function | Description                                                                                                         |
 | :--- |:---------|:--------------------------------------------------------------------------------------------------------------------|
@@ -881,6 +884,8 @@ The following options are available
 | Bias   | -10 - 10 | sets the probability distribution of each random step value |
 | Scale | 0 - 100 | sets the scale of the probabilty distribution of each random step value |
 
+> Note: the random generator will generate random steps for selected steps only if any otherwise to the full sequence steps.
+
 <!-- Song -->
 
 <h3 id="pages-song">Song</h3>
@@ -893,7 +898,7 @@ A song consists of up to 64 slots, each referencing a set of 8 patterns to be pl
 
 <h4>Context Menu</h4>
 
-Hold `SHIFT` + `PAGE` to open the context menu and access the following functions:
+Hold `SHIFT` + `PAGE` or double click `PAGE` (context menu will least for 2 seconds) to open the context menu and access the following functions:
 
 | Button | Function | Description |
 | :--- | :--- | :--- |
@@ -1163,7 +1168,7 @@ When in _Voltage_ mode, each item can be assigned a voltage between -5V and +5V 
 
 <h4>Context Menu</h4>
 
-Hold `SHIFT` + `PAGE` to open the context menu and access the following functions:
+Hold `SHIFT` + `PAGE` or double click `PAGE` (context menu will least for 2 seconds)  to open the context menu and access the following functions:
 
 | Button | Function | Description |
 | :--- | :--- | :--- |
@@ -1266,7 +1271,7 @@ See [Calibration Procedure](#appendix-calibration-procedure) for more informatio
 
 <h4>Context Menu</h4>
 
-Hold `SHIFT` + `PAGE` to open the context menu and access the following functions:
+Hold `SHIFT` + `PAGE` or double click `PAGE` (context menu will least for 2 seconds)  to open the context menu and access the following functions:
 
 | Button | Function | Description |
 | :--- | :--- | :--- |
