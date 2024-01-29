@@ -23,7 +23,7 @@ void ContextMenuPage::draw(Canvas &canvas) {
 
     uint32_t currentTicks = os::ticks();
     uint32_t deltaTicks = currentTicks - lastTicks;
-    if (deltaTicks > os::time::ms(2000)) {
+    if (deltaTicks > os::time::ms(2000) && _contextMenuModel->doubleClick()) {
         close();
     }
 
