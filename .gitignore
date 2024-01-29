@@ -11,4 +11,4 @@ src/platform/sim/sim/frontend/MidiConfig.h
 src/*
 submodules
 *.iml
-.idea
+.idea/
