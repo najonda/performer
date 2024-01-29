@@ -7,7 +7,7 @@
 - Show launchpad settings only when a launchpad is connected
 - Apply random for selected steps only
 - double click page to enter context menu for 2 seconds
-- Prevent very short output clock pulses at higher BPMs3
+- Prevent very short output clock pulses at higher BPMs
 - Undo function (alt+s7)
 - Curve mode backward run modes play reverse playback
 - Bypass the Voltage Table in specific steps of the sequence
