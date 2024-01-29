@@ -38,47 +38,6 @@ enum class Function {
 
 static const char *functionNames[] = { "SHAPE", "MIN", "MAX", "GATE", nullptr };
 
-static const std::map<int, Curve::Type> INV_SHAPE_MAP = {
-        {0, Curve::High},
-        {1, Curve::Low},
-        {2, Curve::RampDown},
-        {3, Curve::RampUp},
-        {4, Curve::rampDownHalf},
-        {5, Curve::rampUpHalf},
-        {6, Curve::doubleRampDownHalf},
-        {7, Curve::doubleRampUpHalf},
-        {8, Curve::ExpDown},
-        {9, Curve::ExpUp},
-        {10, Curve::expDownHalf},
-        {11, Curve:: expUpHalf},
-        {12, Curve::doubleExpDownHalf},
-        {13, Curve::doubleExpUpHalf},
-        {14, Curve::LogDown},
-        {15, Curve::LogUp},
-        {16, Curve::logDownHalf},
-        {17, Curve::logUpHalf},
-        {18, Curve::doubleLogDownHalf},
-        {19, Curve::doubleLogUpHalf},
-        {20, Curve::SmoothDown},
-        {21, Curve::SmoothUp},
-        {22, Curve::smoothDownHalf},
-        {23, Curve::smoothUpHalf},
-        {24, Curve::doubleSmoothDownHalf},
-        {25, Curve::doubleSmoothUpHalf},
-        {26, Curve::RevTriangle},
-        {27, Curve::Triangle},
-        {28, Curve::RevBell},
-        {29, Curve::Bell},
-        {30, Curve::StepDown},
-        {31, Curve::StepUp},
-        {32, Curve::ExpUp2x},
-        {33, Curve::ExpDown2x},
-        {34, Curve::ExpUp3x},
-        {35, Curve::ExpUp4x},
-        {36, Curve::ExpDown4x}
-    };
-
-
 static const CurveSequenceListModel::Item quickEditItems[8] = {
     CurveSequenceListModel::Item::FirstStep,
     CurveSequenceListModel::Item::LastStep,
@@ -157,8 +116,6 @@ CurveSequenceEditPage::CurveSequenceEditPage(PageManager &manager, PageContext &
 
 void CurveSequenceEditPage::enter() {
     updateMonitorStep();
-
-     _inMemorySequence = _project.selectedCurveSequence();
 
     _showDetail = false;
 }
@@ -379,7 +336,6 @@ void CurveSequenceEditPage::keyDown(KeyEvent &event) {
 
 void CurveSequenceEditPage::keyUp(KeyEvent &event) {
     _stepSelection.keyUp(event, stepOffset());
-
     updateMonitorStep();
 }
 
@@ -405,26 +361,17 @@ void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
         if (key.is(Key::Step15)) {
             track.togglePatternFollowDisplay();
         } else {
-            _inMemorySequence = _project.selectedCurveSequence();
             quickEdit(key.quickEdit());
         }
         event.consume();
         return;
     }
 
-    if (key.pageModifier() && key.is(Key::Step6)) {
-        // undo function
-        _project.setSelectedCurveSequence(_inMemorySequence);
-        event.consume();
-        return;
-    }
-
     if (key.isEncoder() && layer() == Layer::Shape && globalKeyState()[Key::Shift] && _stepSelection.count() > 1) {
-        _inMemorySequence = _project.selectedCurveSequence();
         for (size_t stepIndex = 0; stepIndex < _stepSelection.size(); ++stepIndex) {
         if (_stepSelection[stepIndex]) {
             auto &step = sequence.step(stepIndex);
-            auto reverseShape = INV_SHAPE_MAP.at(step.shape());
+            auto reverseShape = Curve::invAt(step.shape());
             step.setShape(reverseShape);
         }
     }
@@ -439,15 +386,12 @@ void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
     }
 
     if (key.isEncoder()) {
-        _inMemorySequence = _project.selectedCurveSequence();
-
         track.setPatternFollowDisplay(false);
         event.consume();
     }
 
     if (key.isLeft()) {
         if (key.shiftModifier()) {
-            _inMemorySequence = _project.selectedCurveSequence();
             sequence.shiftSteps(_stepSelection.selected(), -1);
         } else {
             track.setPatternFollowDisplay(false);
@@ -457,7 +401,6 @@ void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
     }
     if (key.isRight()) {
         if (key.shiftModifier()) {
-            _inMemorySequence = _project.selectedCurveSequence();
             sequence.shiftSteps(_stepSelection.selected(), 1);
         } else {
             track.setPatternFollowDisplay(false);
@@ -469,6 +412,7 @@ void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
 
 void CurveSequenceEditPage::encoder(EncoderEvent &event) {
     auto &sequence = _project.selectedCurveSequence();
+
     if (!_stepSelection.any()) {
         switch (layer()) {
         case Layer::Shape:
@@ -741,7 +685,7 @@ bool CurveSequenceEditPage::contextActionEnabled(int index) const {
 }
 
 void CurveSequenceEditPage::initSequence() {
-    _project.selectedCurveSequence().clearStepsSelected(_stepSelection.selected());
+    _project.selectedCurveSequence().clearSteps();
     showMessage("STEPS INITIALIZED");
 }
 

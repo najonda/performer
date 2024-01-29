@@ -52,6 +52,9 @@ public:
     static Function function(Type type);
 
     static float eval(Type type, float x);
-}; 
+
+    static Type invAt(int i);
+    static Type revAt(int i);
+};
 
  
