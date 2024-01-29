@@ -685,7 +685,7 @@ bool CurveSequenceEditPage::contextActionEnabled(int index) const {
 }
 
 void CurveSequenceEditPage::initSequence() {
-    _project.selectedCurveSequence().clearSteps();
+    _project.selectedCurveSequence().clearStepsSelected(_stepSelection.selected());
     showMessage("STEPS INITIALIZED");
 }
 
