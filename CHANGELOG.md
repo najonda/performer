@@ -10,6 +10,7 @@
 - Prevent very short output clock pulses at higher BPMs3
 - Undo function (alt+s7)
 - Curve mode backward run modes play reverse playback
+- Bypass the Voltage Table in specific steps of the sequence
 
 # v0.1.4.47 (24 January 2024)
 - launchpad circuit mode improvements
