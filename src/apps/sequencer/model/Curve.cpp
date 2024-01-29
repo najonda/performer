@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include <cmath>
+#include <map>
 
 static const float Pi = 3.1415926536f;
 static const float TwoPi = 2.f * Pi;
