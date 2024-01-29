@@ -55,6 +55,7 @@ public:
         NoteVariationRange,
         NoteVariationProbability,
         Slide,
+        BypassScale,
         Condition,
         Last
     };
@@ -65,6 +66,7 @@ public:
         case Layer::GateProbability:            return "GATE PROB";
         case Layer::GateOffset:                 return "GATE OFFSET";
         case Layer::Slide:                      return "SLIDE";
+        case Layer::BypassScale:                 return "BYPASS SCALE";
         case Layer::Retrigger:                  return "RETRIG";
         case Layer::RetriggerProbability:       return "RETRIG PROB";
         case Layer::Length:                     return "LENGTH";
@@ -214,6 +216,14 @@ public:
         int layerValue(Layer layer) const;
         void setLayerValue(Layer layer, int value);
 
+        bool bypassScale() const { return _data0.bypassScale ? true : false; }
+        void setBypassScale(bool bypass) {
+            _data0.bypassScale = bypass;
+        }
+        void toggleBypassScale() {
+            setBypassScale(!bypassScale());
+        }
+
         //----------------------------------------
         // Methods
         //----------------------------------------
@@ -244,7 +254,7 @@ public:
             BitField<uint32_t, 13, Note::Bits> note;
             BitField<uint32_t, 20, NoteVariationRange::Bits> noteVariationRange;
             BitField<uint32_t, 27, NoteVariationProbability::Bits> noteVariationProbability;
-            // 1 bits left
+            BitField<uint32_t, 31, 1> bypassScale;
         } _data0;
         union {
             uint32_t raw;

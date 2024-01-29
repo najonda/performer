@@ -74,6 +74,21 @@ static int evalTransposition(const Scale &scale, int octave, int transpose) {
 
 // evaluate note voltage
 static float evalStepNote(const NoteSequence::Step &step, int probabilityBias, const Scale &scale, int rootNote, int octave, int transpose, bool useVariation = true) {
+
+
+    if (step.bypassScale()) {
+        const Scale &bypassScale = Scale::get(0);
+        int note = step.note() + evalTransposition(bypassScale, octave, transpose);
+        int probability = clamp(step.noteVariationProbability() + probabilityBias, -1, NoteSequence::NoteVariationProbability::Max);
+        if (useVariation && int(rng.nextRange(NoteSequence::NoteVariationProbability::Range)) <= probability) {
+            int offset = step.noteVariationRange() == 0 ? 0 : rng.nextRange(std::abs(step.noteVariationRange()) + 1);
+            if (step.noteVariationRange() < 0) {
+                offset = -offset;
+            }
+            note = NoteSequence::Note::clamp(note + offset);
+        }
+        return bypassScale.noteToVolts(note) + (bypassScale.isChromatic() ? rootNote : 0) * (1.f / 12.f);
+    }
     int note = step.note() + evalTransposition(scale, octave, transpose);
     int probability = clamp(step.noteVariationProbability() + probabilityBias, -1, NoteSequence::NoteVariationProbability::Max);
     if (useVariation && int(rng.nextRange(NoteSequence::NoteVariationProbability::Range)) <= probability) {

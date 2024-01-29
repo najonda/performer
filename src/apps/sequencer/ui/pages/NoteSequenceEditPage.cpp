@@ -1,5 +1,6 @@
 #include "NoteSequenceEditPage.h"
 
+#include "LayoutPage.h"
 #include "Pages.h"
 
 #include "model/NoteSequence.h"
@@ -213,7 +214,19 @@ void NoteSequenceEditPage::draw(Canvas &canvas) {
             int rootNote = sequence.selectedRootNote(_model.project().rootNote());
             canvas.setColor(Color::Bright);
             FixedStringBuilder<8> str;
+
+            if (step.bypassScale()) {
+                const Scale &bypassScale = std::ref(Scale::get(0));
+                bypassScale.noteName(str, step.note(), rootNote, Scale::Short1);
+            
+                canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
+                str.reset();
+                bypassScale.noteName(str, step.note(), rootNote, Scale::Short2);
+                canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
+                break;
+            } 
             scale.noteName(str, step.note(), rootNote, Scale::Short1);
+            
             canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
             str.reset();
             scale.noteName(str, step.note(), rootNote, Scale::Short2);
@@ -238,6 +251,13 @@ void NoteSequenceEditPage::draw(Canvas &canvas) {
                 canvas,
                 x + 4, y + 18, stepWidth - 8, 4,
                 step.slide()
+            );
+            break;
+        case Layer::BypassScale:
+            SequencePainter::drawBypassScale(
+                canvas,
+                x + 4, y + 18, stepWidth - 8, 4,
+                step.bypassScale()
             );
             break;
         case Layer::Condition: {
@@ -272,7 +292,7 @@ void NoteSequenceEditPage::draw(Canvas &canvas) {
     // handle detail display
 
     if (_showDetail) {
-        if (layer() == Layer::Gate || layer() == Layer::Slide || _stepSelection.none()) {
+        if (layer() == Layer::Gate || layer() == Layer::Slide || _stepSelection.none() || layer() == Layer::BypassScale) {
             _showDetail = false;
         }
         if (_stepSelection.isPersisted() && os::ticks() > _showDetailTicks + os::time::ms(500)) {
@@ -477,7 +497,7 @@ void NoteSequenceEditPage::encoder(EncoderEvent &event) {
             setLayer(event.value() > 0 ? Layer::Length : Layer::LengthVariationRange);
             break;
         case Layer::Note:
-            setLayer(event.value() > 0 ? Layer::NoteVariationRange : Layer::Slide);
+            setLayer(event.value() > 0 ? Layer::NoteVariationRange : Layer::BypassScale);
             break;
         case Layer::NoteVariationRange:
             setLayer(event.value() > 0 ? Layer::NoteVariationProbability : Layer::Note);
@@ -486,8 +506,10 @@ void NoteSequenceEditPage::encoder(EncoderEvent &event) {
             setLayer(event.value() > 0 ? Layer::Slide : Layer::NoteVariationRange);
             break;
         case Layer::Slide:
-            setLayer(event.value() > 0 ? Layer::Note : Layer::NoteVariationProbability);
+            setLayer(event.value() > 0 ? Layer::BypassScale : Layer::NoteVariationProbability);
             break;
+        case Layer::BypassScale:
+            setLayer(event.value() > 0 ? Layer::Note : Layer::Slide);
         default:
             break;
         }
@@ -541,6 +563,9 @@ void NoteSequenceEditPage::encoder(EncoderEvent &event) {
                 break;
             case Layer::Slide:
                 step.setSlide(event.value() > 0);
+                break;
+            case Layer::BypassScale:
+                step.setBypassScale(event.value() > 0);
                 break;
             case Layer::Condition:
                 step.setCondition(ModelUtils::adjustedEnum(step.condition(), event.value()));
@@ -678,6 +703,9 @@ void NoteSequenceEditPage::switchLayer(int functionKey, bool shift) {
         case Layer::NoteVariationProbability:
             setLayer(Layer::Slide);
             break;
+        case Layer::Slide:
+            setLayer(Layer::BypassScale);
+            break;
         default:
             setLayer(Layer::Note);
             break;
@@ -708,6 +736,7 @@ int NoteSequenceEditPage::activeFunctionKey() {
     case Layer::NoteVariationRange:
     case Layer::NoteVariationProbability:
     case Layer::Slide:
+    case Layer::BypassScale:
         return 3;
     case Layer::Condition:
         return 4;
@@ -754,6 +783,7 @@ void NoteSequenceEditPage::drawDetail(Canvas &canvas, const NoteSequence::Step &
     switch (layer()) {
     case Layer::Gate:
     case Layer::Slide:
+    case Layer::BypassScale:
         break;
     case Layer::GateProbability:
         SequencePainter::drawProbability(

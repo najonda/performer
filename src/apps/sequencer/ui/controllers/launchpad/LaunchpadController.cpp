@@ -64,6 +64,7 @@ static const LayerMapItem noteSequenceLayerMap[] = {
     [int(NoteSequence::Layer::NoteVariationRange)]          =  { 1, 3 },
     [int(NoteSequence::Layer::NoteVariationProbability)]    =  { 2, 3 },
     [int(NoteSequence::Layer::Slide)]                       =  { 3, 3 },
+    [int(NoteSequence::Layer::BypassScale)]                 =  { 4, 3 },
     [int(NoteSequence::Layer::Condition)]                   =  { 0, 4 },
 
 
