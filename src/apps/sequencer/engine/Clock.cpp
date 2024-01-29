@@ -419,7 +419,7 @@ void Clock::outputTick(uint32_t tick) {
 
     if (tick == _output.nextTick) {
         uint32_t divisor = _output.divisor;
-        uint32_t clockDuration = std::max(uint32_t(1), uint32_t(_masterBpm * _ppqn * _output.pulse / (60 * 1000)));
+        uint32_t clockDuration = std::max(uint32_t(10), uint32_t(_masterBpm * _ppqn * _output.pulse / (60 * 1000)));
 
         _output.nextTickOn = applySwing(_output.nextTick);
         _output.nextTickOff = std::min(_output.nextTickOn + clockDuration, applySwing(_output.nextTick + divisor) - 1);
