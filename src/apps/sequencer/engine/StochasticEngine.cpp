@@ -167,18 +167,7 @@ TrackEngine::TickResult StochasticEngine::tick(uint32_t tick) {
         switch (_stochasticTrack.playMode()) {
         case Types::PlayMode::Aligned:
             if (relativeTick % divisor == 0) {
-                //_sequenceState.advanceAligned(relativeTick / divisor, sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
-                //recordStep(tick, divisor);
                 triggerStep(tick, divisor);
-                
-                /*_sequenceState.calculateNextStepAligned(
-                        (relativeTick + divisor) / divisor, 
-                        sequence.runMode(),
-                        sequence.firstStep(),
-                        sequence.sequenceLength(),
-                        rng
-                    );
-                triggerStep(tick + divisor, divisor, true);*/
             }
             break;
         case Types::PlayMode::Free:
@@ -192,7 +181,6 @@ TrackEngine::TickResult StochasticEngine::tick(uint32_t tick) {
                      _sequenceState.advanceFree(sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
                 }
 
-                recordStep(tick, divisor);
                 const auto &step = sequence.step(_sequenceState.step());
                 bool isLastStageStep = ((int) (step.stageRepeats()+1) - (int) _currentStageRepeat) <= 0;
             
@@ -248,8 +236,6 @@ TrackEngine::TickResult StochasticEngine::tick(uint32_t tick) {
 
 void StochasticEngine::update(float dt) {
     bool running = _engine.state().running();
-    bool recording = _engine.state().recording();
-
     const auto &sequence = *_sequence;
     const auto &scale = sequence.selectedScale(_model.project().scale());
     int rootNote = sequence.selectedRootNote(_model.project().rootNote());
@@ -372,21 +358,12 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     auto abstoluteStep = (relativeTick + divisor) / divisor;
     auto index = abstoluteStep % sequence.sequenceLength();
 
-    if (index == 0) {
-        std::cerr << "START\n";
-    }
-
-
     StochasticSequence::Step step;
     uint32_t stepTick;
     bool stepGate = false;
 
-
-    
-    if (!sequence.useLoop() || (sequence.useLoop() && inMemSteps.size() < sequence.sequenceLength())) { 
-        std::cerr << "---------------------- " << sequence.restProbability() << "\n";
+    if (!sequence.useLoop() || (sequence.useLoop() && int(inMemSteps.size()) < sequence.sequenceLength())) { 
         if (evalRestProbability(sequence.restProbability())) {
-            std::cerr << "INSERT PAUSE\n";
             inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(-1, false, step));
             return;
         }
@@ -461,16 +438,11 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         }
     }
 
-    std::cerr << "USELOOP: " << sequence.useLoop() << "\n";
-    std::cerr << "INMEM SIZE: " << inMemSteps.size() << "\n";
-    std::cerr << "SEQ LE: " << sequence.sequenceLength() << "\n";
-
-    if (!sequence.useLoop() && inMemSteps.size() >= sequence.sequenceLength()) {
+    if (!sequence.useLoop() && int(inMemSteps.size()) >= sequence.sequenceLength()) {
         inMemSteps.clear();
     }
 
-    if (sequence.useLoop() && inMemSteps.size() < sequence.sequenceLength()) {
-        std::cerr << "WAITING TO FILL" << stepIndex <<"\n";
+    if (sequence.useLoop() && int(inMemSteps.size()) < sequence.sequenceLength()) {
         inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(stepIndex, stepGate, step));
     } else {
         if (!sequence.useLoop()) {
@@ -486,8 +458,6 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
             stepTick = (int) tick + gateOffset;
         }
     }
-
-    std::cerr << stepIndex << "\n";
 
     if (stepGate) {
         sequence.setStepBounds(stepIndex);

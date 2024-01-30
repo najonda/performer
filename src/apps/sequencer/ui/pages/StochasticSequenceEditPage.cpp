@@ -221,9 +221,8 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
             if (step.noteOctave() != 0) {
                 canvas.setColor(Color::Bright);
             }
-            FixedStringBuilder<8> str("%d", step.noteOctave());
-            canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
-            str.reset();
+            FixedStringBuilder<8> str;
+
             int rootNote = sequence.selectedRootNote(_model.project().rootNote());
             if (scale.isNotePresent(step.note())) {
                 canvas.setColor(Color::Bright);
@@ -236,7 +235,7 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
             
                 canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
                 str.reset();
-                bypassScale.noteName(str, step.note(), rootNote, Scale::Short2);
+                str("%d", step.noteOctave());
                 canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
                 break;
             } 
@@ -300,11 +299,6 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
             );
             break;
         case Layer::BypassScale:
-            SequencePainter::drawBypassScale(
-                canvas,
-                x + 4, y + 18, stepWidth - 8, 4,
-                step.bypassScale()
-            );
             break;
         case Layer::Condition: {
             canvas.setColor(Color::Bright);
@@ -507,22 +501,21 @@ void StochasticSequenceEditPage::encoder(EncoderEvent &event) {
             setLayer(event.value() > 0 ? Layer::Length : Layer::LengthVariationRange);
             break;
         case Layer::Note:
+            break;
+        case Layer::NoteVariationProbability:
             setLayer(event.value() > 0 ? Layer::NoteOctave : Layer::Slide);
             break;
         case Layer::NoteOctave:
-            setLayer(event.value() > 0 ? Layer::NoteVariationProbability : Layer::Note);
+            setLayer(event.value() > 0 ? Layer::NoteOctaveProbability : Layer::NoteVariationProbability);
             break;
         case Layer::NoteOctaveProbability:
-            setLayer(event.value() > 0 ? Layer::NoteOctave : Layer::NoteVariationProbability);
-            break;
-        case Layer::NoteVariationProbability:
             setLayer(event.value() > 0 ? Layer::Slide : Layer::NoteOctave);
             break;
         case Layer::Slide:
-            setLayer(event.value() > 0 ? Layer::Note : Layer::NoteVariationProbability);
+            setLayer(event.value() > 0 ? Layer::NoteVariationProbability : Layer::NoteVariationProbability);
             break;
         case Layer::BypassScale:
-            setLayer(event.value() > 0 ? Layer::Note : Layer::Slide);
+            break;
         default:
             break;
         }
@@ -581,7 +574,6 @@ void StochasticSequenceEditPage::encoder(EncoderEvent &event) {
                 step.setSlide(event.value() > 0);
                 break;
             case Layer::BypassScale:
-                step.setBypassScale(event.value() > 0);
                 break;
             case Layer::Condition:
                 step.setCondition(ModelUtils::adjustedEnum(step.condition(), event.value()));
@@ -713,8 +705,7 @@ void StochasticSequenceEditPage::switchLayer(int functionKey, bool shift) {
             setLayer(Layer::Slide);
             break;
         case Layer::Slide:
-            setLayer(Layer::BypassScale);
-            break;
+            setLayer(Layer::NoteVariationProbability);
         default:
             setLayer(Layer::NoteVariationProbability);
             break;
