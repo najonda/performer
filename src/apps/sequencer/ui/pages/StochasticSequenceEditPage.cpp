@@ -1046,9 +1046,13 @@ void StochasticSequenceEditPage::generateSequence() {
     _manager.pages().generatorSelect.show([this] (bool success, Generator::Mode mode) {
         if (success) {
             auto builder = _builderContainer.create<StochasticSequenceBuilder>(_project.selectedStochasticSequence(), layer());
-            auto generator = Generator::execute(mode, *builder);
+            if (_stepSelection.none()) {
+                _stepSelection.selectAll();
+            }
+
+            auto generator = Generator::execute(mode, *builder, _stepSelection.selected());
             if (generator) {
-                _manager.pages().generator.show(generator);
+                _manager.pages().generator.show(generator, &_stepSelection);
             }
         }
     });

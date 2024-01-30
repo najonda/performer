@@ -617,16 +617,23 @@ void NoteSequenceEditPage::midi(MidiEvent &event) {
 }
 
 void NoteSequenceEditPage::switchLayer(int functionKey, bool shift) {
+
+    auto engine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
+
     if (shift) {
         switch (Function(functionKey)) {
         case Function::Gate:
             setLayer(Layer::Gate);
             break;
         case Function::Retrigger:
-            setLayer(Layer::StageRepeats);
+            if (engine.playMode() == Types::PlayMode::Free) {
+                setLayer(Layer::StageRepeats);
+            }
             break;
         case Function::Length:
-            setLayer(Layer::StageRepeatsMode);
+            if (engine.playMode() == Types::PlayMode::Free) {
+                setLayer(Layer::StageRepeatsMode);
+            }
             break;
         case Function::Note:
             setLayer(Layer::Slide);
