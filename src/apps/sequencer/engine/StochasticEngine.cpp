@@ -30,6 +30,9 @@ static bool evalStepGate(const StochasticSequence::Step &step, int probabilityBi
 
 // evaluate if step gate is active
 static bool evalRestProbability(int restProbability) {
+    if (restProbability == 0) {
+        return false;
+    }
     return int(rng.nextRange(8)) <= restProbability;
 }
 
@@ -378,8 +381,9 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     uint32_t stepTick;
     bool stepGate = false;
     if (!sequence.useLoop()) { 
-
+        std::cerr << "---------------------- " << sequence.restProbability() << "\n";
         if (evalRestProbability(sequence.restProbability())) {
+            std::cerr << "INSERT PAUSE\n";
             inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(-1, false, step));
             return;
         }
@@ -463,6 +467,7 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     }
 
     if (sequence.useLoop() && inMemSteps.size() < sequence.sequenceLength()) {
+        std::cerr << "WAITING TO FILL" << stepIndex << "\n";
         inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(stepIndex, stepGate, step));
     } else {
         if (!sequence.useLoop()) {
