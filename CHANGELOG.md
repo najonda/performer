@@ -1,6 +1,6 @@
 # Changelog
 
-# v0.1.4.48 ()
+# v0.1.4.48 (30 January 2024)
 - Moving steps in a sequence
 - INIT by step selected
 - smart cycling on patter follow modes (check if launchpad is connected)
