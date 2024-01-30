@@ -55,6 +55,13 @@ void TrackPage::keyPress(KeyPressEvent &event) {
         return;
     }
 
+
+    if (key.pageModifier() && event.count() == 2) {
+        contextShow(true);
+        event.consume();
+        return;
+    }
+
     if (key.pageModifier()) {
         return;
     }
@@ -139,12 +146,13 @@ void TrackPage::setTrack(Track &track) {
     }
 }
 
-void TrackPage::contextShow() {
+void TrackPage::contextShow(bool doubleClick) {
     showContextMenu(ContextMenu(
         contextMenuItems,
         int(ContextAction::Last),
         [&] (int index) { contextAction(index); },
-        [&] (int index) { return contextActionEnabled(index); }
+        [&] (int index) { return contextActionEnabled(index); },
+        doubleClick
     ));
 }
 

@@ -38,7 +38,7 @@ private:
 
     void drawDetail(Canvas &canvas, const CurveSequence::Step &step);
 
-    void contextShow();
+    void contextShow(bool doubleClick = false);
     void contextAction(int index);
     bool contextActionEnabled(int index) const;
 
@@ -49,10 +49,6 @@ private:
     void generateSequence();
 
     void quickEdit(int index);
-    
-    void setSectionTracking(bool track);
-    bool isSectionTracking();
-    void toggleSectionTracking();
 
     CurveSequence::Layer layer() const { return _project.selectedCurveSequenceLayer(); }
     void setLayer(CurveSequence::Layer layer) { _project.setSelectedCurveSequenceLayer(layer); }
@@ -68,4 +64,6 @@ private:
     StepSelection<CONFIG_STEP_COUNT> _stepSelection;
 
     Container<CurveSequenceBuilder> _builderContainer;
+
+    CurveSequence _inMemorySequence;
 };

@@ -5,7 +5,6 @@
 #include "RoutableListModel.h"
 
 #include "model/Project.h"
-#include <iostream>
 
 class ProjectListModel : public RoutableListModel {
 public:

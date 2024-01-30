@@ -206,6 +206,10 @@ public:
     const CurveSequence &sequence(int index) const { return _sequences[index]; }
           CurveSequence &sequence(int index)       { return _sequences[index]; }
 
+    void setSequence(int index, CurveSequence seq) {
+        _sequences[index] = seq;
+    }
+
     //----------------------------------------
     // Routing
     //----------------------------------------

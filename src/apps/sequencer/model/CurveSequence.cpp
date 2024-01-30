@@ -170,6 +170,18 @@ void CurveSequence::clear() {
     clearSteps();
 }
 
+void CurveSequence::clearStepsSelected(const std::bitset<CONFIG_STEP_COUNT> &selected) {
+    if (selected.any()) {
+        for (size_t i = 0; i < CONFIG_STEP_COUNT; ++i) {
+            if (selected[i]) {
+                _steps[i].clear();
+            }
+    }
+    } else {
+        clearSteps();
+    }
+}
+
 void CurveSequence::clearSteps() {
     for (auto &step : _steps) {
         step.clear();

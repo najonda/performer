@@ -3,6 +3,7 @@
 #include "LaunchpadDevice.h"
 #include "core/Debug.h"
 #include "os/os.h"
+#include <functional>
 #include <iostream>
 #include <map>
 #include <set>
@@ -63,6 +64,7 @@ static const LayerMapItem noteSequenceLayerMap[] = {
     [int(NoteSequence::Layer::NoteVariationRange)]          =  { 1, 3 },
     [int(NoteSequence::Layer::NoteVariationProbability)]    =  { 2, 3 },
     [int(NoteSequence::Layer::Slide)]                       =  { 3, 3 },
+    [int(NoteSequence::Layer::BypassScale)]                 =  { 4, 3 },
     [int(NoteSequence::Layer::Condition)]                   =  { 0, 4 },
 
 
@@ -105,7 +107,7 @@ static const RangeMap *curveSequenceLayerRangeMap[] = {
     [int(CurveSequence::Layer::GateProbability)]            = nullptr,
 };
 
-UserSettings _userSettings;
+LaunchpadSettings _userSettings;
 int _style = 0;
 int _patternChangeDefault = 0;
 int _noteStyle = 0;
@@ -156,7 +158,7 @@ LaunchpadController::LaunchpadController(ControllerManager &manager, Model &mode
 
     setMode(Mode::Sequence);
 
-    _userSettings = model.settings().userSettings();
+    _userSettings = model.settings().launchpadSettings();
 }
 
 LaunchpadController::~LaunchpadController() {
@@ -738,7 +740,12 @@ void LaunchpadController::sequenceDrawSequence() {
 
 void LaunchpadController::sequenceDrawNoteSequence() {
     const auto &trackEngine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
-    const auto &sequence = _project.selectedNoteSequence();
+
+    auto sequence = std::ref(_project.selectedNoteSequence());
+    if (_project.playState().songState().playing()) {
+        auto trackIndex = _project.selectedTrackIndex() ;   
+        sequence = std::ref(_project.selectedTrack().noteTrack().sequence(_project.playState().trackState(trackIndex).pattern()));
+    }
     auto layer = _project.selectedNoteSequenceLayer();
     int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
 
@@ -761,7 +768,14 @@ void LaunchpadController::sequenceDrawNoteSequence() {
 
 void LaunchpadController::sequenceDrawCurveSequence() {
     const auto &trackEngine = _engine.selectedTrackEngine().as<CurveTrackEngine>();
-    const auto &sequence = _project.selectedCurveSequence();
+
+    auto sequence = std::ref(_project.selectedCurveSequence());
+    if (_project.playState().songState().playing()) {
+        auto trackIndex = _project.selectedTrackIndex() ;   
+        sequence = std::ref(_project.selectedTrack().curveTrack().sequence(_project.playState().trackState(trackIndex).pattern()));
+    }
+
+
     auto layer = _project.selectedCurveSequenceLayer();
     int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
 

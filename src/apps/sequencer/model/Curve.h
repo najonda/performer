@@ -1,7 +1,7 @@
 #pragma once
 
-#include <map>
 class Curve {
+    
 public:
     typedef float (*Function)(float x);
 
@@ -53,9 +53,8 @@ public:
 
     static float eval(Type type, float x);
 
- 
-
-
+    static Type invAt(int i);
+    static Type revAt(int i);
 };
 
  

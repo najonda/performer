@@ -273,6 +273,10 @@ public:
     const NoteSequence &sequence(int index) const { return _sequences[index]; }
           NoteSequence &sequence(int index)       { return _sequences[index]; }
 
+    void setSequence(int index, NoteSequence seq) {
+        _sequences[index] = seq;
+    }
+
     //----------------------------------------
     // Routing
     //----------------------------------------

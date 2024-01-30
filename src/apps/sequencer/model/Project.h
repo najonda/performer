@@ -142,6 +142,10 @@ public:
 
         auto &aScale = Scale::get(s);
 
+        if (pScale == aScale) {
+            return;
+        }
+
         if (s != -1 && aScale.isChromatic() && pScale.isChromatic()) {
 
             for (int trackIndex = 0; trackIndex < 8; ++trackIndex) {    
@@ -447,6 +451,10 @@ public:
     CurveSequence::Layer selectedCurveSequenceLayer() const { return _selectedCurveSequenceLayer; }
     void setSelectedCurveSequenceLayer(CurveSequence::Layer layer) { _selectedCurveSequenceLayer = layer; }
 
+    void setSelectedCurveSequence(CurveSequence seq) {
+        _tracks[_selectedTrackIndex].curveTrack().setSequence(selectedPatternIndex(), seq);
+    }
+
     // selectedTrack
 
     const Track &selectedTrack() const { return _tracks[_selectedTrackIndex]; }
@@ -461,6 +469,10 @@ public:
 
     const NoteSequence &selectedNoteSequence() const { return noteSequence(_selectedTrackIndex, selectedPatternIndex()); }
           NoteSequence &selectedNoteSequence()       { return noteSequence(_selectedTrackIndex, selectedPatternIndex()); }
+
+    void setSelectedNoteSequence(NoteSequence seq) {
+        _tracks[_selectedTrackIndex].noteTrack().setSequence(selectedPatternIndex(), seq);
+    }
 
     // curveSequence
 

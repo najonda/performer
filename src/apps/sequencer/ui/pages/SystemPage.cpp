@@ -42,7 +42,8 @@ static const ContextMenuModel::Item contextMenuItems[] = {
 SystemPage::SystemPage(PageManager &manager, PageContext &context) :
     ListPage(manager, context, _cvOutputListModel),
     _settings(context.model.settings()),
-    _settingsListModel(_settings.userSettings())
+    _settingsListModel(_settings.userSettings()),
+    _lpSettingsListModel(_settings.launchpadSettings())
 {
     setOutputIndex(0);
 }
@@ -166,6 +167,13 @@ void SystemPage::keyPress(KeyPressEvent &event) {
         }
     }
 
+
+    if (key.pageModifier() && event.count() == 2) {
+        contextShow(true);
+        event.consume();
+        return;
+    }
+
     if (key.isFunction()) {
         if (_mode == Mode::Calibration && edit()) {
             if (CalibrationEditFunction(key.function()) == CalibrationEditFunction::Auto) {
@@ -243,7 +251,11 @@ void SystemPage::setMode(Mode mode) {
         setListModel(_utilitiesListModel);
         break;
     case Mode::Settings:
-        setListModel(_settingsListModel);
+        if (_engine.isLaunchpadConnected()) {
+            setListModel(_lpSettingsListModel);
+        } else {
+            setListModel(_settingsListModel);
+        }
         break;
     default:
         break;
@@ -272,12 +284,13 @@ void SystemPage::executeUtilityItem(UtilitiesListModel::Item item) {
     }
 }
 
-void SystemPage::contextShow() {
+void SystemPage::contextShow(bool doubleClick) {
     showContextMenu(ContextMenu(
         contextMenuItems,
         int(ContextAction::Last),
         [&] (int index) { contextAction(index); },
-        [&] (int index) { return contextActionEnabled(index); }
+        [&] (int index) { return contextActionEnabled(index); },
+        doubleClick
     ));
 }
 

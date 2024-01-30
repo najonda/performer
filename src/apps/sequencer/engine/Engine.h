@@ -161,6 +161,9 @@ public:
 
     Stats stats() const;
 
+     bool isLaunchpadConnected();
+
+
 private:
     // Clock::Listener
     virtual void onClockOutput(const Clock::OutputState &state) override;
@@ -174,7 +177,7 @@ private:
 
     void usbMidiConnect(uint16_t vendorId, uint16_t productId);
     void usbMidiDisconnect();
-
+   
     void receiveMidi();
     void receiveMidi(MidiPort port, uint8_t cable, const MidiMessage &message);
     void monitorMidi(const MidiMessage &message);
@@ -260,4 +263,6 @@ private:
     std::array<float, CvOutput::Channels> _cvOutputOverrideValues;
 
     MessageHandler _messageHandler;
+
+    bool _deviceConnected = false;
 };

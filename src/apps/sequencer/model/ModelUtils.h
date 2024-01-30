@@ -6,6 +6,7 @@
 #include <array>
 #include <algorithm>
 #include <bitset>
+#include <iostream>
 
 namespace ModelUtils {
 
@@ -73,12 +74,20 @@ static void shiftSteps(std::array<Step, N> &steps, const std::bitset<N> &selecte
         if (selected[i]) indices[count++] = i;
     }
     if (direction == 1) {
-        for (int i = count - 2; i >= 0; --i) {
-            std::swap(steps[indices[i]], steps[indices[i + 1]]);
+        for (int i = count - 1; i >= 0; --i) {
+            int index = indices[i]+1;
+            if (index == N) {
+                index = 0;
+            }
+            std::swap(steps[indices[i]], steps[index]);
         }
     } else if (direction == -1) {
-        for (int i = 0; i < count - 1; ++i) {
-            std::swap(steps[indices[i]], steps[indices[i + 1]]);
+        for (int i = 0; i < count; ++i) {
+            int index = indices[i]-1;
+            if (index == -1) {
+                index = N-1;
+            }
+            std::swap(steps[indices[i]], steps[index]);
         }
     }
 }

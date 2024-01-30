@@ -1,12 +1,25 @@
 # Changelog
 
-# v0.1.4.37 ()
+# v0.1.4.48 (30 January 2024)
+- Moving steps in a sequence
+- INIT by step selected
+- smart cycling on patter follow modes (check if launchpad is connected)
+- Show launchpad settings only when a launchpad is connected
+- Apply random for selected steps only
+- double click page to enter context menu for 2 seconds
+- Prevent very short output clock pulses at higher BPMs
+- Undo function (alt+s7)
+- Curve mode backward run modes play reverse playback
+- Bypass the Voltage Table in specific steps of the sequence
+
+# v0.1.4.47 (24 January 2024)
 - launchpad circuit mode improvements
 - random generator: random seed just on init method
 - patter follow
 - pattern chain quick shortcut from pattern page
 - scale edit: scales are changed only if the encoder is pressed
 - on scale change the sequence notes are changed according to the previous scale. if a note in the previous scale is also present in the new scale the value is preeserved. if it is not present the nearest note in the new scale will be selected
+- launchpad follows pattern in song mode
 
 ## v0.1.46 (4 January 2024)
 

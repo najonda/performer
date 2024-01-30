@@ -36,46 +36,6 @@ enum class Function {
     Gate    = 3,
 };
 
-static const std::map<int, Curve::Type> _shapeMap = {
-        {0, Curve::High},
-        {1, Curve::Low},
-        {2, Curve::RampDown},
-        {3, Curve::RampUp},
-        {4, Curve::rampDownHalf},
-        {5, Curve::rampUpHalf},
-        {6, Curve::doubleRampDownHalf},
-        {7, Curve::doubleRampUpHalf},
-        {8, Curve::ExpDown},
-        {9, Curve::ExpUp},
-        {10, Curve::expDownHalf},
-        {11, Curve:: expUpHalf},
-        {12, Curve::doubleExpDownHalf},
-        {13, Curve::doubleExpUpHalf},
-        {14, Curve::LogDown},
-        {15, Curve::LogUp},
-        {16, Curve::logDownHalf},
-        {17, Curve::logUpHalf},
-        {18, Curve::doubleLogDownHalf},
-        {19, Curve::doubleLogUpHalf},
-        {20, Curve::SmoothDown},
-        {21, Curve::SmoothUp},
-        {22, Curve::smoothDownHalf},
-        {23, Curve::smoothUpHalf},
-        {24, Curve::doubleSmoothDownHalf},
-        {25, Curve::doubleSmoothUpHalf},
-        {26, Curve::RevTriangle},
-        {27, Curve::Triangle},
-        {28, Curve::RevBell},
-        {29, Curve::Bell},
-        {30, Curve::StepDown},
-        {31, Curve::StepUp},
-        {32, Curve::ExpUp2x},
-        {33, Curve::ExpDown2x},
-        {34, Curve::ExpUp3x},
-        {35, Curve::ExpUp4x},
-        {36, Curve::ExpDown4x}
-    };
-
 static const char *functionNames[] = { "SHAPE", "MIN", "MAX", "GATE", nullptr };
 
 static const CurveSequenceListModel::Item quickEditItems[8] = {
@@ -165,11 +125,19 @@ void CurveSequenceEditPage::exit() {
 
 void CurveSequenceEditPage::draw(Canvas &canvas) {
     WindowPainter::clear(canvas);
-    WindowPainter::drawHeader(canvas, _model, _engine, "STEPS");
+
+    /* Prepare flags shown before mode name (top right header) */
+    auto &track = _project.selectedTrack().curveTrack();
+
+    const auto pattern_follow = track.patternFollow();
+    const char* pf_repr = Types::patternFollowShortRepresentation(pattern_follow);
+
+    WindowPainter::drawHeader(canvas, _model, _engine, "STEPS", pf_repr);
+
     WindowPainter::drawActiveFunction(canvas, CurveSequence::layerName(layer()));
     WindowPainter::drawFooter(canvas, functionNames, pageKeyState(), activeFunctionKey());
 
-    const auto &trackEngine = _engine.selectedTrackEngine().as<CurveTrackEngine>();
+    auto &trackEngine = _engine.selectedTrackEngine().as<CurveTrackEngine>();
     const auto &sequence = _project.selectedCurveSequence();
     int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
 
@@ -189,7 +157,7 @@ void CurveSequenceEditPage::draw(Canvas &canvas) {
 
 
     // Track Pattern Section on the UI
-    if (isSectionTracking() && _engine.state().running()) {
+    if (track.isPatternFollowDisplayOn() && _engine.state().running()) {
         bool section_change = bool((currentStep) % StepCount == 0); // StepCount is relative to screen
         int section_no = int((currentStep) / StepCount);
         if (section_change && section_no != _section) {
@@ -306,7 +274,15 @@ void CurveSequenceEditPage::draw(Canvas &canvas) {
     // draw cursor
     if (isActiveSequence) {
         canvas.setColor(Color::Bright);
-        int x = ((trackEngine.currentStep() - stepOffset) + trackEngine.currentStepFraction()) * stepWidth;
+
+        int x = 0;
+        auto dir = trackEngine.sequenceState().direction();
+        if (dir == 1) {
+            x = ((trackEngine.currentStep() - stepOffset) + trackEngine.currentStepFraction()) * stepWidth;
+        } else if (dir == -1) {
+            x = ((trackEngine.currentStep() + stepOffset)- trackEngine.currentStepFraction()) * stepWidth;
+        }
+
         canvas.vline(x, curveY, curveHeight);
     }
 
@@ -366,6 +342,7 @@ void CurveSequenceEditPage::keyUp(KeyEvent &event) {
 void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
     auto &sequence = _project.selectedCurveSequence();
+    auto &track = _project.selectedTrack().curveTrack();
 
     if (key.isContextMenu()) {
         contextShow();
@@ -373,18 +350,20 @@ void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
         return;
     }
 
-    if (key.isQuickEdit()) {
-        quickEdit(key.quickEdit());
+    if (key.pageModifier() && event.count() == 2) {
+        contextShow(true);
         event.consume();
         return;
     }
 
-    if (key.pageModifier()) {
+    if (key.isQuickEdit()) {
         // XXX Added here, but should we move it to pageModifier structure?
         if (key.is(Key::Step15)) {
-            toggleSectionTracking();
-            event.consume();
+            track.togglePatternFollowDisplay();
+        } else {
+            quickEdit(key.quickEdit());
         }
+        event.consume();
         return;
     }
 
@@ -392,7 +371,7 @@ void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
         for (size_t stepIndex = 0; stepIndex < _stepSelection.size(); ++stepIndex) {
         if (_stepSelection[stepIndex]) {
             auto &step = sequence.step(stepIndex);
-            auto reverseShape = _shapeMap.at(step.shape());
+            auto reverseShape = Curve::invAt(step.shape());
             step.setShape(reverseShape);
         }
     }
@@ -405,9 +384,9 @@ void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
         switchLayer(key.function(), key.shiftModifier());
         event.consume();
     }
-    
+
     if (key.isEncoder()) {
-        setSectionTracking(false);
+        track.setPatternFollowDisplay(false);
         event.consume();
     }
 
@@ -415,7 +394,7 @@ void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
         if (key.shiftModifier()) {
             sequence.shiftSteps(_stepSelection.selected(), -1);
         } else {
-            setSectionTracking(false);
+            track.setPatternFollowDisplay(false);
             _section = std::max(0, _section - 1);
         }
         event.consume();
@@ -424,7 +403,7 @@ void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
         if (key.shiftModifier()) {
             sequence.shiftSteps(_stepSelection.selected(), 1);
         } else {
-            setSectionTracking(false);
+            track.setPatternFollowDisplay(false);
             _section = std::min(3, _section + 1);
         }
         event.consume();
@@ -664,12 +643,13 @@ void CurveSequenceEditPage::drawDetail(Canvas &canvas, const CurveSequence::Step
     }
 }
 
-void CurveSequenceEditPage::contextShow() {
+void CurveSequenceEditPage::contextShow(bool doubleClick) {
     showContextMenu(ContextMenu(
         contextMenuItems,
         int(ContextAction::Last),
         [&] (int index) { contextAction(index); },
-        [&] (int index) { return contextActionEnabled(index); }
+        [&] (int index) { return contextActionEnabled(index); },
+        doubleClick
     ));
 }
 
@@ -724,49 +704,17 @@ void CurveSequenceEditPage::duplicateSequence() {
     showMessage("STEPS DUPLICATED");
 }
 
-/*
- * Makes the UI track the current step section
- */
-void CurveSequenceEditPage::setSectionTracking(bool trackDisplay) {
-    auto &curve_track = _project.selectedTrack().curveTrack();
-    const auto pattern_follow = curve_track.patternFollow();
-
-    const bool lp_tracking =
-        (pattern_follow == Types::PatternFollow::LaunchPad ||
-         pattern_follow == Types::PatternFollow::DispAndLP);
-
-    curve_track.setPatternFollow(trackDisplay, lp_tracking);
-}
-
-bool CurveSequenceEditPage::isSectionTracking() {
-    auto &curve_track = _project.selectedTrack().curveTrack();
-    const auto pattern_follow = curve_track.patternFollow();
-
-    return (pattern_follow == Types::PatternFollow::Display ||
-            pattern_follow == Types::PatternFollow::DispAndLP);
-}
-
-
-void CurveSequenceEditPage::toggleSectionTracking() {
-    auto &curve_track = _project.selectedTrack().curveTrack();
-    const auto pattern_follow = curve_track.patternFollow();
-
-    const bool disp_tracking = isSectionTracking();
-
-    const bool lp_tracking =
-        (pattern_follow == Types::PatternFollow::LaunchPad ||
-         pattern_follow == Types::PatternFollow::DispAndLP);
-
-    curve_track.setPatternFollow(not disp_tracking, lp_tracking);
-}
 
 void CurveSequenceEditPage::generateSequence() {
     _manager.pages().generatorSelect.show([this] (bool success, Generator::Mode mode) {
         if (success) {
             auto builder = _builderContainer.create<CurveSequenceBuilder>(_project.selectedCurveSequence(), layer());
-            auto generator = Generator::execute(mode, *builder);
+            if (_stepSelection.none()) {
+                _stepSelection.selectAll();
+            }
+            auto generator = Generator::execute(mode, *builder, _stepSelection.selected());
             if (generator) {
-                _manager.pages().generator.show(generator);
+                _manager.pages().generator.show(generator, &_stepSelection);
             }
         }
     });

@@ -34,6 +34,8 @@ jobs:
       uses: actions/checkout@v3
       with:
         submodules: recursive
+    - name: Update
+      run: sudo apt update
     - name: Install Dependencies
       run: sudo apt install -y libsdl2-dev libasound2-dev mesa-common-dev python3 python3-dev
     - name: Setup
@@ -60,7 +62,7 @@ jobs:
       run: (cd build/sim/release && make test)
   sim_wasm:
     name: Simulation Platform (WebAssembly)
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v3

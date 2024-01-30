@@ -11,7 +11,7 @@
 
 class BaseTrackPatternFollow {
 public:
-    
+
     // patternFollow
     Types::PatternFollow patternFollow() const { return _patternFollow; }
     void setPatternFollow(const Types::PatternFollow patternFollow) {
@@ -38,6 +38,43 @@ public:
         setPatternFollow(Types::PatternFollow::Off);
 
         return;
+    }
+
+    void setPatternFollowDisplay(bool trackDisplay) {
+        const auto pattern_follow = patternFollow();
+
+        const bool lp_tracking =
+            (pattern_follow == Types::PatternFollow::LaunchPad ||
+             pattern_follow == Types::PatternFollow::DispAndLP);
+
+        setPatternFollow(trackDisplay, lp_tracking);
+    }
+
+    bool isPatternFollowDisplayOn() {
+        const auto pattern_follow = patternFollow();
+
+        return (pattern_follow == Types::PatternFollow::Display ||
+                pattern_follow == Types::PatternFollow::DispAndLP);
+    }
+
+
+    void togglePatternFollowDisplay(bool isLaunchpadConnected = false) {
+        auto pattern_follow = patternFollow();
+
+        if (isLaunchpadConnected) {
+            pattern_follow = static_cast<Types::PatternFollow>((static_cast<int>(pattern_follow) + 1) %4);
+        } else {
+
+            if (pattern_follow == Types::PatternFollow::Off) {
+                pattern_follow = Types::PatternFollow::Display;
+            } else {
+                pattern_follow = Types::PatternFollow::Off;
+            }
+            
+        }
+
+
+        setPatternFollow(pattern_follow);
     }
 
     void editPatternFollow(int value, bool shift) {

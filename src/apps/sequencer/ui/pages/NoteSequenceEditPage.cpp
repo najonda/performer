@@ -1,5 +1,6 @@
 #include "NoteSequenceEditPage.h"
 
+#include "LayoutPage.h"
 #include "Pages.h"
 
 #include "model/NoteSequence.h"
@@ -12,6 +13,8 @@
 #include "os/os.h"
 
 #include "core/utils/StringBuilder.h"
+#include <bitset>
+#include <iostream>
 
 enum class ContextAction {
     Init,
@@ -39,6 +42,7 @@ enum class Function {
 
 static const char *functionNames[] = { "GATE", "RETRIG", "LENGTH", "NOTE", "COND" };
 
+
 static const NoteSequenceListModel::Item quickEditItems[8] = {
     NoteSequenceListModel::Item::FirstStep,
     NoteSequenceListModel::Item::LastStep,
@@ -63,6 +67,8 @@ NoteSequenceEditPage::NoteSequenceEditPage(PageManager &manager, PageContext &co
 void NoteSequenceEditPage::enter() {
     updateMonitorStep();
 
+    _inMemorySequence = _project.selectedNoteSequence();
+
     _showDetail = false;
 }
 
@@ -73,18 +79,13 @@ void NoteSequenceEditPage::exit() {
 void NoteSequenceEditPage::draw(Canvas &canvas) {
     WindowPainter::clear(canvas);
 
-    const auto &note_track = _project.selectedTrack().noteTrack();
+    auto &track = _project.selectedTrack().noteTrack();
 
     /* Prepare flags shown before mode name (top right header) */
-    const char *mode_flags = NULL;
+    const auto pattern_follow = track.patternFollow();
+    const char* pf_repr = Types::patternFollowShortRepresentation(pattern_follow);
 
-    const auto pattern_follow = note_track.patternFollow();
-    if (pattern_follow == Types::PatternFollow::Display || pattern_follow == Types::PatternFollow::DispAndLP) {
-        const char *st_flag = "F";
-        mode_flags = st_flag;
-    }
-
-    WindowPainter::drawHeader(canvas, _model, _engine, "STEPS", mode_flags);
+    WindowPainter::drawHeader(canvas, _model, _engine, "STEPS", pf_repr);
 
     WindowPainter::drawActiveFunction(canvas, NoteSequence::layerName(layer()));
     WindowPainter::drawFooter(canvas, functionNames, pageKeyState(), activeFunctionKey());
@@ -102,7 +103,7 @@ void NoteSequenceEditPage::draw(Canvas &canvas) {
     const int loopY = 16;
 
     // Track Pattern Section on the UI
-    if (isSectionTracking() && _engine.state().running()) {
+    if (track.isPatternFollowDisplayOn() && _engine.state().running()) {
         bool section_change = bool((currentStep) % StepCount == 0); // StepCount is relative to screen
         int section_no = int((currentStep) / StepCount);
         if (section_change && section_no != _section) {
@@ -212,7 +213,19 @@ void NoteSequenceEditPage::draw(Canvas &canvas) {
             int rootNote = sequence.selectedRootNote(_model.project().rootNote());
             canvas.setColor(Color::Bright);
             FixedStringBuilder<8> str;
+
+            if (step.bypassScale()) {
+                const Scale &bypassScale = std::ref(Scale::get(0));
+                bypassScale.noteName(str, step.note(), rootNote, Scale::Short1);
+            
+                canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
+                str.reset();
+                bypassScale.noteName(str, step.note(), rootNote, Scale::Short2);
+                canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
+                break;
+            } 
             scale.noteName(str, step.note(), rootNote, Scale::Short1);
+            
             canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
             str.reset();
             scale.noteName(str, step.note(), rootNote, Scale::Short2);
@@ -237,6 +250,13 @@ void NoteSequenceEditPage::draw(Canvas &canvas) {
                 canvas,
                 x + 4, y + 18, stepWidth - 8, 4,
                 step.slide()
+            );
+            break;
+        case Layer::BypassScale:
+            SequencePainter::drawBypassScale(
+                canvas,
+                x + 4, y + 18, stepWidth - 8, 4,
+                step.bypassScale()
             );
             break;
         case Layer::Condition: {
@@ -271,7 +291,7 @@ void NoteSequenceEditPage::draw(Canvas &canvas) {
     // handle detail display
 
     if (_showDetail) {
-        if (layer() == Layer::Gate || layer() == Layer::Slide || _stepSelection.none()) {
+        if (layer() == Layer::Gate || layer() == Layer::Slide || _stepSelection.none() || layer() == Layer::BypassScale) {
             _showDetail = false;
         }
         if (_stepSelection.isPersisted() && os::ticks() > _showDetailTicks + os::time::ms(500)) {
@@ -329,25 +349,40 @@ void NoteSequenceEditPage::keyUp(KeyEvent &event) {
 void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
     auto &sequence = _project.selectedNoteSequence();
+    auto &track = _project.selectedTrack().noteTrack();
 
     if (key.isContextMenu()) {
         contextShow();
         event.consume();
         return;
     }
+    if (key.pageModifier() && event.count() == 2) {
+        contextShow(true);
+        event.consume();
+        return;
+    }
 
     if (key.isQuickEdit()) {
-        quickEdit(key.quickEdit());
+         if (key.is(Key::Step15)) {
+            bool lpConnected = _engine.isLaunchpadConnected();
+
+             track.togglePatternFollowDisplay(lpConnected);
+        } else {
+            _inMemorySequence = _project.selectedNoteSequence();
+            quickEdit(key.quickEdit());
+        }
+        event.consume();
+        return;
+    }
+
+    if (key.pageModifier() && key.is(Key::Step6)) {
+        // undo function
+        _project.setSelectedNoteSequence(_inMemorySequence);
         event.consume();
         return;
     }
 
     if (key.pageModifier()) {
-        // XXX Added here, but should we move it to pageModifier structure?
-        if (key.is(Key::Step15)) {
-            toggleSectionTracking();
-            event.consume();
-        }
         return;
     }
 
@@ -358,6 +393,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
         int stepIndex = stepOffset() + key.step();
         switch (layer()) {
         case Layer::Gate:
+            _inMemorySequence = _project.selectedNoteSequence();
             sequence.step(stepIndex).toggleGate();
             event.consume();
             break;
@@ -371,6 +407,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
     if (!key.shiftModifier() && key.isStep() && keyPressEvent.count() == 2) {
         int stepIndex = stepOffset() + key.step();
         if (layer() != Layer::Gate) {
+            _inMemorySequence = _project.selectedNoteSequence();
             sequence.step(stepIndex).toggleGate();
             event.consume();
         }
@@ -378,6 +415,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
 
     if (key.isFunction()) {
         if(key.shiftModifier() && key.function() == 2 && _stepSelection.any()) {
+            _inMemorySequence = _project.selectedNoteSequence();
             tieNotes();
             event.consume();
             return;
@@ -387,8 +425,8 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
     }
 
     if (key.isEncoder()) {
-        setSectionTracking(false);
-
+        track.setPatternFollowDisplay(false);
+        _inMemorySequence = _project.selectedNoteSequence();
         if (!_showDetail && _stepSelection.any() && allSelectedStepsActive()) {
             setSelectedStepsGate(false);
         } else {
@@ -400,18 +438,22 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
 
     if (key.isLeft()) {
         if (key.shiftModifier()) {
+            _inMemorySequence = _project.selectedNoteSequence();
             sequence.shiftSteps(_stepSelection.selected(), -1);
+            _stepSelection.shiftLeft();
         } else {
-            setSectionTracking(false);
+            track.setPatternFollowDisplay(false);
             _section = std::max(0, _section - 1);
         }
         event.consume();
     }
     if (key.isRight()) {
         if (key.shiftModifier()) {
+            _inMemorySequence = _project.selectedNoteSequence();
             sequence.shiftSteps(_stepSelection.selected(), 1);
+            _stepSelection.shiftRight();
         } else {
-            setSectionTracking(false);
+            track.setPatternFollowDisplay(false);
             _section = std::min(3, _section + 1);
         }
         event.consume();
@@ -457,7 +499,7 @@ void NoteSequenceEditPage::encoder(EncoderEvent &event) {
             setLayer(event.value() > 0 ? Layer::Length : Layer::LengthVariationRange);
             break;
         case Layer::Note:
-            setLayer(event.value() > 0 ? Layer::NoteVariationRange : Layer::Slide);
+            setLayer(event.value() > 0 ? Layer::NoteVariationRange : Layer::BypassScale);
             break;
         case Layer::NoteVariationRange:
             setLayer(event.value() > 0 ? Layer::NoteVariationProbability : Layer::Note);
@@ -466,8 +508,10 @@ void NoteSequenceEditPage::encoder(EncoderEvent &event) {
             setLayer(event.value() > 0 ? Layer::Slide : Layer::NoteVariationRange);
             break;
         case Layer::Slide:
-            setLayer(event.value() > 0 ? Layer::Note : Layer::NoteVariationProbability);
+            setLayer(event.value() > 0 ? Layer::BypassScale : Layer::NoteVariationProbability);
             break;
+        case Layer::BypassScale:
+            setLayer(event.value() > 0 ? Layer::Note : Layer::Slide);
         default:
             break;
         }
@@ -521,6 +565,9 @@ void NoteSequenceEditPage::encoder(EncoderEvent &event) {
                 break;
             case Layer::Slide:
                 step.setSlide(event.value() > 0);
+                break;
+            case Layer::BypassScale:
+                step.setBypassScale(event.value() > 0);
                 break;
             case Layer::Condition:
                 step.setCondition(ModelUtils::adjustedEnum(step.condition(), event.value()));
@@ -611,11 +658,17 @@ void NoteSequenceEditPage::switchLayer(int functionKey, bool shift) {
             setLayer(Layer::RetriggerProbability);
             break;
         case Layer::RetriggerProbability:
-            setLayer(Layer::StageRepeats);
-            break;
+            if (engine.playMode() == Types::PlayMode::Free) {
+                setLayer(Layer::StageRepeats);
+                break;
+            }
+
         case Layer::StageRepeats:
-            setLayer(Layer::StageRepeatsMode);
-            break;
+            if (engine.playMode() == Types::PlayMode::Free) {
+                setLayer(Layer::StageRepeatsMode);
+                break;
+            }
+
         default:
             setLayer(Layer::Retrigger);
             break;
@@ -644,6 +697,9 @@ void NoteSequenceEditPage::switchLayer(int functionKey, bool shift) {
             break;
         case Layer::NoteVariationProbability:
             setLayer(Layer::Slide);
+            break;
+        case Layer::Slide:
+            setLayer(Layer::BypassScale);
             break;
         default:
             setLayer(Layer::Note);
@@ -675,6 +731,7 @@ int NoteSequenceEditPage::activeFunctionKey() {
     case Layer::NoteVariationRange:
     case Layer::NoteVariationProbability:
     case Layer::Slide:
+    case Layer::BypassScale:
         return 3;
     case Layer::Condition:
         return 4;
@@ -721,6 +778,7 @@ void NoteSequenceEditPage::drawDetail(Canvas &canvas, const NoteSequence::Step &
     switch (layer()) {
     case Layer::Gate:
     case Layer::Slide:
+    case Layer::BypassScale:
         break;
     case Layer::GateProbability:
         SequencePainter::drawProbability(
@@ -873,12 +931,12 @@ void NoteSequenceEditPage::drawDetail(Canvas &canvas, const NoteSequence::Step &
     }
 }
 
-void NoteSequenceEditPage::contextShow() {
+void NoteSequenceEditPage::contextShow(bool doubleClick) {
     showContextMenu(ContextMenu(
         contextMenuItems,
         int(ContextAction::Last),
         [&] (int index) { contextAction(index); },
-        [&] (int index) { return contextActionEnabled(index); }
+        [&] (int index) { return contextActionEnabled(index); }, doubleClick
     ));
 }
 
@@ -914,7 +972,7 @@ bool NoteSequenceEditPage::contextActionEnabled(int index) const {
 }
 
 void NoteSequenceEditPage::initSequence() {
-    _project.selectedNoteSequence().clearSteps();
+    _project.selectedNoteSequence().clearStepsSelected(_stepSelection.selected());
     showMessage("STEPS INITIALIZED");
 }
 
@@ -933,41 +991,6 @@ void NoteSequenceEditPage::duplicateSequence() {
     showMessage("STEPS DUPLICATED");
 }
 
-/*
- * Makes the UI track the current step section
- */
-void NoteSequenceEditPage::setSectionTracking(bool trackDisplay) {
-    auto &note_track = _project.selectedTrack().noteTrack();
-    const auto pattern_follow = note_track.patternFollow();
-
-    const bool lp_tracking =
-        (pattern_follow == Types::PatternFollow::LaunchPad ||
-         pattern_follow == Types::PatternFollow::DispAndLP);
-
-    note_track.setPatternFollow(trackDisplay, lp_tracking);
-}
-
-bool NoteSequenceEditPage::isSectionTracking() {
-    auto &note_track = _project.selectedTrack().noteTrack();
-    const auto pattern_follow = note_track.patternFollow();
-
-    return (pattern_follow == Types::PatternFollow::Display ||
-            pattern_follow == Types::PatternFollow::DispAndLP);
-}
-
-
-void NoteSequenceEditPage::toggleSectionTracking() {
-    auto &note_track = _project.selectedTrack().noteTrack();
-    const auto pattern_follow = note_track.patternFollow();
-
-    const bool disp_tracking = isSectionTracking();
-
-    const bool lp_tracking =
-        (pattern_follow == Types::PatternFollow::LaunchPad ||
-         pattern_follow == Types::PatternFollow::DispAndLP);
-
-    note_track.setPatternFollow(not disp_tracking, lp_tracking);
-}
 
 void NoteSequenceEditPage::tieNotes() {
 
@@ -1002,9 +1025,14 @@ void NoteSequenceEditPage::generateSequence() {
     _manager.pages().generatorSelect.show([this] (bool success, Generator::Mode mode) {
         if (success) {
             auto builder = _builderContainer.create<NoteSequenceBuilder>(_project.selectedNoteSequence(), layer());
-            auto generator = Generator::execute(mode, *builder);
+
+            if (_stepSelection.none()) {
+                _stepSelection.selectAll();
+            }
+
+            auto generator = Generator::execute(mode, *builder, _stepSelection.selected());
             if (generator) {
-                _manager.pages().generator.show(generator);
+                _manager.pages().generator.show(generator, &_stepSelection);
             }
         }
     });

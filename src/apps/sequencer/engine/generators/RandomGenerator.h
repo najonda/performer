@@ -5,6 +5,7 @@
 #include "Generator.h"
 
 #include "core/math/Math.h"
+#include <bitset>
 
 class RandomGenerator : public Generator {
 public:
@@ -23,7 +24,7 @@ public:
         uint8_t scale = 5;
     };
 
-    RandomGenerator(SequenceBuilder &builder, Params &params);
+    RandomGenerator(SequenceBuilder &builder, Params &params, std::bitset<CONFIG_STEP_COUNT> &selected);
 
     Mode mode() const override { return Mode::Random; }
 
@@ -64,4 +65,5 @@ public:
 private:
     Params &_params;
     GeneratorPattern _pattern;
+    std::bitset<CONFIG_STEP_COUNT> &_selected;
 };

@@ -16,6 +16,8 @@ public:
     static void drawLength(Canvas &canvas, int x, int y, int w, int h, int length, int maxLength);
     static void drawLengthRange(Canvas &canvas, int x, int y, int w, int h, int length, int range, int maxLength);
     static void drawSlide(Canvas &canvas, int x, int y, int w, int h, bool active);
+    static void drawBypassScale(Canvas &canvas, int x, int y, int w, int h, bool active);
+
     static void drawStageRepeatMode(Canvas &canvas, int x, int y, int w, int h, NoteSequence::StageRepeatMode mode);
     static void drawStageRepeatMode(Canvas &canvas, int x, int y, int w, int h, StochasticSequence::StageRepeatMode mode);
 

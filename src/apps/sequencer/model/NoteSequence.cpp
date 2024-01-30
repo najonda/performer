@@ -13,6 +13,8 @@ Types::LayerRange NoteSequence::layerRange(Layer layer) {
         return { 0, 1 };
     case Layer::Slide:
         return { 0, 1 };
+    case Layer::BypassScale:
+        return {0 ,1 };
     CASE(GateOffset)
     CASE(GateProbability)
     CASE(Retrigger)
@@ -48,6 +50,8 @@ int NoteSequence::layerDefaultValue(Layer layer)
         return step.gateOffset();
     case Layer::Slide:
         return step.slide();
+    case Layer::BypassScale:
+        return step.bypassScale();
     case Layer::Retrigger:
         return step.retrigger();
     case Layer::RetriggerProbability:
@@ -83,6 +87,8 @@ int NoteSequence::Step::layerValue(Layer layer) const {
         return gate() ? 1 : 0;
     case Layer::Slide:
         return slide() ? 1 : 0;
+    case Layer::BypassScale:
+        return bypassScale() ? 1 : 0;
     case Layer::GateProbability:
         return gateProbability();
     case Layer::GateOffset:
@@ -123,6 +129,9 @@ void NoteSequence::Step::setLayerValue(Layer layer, int value) {
         break;
     case Layer::Slide:
         setSlide(value);
+        break;
+    case Layer::BypassScale:
+        setBypassScale(value);
         break;
     case Layer::GateProbability:
         setGateProbability(value);
@@ -175,6 +184,7 @@ void NoteSequence::Step::clear() {
     setGateProbability(GateProbability::Max);
     setGateOffset(0);
     setSlide(false);
+    setBypassScale(false);
     setRetrigger(0);
     setRetriggerProbability(RetriggerProbability::Max);
     setLength(Length::Max / 2);
@@ -209,6 +219,9 @@ void NoteSequence::Step::read(VersionedSerializedReader &reader) {
     } else {
         reader.read(_data0.raw);
         reader.read(_data1.raw);
+        if (reader.dataVersion() < ProjectVersion::Version34) {
+            setBypassScale(false);
+        }
     }
 }
 
@@ -253,6 +266,18 @@ void NoteSequence::clear() {
 void NoteSequence::clearSteps() {
     for (auto &step : _steps) {
         step.clear();
+    }
+}
+
+void NoteSequence::clearStepsSelected(const std::bitset<CONFIG_STEP_COUNT> &selected) {
+    if (selected.any()) {
+        for (size_t i = 0; i < CONFIG_STEP_COUNT; ++i) {
+            if (selected[i]) {
+                _steps[i].clear();
+            }
+    }
+    } else {
+        clearSteps();
     }
 }
 

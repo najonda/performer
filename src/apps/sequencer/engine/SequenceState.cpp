@@ -120,6 +120,7 @@ void SequenceState::calculateNextStepFree(Types::RunMode runMode, int firstStep,
             } else {
                 ++_nextStep;
             }
+            _direction = 1;
             break;
         case Types::RunMode::Backward:
             if (_step <= firstStep) {
@@ -128,6 +129,7 @@ void SequenceState::calculateNextStepFree(Types::RunMode runMode, int firstStep,
             } else {
                 --_nextStep;
             }
+            _direction = -1;
             break;
         case Types::RunMode::Pendulum:
         case Types::RunMode::PingPong:
@@ -163,7 +165,7 @@ void SequenceState::advanceAligned(int absoluteStep, Types::RunMode runMode, int
         calculateNextStepAligned(absoluteStep, runMode, firstStep, lastStep, rng);
     }
 
-    _iteration = _nextIteration;
+    //_iteration = _nextIteration;
     _prevStep = _step;
     _step = _nextStep;
     _nextStep = -1;
@@ -178,20 +180,34 @@ void SequenceState::calculateNextStepAligned(int absoluteStep, Types::RunMode ru
     case Types::RunMode::Forward:
          _nextStep = firstStep + absoluteStep % stepCount;
         _iteration = absoluteStep / stepCount;
+        _direction = 1;
         break;
     case Types::RunMode::Backward:
         _nextStep = lastStep - absoluteStep % stepCount;
         _iteration = absoluteStep / stepCount;
+        _direction = -1; 
         break;
     case Types::RunMode::Pendulum:
         _iteration = absoluteStep / (2 * stepCount);
         absoluteStep %= (2 * stepCount);
         _nextStep = (absoluteStep < stepCount) ? (firstStep + absoluteStep) : (lastStep - (absoluteStep - stepCount));
+        if (_direction > 0 && _step>= lastStep) {
+                _direction = -1;
+            } else if (_direction < 0 && _step <= firstStep) {
+                _direction = 1;
+                ++_nextIteration;
+            }
         break;
     case Types::RunMode::PingPong:
         _iteration = absoluteStep / (2 * stepCount - 2);
         absoluteStep %= (2 * stepCount - 2);
         _nextStep = (absoluteStep < stepCount) ? (firstStep + absoluteStep) : (lastStep - (absoluteStep - stepCount) - 1);
+        if (_direction > 0 && _step>= lastStep) {
+                _direction = -1;
+            } else if (_direction < 0 && _step <= firstStep) {
+                _direction = 1;
+                ++_nextIteration;
+            }
         break;
     case Types::RunMode::Random:
         _nextStep = firstStep + rng.nextRange(stepCount);
@@ -211,8 +227,10 @@ void SequenceState::advanceRandomWalk(int firstStep, int lastStep, Random &rng) 
         int dir = rng.nextRange(2);
         if (dir == 0) {
             _nextStep = _step == firstStep ? lastStep : _step - 1;
+            _direction = -1;
         } else {
             _nextStep = _step == lastStep ? firstStep : _step + 1;
+            _direction = 1;
         }
     }
 }

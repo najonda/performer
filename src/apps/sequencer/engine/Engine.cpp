@@ -5,6 +5,7 @@
 
 #include "core/Debug.h"
 #include "core/midi/MidiMessage.h"
+#include "ui/ControllerManager.h"
 
 #include "os/os.h"
 
@@ -668,15 +669,28 @@ void Engine::updateOverrides() {
 }
 
 void Engine::usbMidiConnect(uint16_t vendorId, uint16_t productId) {
+    
     if (_usbMidiConnectHandler) {
         _usbMidiConnectHandler(vendorId, productId);
+
+        auto lp = ControllerManager::findController(vendorId, productId);
+
+        if (lp) {
+            _deviceConnected = true;
+        }
     }
 }
 
 void Engine::usbMidiDisconnect() {
     if (_usbMidiDisconnectHandler) {
         _usbMidiDisconnectHandler();
+        _deviceConnected = false;
     }
+}
+
+bool Engine::isLaunchpadConnected() {
+    return _deviceConnected;
+    
 }
 
 void Engine::receiveMidi() {
