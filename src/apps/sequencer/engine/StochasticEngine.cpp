@@ -380,7 +380,10 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     StochasticSequence::Step step;
     uint32_t stepTick;
     bool stepGate = false;
-    if (!sequence.useLoop()) { 
+
+
+    
+    if (!sequence.useLoop() || (sequence.useLoop() && inMemSteps.size() < sequence.sequenceLength())) { 
         std::cerr << "---------------------- " << sequence.restProbability() << "\n";
         if (evalRestProbability(sequence.restProbability())) {
             std::cerr << "INSERT PAUSE\n";
@@ -467,7 +470,7 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     }
 
     if (sequence.useLoop() && inMemSteps.size() < sequence.sequenceLength()) {
-        std::cerr << "WAITING TO FILL" << stepIndex << "\n";
+        std::cerr << "WAITING TO FILL" << stepIndex <<"\n";
         inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(stepIndex, stepGate, step));
     } else {
         if (!sequence.useLoop()) {
