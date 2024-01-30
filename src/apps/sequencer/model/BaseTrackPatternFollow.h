@@ -58,16 +58,23 @@ public:
     }
 
 
-    void togglePatternFollowDisplay() {
-        const auto pattern_follow = patternFollow();
+    void togglePatternFollowDisplay(bool isLaunchpadConnected = false) {
+        auto pattern_follow = patternFollow();
 
-        const bool disp_tracking = isPatternFollowDisplayOn();
+        if (isLaunchpadConnected) {
+            pattern_follow = static_cast<Types::PatternFollow>((static_cast<int>(pattern_follow) + 1) %4);
+        } else {
 
-        const bool lp_tracking =
-            (pattern_follow == Types::PatternFollow::LaunchPad ||
-             pattern_follow == Types::PatternFollow::DispAndLP);
+            if (pattern_follow == Types::PatternFollow::Off) {
+                pattern_follow = Types::PatternFollow::Display;
+            } else {
+                pattern_follow = Types::PatternFollow::Off;
+            }
+            
+        }
 
-        setPatternFollow(not disp_tracking, lp_tracking);
+
+        setPatternFollow(pattern_follow);
     }
 
     void editPatternFollow(int value, bool shift) {

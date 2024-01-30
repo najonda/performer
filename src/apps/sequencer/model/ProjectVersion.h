@@ -96,6 +96,9 @@ enum ProjectVersion {
     // added Track::name and expand noteRetrigger to 3 bits and nprobability to 6bits
     Version33 = 33,
 
+    // add bypass scale
+    Version34 = 34,
+
     // automatically derive latest version
     Last,
     Latest = Last - 1,

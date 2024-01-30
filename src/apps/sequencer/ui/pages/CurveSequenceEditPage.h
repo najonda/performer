@@ -38,7 +38,7 @@ private:
 
     void drawDetail(Canvas &canvas, const CurveSequence::Step &step);
 
-    void contextShow();
+    void contextShow(bool doubleClick = false);
     void contextAction(int index);
     bool contextActionEnabled(int index) const;
 
@@ -64,4 +64,6 @@ private:
     StepSelection<CONFIG_STEP_COUNT> _stepSelection;
 
     Container<CurveSequenceBuilder> _builderContainer;
+
+    CurveSequence _inMemorySequence;
 };

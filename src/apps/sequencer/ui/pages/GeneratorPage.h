@@ -1,6 +1,8 @@
 #pragma once
 
 #include "BasePage.h"
+#include "ui/StepSelection.h"
+#include "engine/generators/SequenceBuilder.h"
 
 class Generator;
 class EuclideanGenerator;
@@ -11,7 +13,7 @@ public:
     GeneratorPage(PageManager &manager, PageContext &context);
 
     using BasePage::show;
-    void show(Generator *generator);
+    void show(Generator *generator, StepSelection<CONFIG_STEP_COUNT> *_stepSelection);
 
     virtual void enter() override;
     virtual void exit() override;
@@ -26,7 +28,11 @@ public:
     virtual void keyPress(KeyPressEvent &event) override;
     virtual void encoder(EncoderEvent &event) override;
 
-    void contextShow();
+        static const int StepCount = 16;
+
+    int stepOffset() const { return _section * StepCount; }
+
+    void contextShow(bool doubleClick = false);
     void contextAction(int index);
     bool contextActionEnabled(int index) const;
     void init();
@@ -40,4 +46,8 @@ private:
     Generator *_generator;
 
     std::pair<uint8_t, uint8_t> _valueRange;
+    StepSelection<CONFIG_STEP_COUNT> *_stepSelection;
+    int _section = 0;
+
+    Container<NoteSequenceBuilder> _builderContainer;
 };

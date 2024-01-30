@@ -99,6 +99,17 @@ void SequencePainter::drawSlide(Canvas &canvas, int x, int y, int w, int h, bool
     }
 }
 
+void SequencePainter::drawBypassScale(Canvas &canvas, int x, int y, int w, int h, bool active) {
+    canvas.setBlendMode(BlendMode::Set);
+    canvas.setColor(Color::Bright);
+
+    if (active) {
+        canvas.drawText(x,y+4, "1");
+    } else {
+        canvas.drawText(x,y+4, "0");
+    }
+}
+
 const std::bitset<4> mask = 0x1;
 void SequencePainter::drawStageRepeatMode(Canvas &canvas, int x, int y, int w, int h, NoteSequence::StageRepeatMode mode) {
     canvas.setBlendMode(BlendMode::Set);

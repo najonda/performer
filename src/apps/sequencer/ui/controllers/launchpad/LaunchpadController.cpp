@@ -64,6 +64,7 @@ static const LayerMapItem noteSequenceLayerMap[] = {
     [int(NoteSequence::Layer::NoteVariationRange)]          =  { 1, 3 },
     [int(NoteSequence::Layer::NoteVariationProbability)]    =  { 2, 3 },
     [int(NoteSequence::Layer::Slide)]                       =  { 3, 3 },
+    [int(NoteSequence::Layer::BypassScale)]                 =  { 4, 3 },
     [int(NoteSequence::Layer::Condition)]                   =  { 0, 4 },
 
 
@@ -106,7 +107,7 @@ static const RangeMap *curveSequenceLayerRangeMap[] = {
     [int(CurveSequence::Layer::GateProbability)]            = nullptr,
 };
 
-UserSettings _userSettings;
+LaunchpadSettings _userSettings;
 int _style = 0;
 int _patternChangeDefault = 0;
 int _noteStyle = 0;
@@ -157,7 +158,7 @@ LaunchpadController::LaunchpadController(ControllerManager &manager, Model &mode
 
     setMode(Mode::Sequence);
 
-    _userSettings = model.settings().userSettings();
+    _userSettings = model.settings().launchpadSettings();
 }
 
 LaunchpadController::~LaunchpadController() {

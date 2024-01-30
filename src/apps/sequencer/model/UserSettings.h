@@ -198,9 +198,9 @@ public:
         addSetting(new ScreensaverSetting());
         addSetting(new WakeModeSetting());
         addSetting(new DimSequenceSetting());
-        addSetting(new LaunchpadStyleSetting());
+        
         addSetting(new PatternChange());
-        addSetting(new LaunchpadNoteStyle());
+        
         addSetting(new SyncSong());
     }
 
@@ -219,7 +219,7 @@ public:
     void write(VersionedSerializedWriter &writer) const;
     void read(VersionedSerializedReader &reader);
 
-private:
+protected:
     std::vector<BaseSetting *> _settings;
 
     template<typename T>
@@ -227,4 +227,13 @@ private:
         _settings.push_back(setting);
     }
     BaseSetting *_get(const std::string &key);
+
+};
+
+class LaunchpadSettings : public UserSettings{
+    public: 
+        LaunchpadSettings() {
+            addSetting(new LaunchpadStyleSetting());
+            addSetting(new LaunchpadNoteStyle());
+        }
 };
