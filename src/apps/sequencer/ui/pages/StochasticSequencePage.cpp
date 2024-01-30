@@ -66,6 +66,13 @@ void StochasticSequencePage::keyPress(KeyPressEvent &event) {
     if (!event.consumed()) {
         ListPage::keyPress(event);
     }
+
+    if (key.isEncoder()) {
+        auto row = ListPage::selectedRow();
+        if (row == 3) {
+            _listModel.setSelectedScale(_project.scale());
+        }
+    }
 }
 
 void StochasticSequencePage::contextShow() {

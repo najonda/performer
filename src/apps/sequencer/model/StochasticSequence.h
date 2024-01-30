@@ -302,9 +302,9 @@ public:
         setScale(index - 1);
     }
 
-    void editScale(int value, bool shift) {
+    void editScale(int value, bool shift, int defaultScale = 0) {
         if (!isRouted(Routing::Target::Scale)) {
-            setScale(scale() + value);
+            setScale(value, false);
         }
     }
 

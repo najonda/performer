@@ -90,6 +90,9 @@ static float evalStepNote(const StochasticSequence::Step &step, int probabilityB
         const Scale &bypassScale = Scale::get(0);
         int note = step.note() + evalTransposition(bypassScale, octave, transpose);
         int probability = clamp(step.noteOctaveProbability() + probabilityBias, -1, StochasticSequence::NoteOctaveProbability::Max);
+        if (step.noteOctaveProbability()==0) {
+            probability = 0;
+        }
         if (useVariation && int(rng.nextRange(StochasticSequence::NoteOctaveProbability::Range)) <= probability) {
             int oct = 0;
             if (step.noteOctave() > 0) {
@@ -99,7 +102,7 @@ static float evalStepNote(const StochasticSequence::Step &step, int probabilityB
             }
             note = StochasticSequence::Note::clamp(note + (bypassScale.notesPerOctave()*oct));
         }
-        return scale.noteToVolts(note) + (bypassScale.isChromatic() ? rootNote : 0) * (1.f / 12.f);
+        return bypassScale.noteToVolts(note) + (bypassScale.isChromatic() ? rootNote : 0) * (1.f / 12.f);
     }
     int note = step.note() + evalTransposition(scale, octave, transpose);
     int probability = clamp(step.noteOctaveProbability() + probabilityBias, -1, StochasticSequence::NoteOctaveProbability::Max);
@@ -370,13 +373,13 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
         std::vector<StochasticStep> probability;
         int sum =0;
-        for (int i = 0; i < scale.notesPerOctave(); i++) {
+        for (int i = 0; i < 12; i++) {
             probability.insert(probability.end(), StochasticStep(i, clamp(sequence.step(i).noteVariationProbability() + _stochasticTrack.noteProbabilityBias(), -1, StochasticSequence::NoteVariationProbability::Max)));
             sum = sum + probability.at(i).probability();
         }
         if (sum==0) { return;}
         std::sort (std::begin(probability), std::end(probability), sortTaskByProbRev);
-        stepIndex = getNextWeightedPitch(probability, sequence.reseed(), scale.notesPerOctave());
+        stepIndex = getNextWeightedPitch(probability, sequence.reseed(), 12);
 
         step = sequence.step(stepIndex);    
         
