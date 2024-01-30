@@ -10,8 +10,6 @@
 class StochasticSequenceListModel : public RoutableListModel {
 public:
     enum Item {
-        FirstStep,
-        LastStep,
         RunMode,
         Divisor,
         ResetMeasure,
@@ -69,10 +67,6 @@ public:
         switch (Item(row)) {
         case Divisor:
             return Routing::Target::Divisor;
-        case FirstStep:
-            return Routing::Target::FirstStep;
-        case LastStep:
-            return Routing::Target::LastStep;
         case RunMode:
             return Routing::Target::RunMode;
         case Scale:
@@ -91,8 +85,6 @@ public:
 private:
     static const char *itemName(Item item) {
         switch (item) {
-        case FirstStep:         return "First Step";
-        case LastStep:          return "Last Step";
         case RunMode:           return "Run Mode";
         case Divisor:           return "Divisor";
         case ResetMeasure:      return "Reset Measure";
@@ -111,12 +103,6 @@ private:
 
     void formatValue(Item item, StringBuilder &str) const {
         switch (item) {
-        case FirstStep:
-            _sequence->printFirstStep(str);
-            break;
-        case LastStep:
-            _sequence->printLastStep(str);
-            break;
         case RunMode:
             _sequence->printRunMode(str);
             break;
@@ -145,12 +131,6 @@ private:
 
     void editValue(Item item, int value, bool shift) {
         switch (item) {
-        case FirstStep:
-            _sequence->editFirstStep(value, shift);
-            break;
-        case LastStep:
-            _sequence->editLastStep(value, shift);
-            break;
         case RunMode:
             _sequence->editRunMode(value, shift);
             break;
@@ -179,8 +159,6 @@ private:
 
     int indexedCountValue(Item item) const {
         switch (item) {
-        case FirstStep:
-        case LastStep:
         case SequenceLength:
             return 16;
         case RunMode:
@@ -202,10 +180,6 @@ private:
 
     int indexedValue(Item item) const {
         switch (item) {
-        case FirstStep:
-            return _sequence->firstStep();
-        case LastStep:
-            return _sequence->lastStep();
         case RunMode:
             return int(_sequence->runMode());
         case Divisor:
@@ -228,10 +202,6 @@ private:
 
     void setIndexedValue(Item item, int index) {
         switch (item) {
-        case FirstStep:
-            return _sequence->setFirstStep(index);
-        case LastStep:
-            return _sequence->setLastStep(index);
         case RunMode:
             return _sequence->setRunMode(Types::RunMode(index));
         case Divisor:

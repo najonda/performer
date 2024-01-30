@@ -12,12 +12,13 @@
 #include "os/os.h"
 
 #include "core/utils/StringBuilder.h"
+#include <cstddef>
 
 enum class ContextAction {
     Init,
     Copy,
     Paste,
-    Duplicate,    Generate,
+    Duplicate, 
     Last
 };
 
@@ -26,7 +27,6 @@ static const ContextMenuModel::Item contextMenuItems[] = {
     { "COPY" },
     { "PASTE" },
     { "DUPL" },
-    { "GEN" },
 };
 
 enum class Function {
@@ -40,8 +40,8 @@ enum class Function {
 static const char *functionNames[] = { "GATE", "RETRIG", "LENGTH", "NOTE", "COND" };
 
 static const StochasticSequenceListModel::Item quickEditItems[8] = {
-    StochasticSequenceListModel::Item::FirstStep,
-    StochasticSequenceListModel::Item::LastStep,
+    StochasticSequenceListModel::Item::Last,
+    StochasticSequenceListModel::Item::Last,
     StochasticSequenceListModel::Item::RunMode,
     StochasticSequenceListModel::Item::Divisor,
     StochasticSequenceListModel::Item::ResetMeasure,
@@ -75,9 +75,11 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
     WindowPainter::clear(canvas);
 
     /* Prepare flags shown before mode name (top right header) */
+    auto &sequence = _project.selectedStochasticSequence();
+
     const char *mode_flags = NULL;
-    if (_sectionTracking) {
-        const char *st_flag = "F";
+    if (sequence.useLoop()) {
+        const char *st_flag = "L";
         mode_flags = st_flag;
     }
 
@@ -87,7 +89,6 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
     WindowPainter::drawFooter(canvas, functionNames, pageKeyState(), activeFunctionKey());
 
     const auto &trackEngine = _engine.selectedTrackEngine().as<StochasticEngine>();
-    const auto &sequence = _project.selectedStochasticSequence();
     const auto &scale = sequence.selectedScale(_project.scale());
     int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
     int currentRecordStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentRecordStep() : -1;
@@ -214,29 +215,8 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
                 step.lengthVariationProbability() + 1, StochasticSequence::LengthVariationProbability::Range
             );
             break;
-        case Layer::Note: {
-            int rootNote = sequence.selectedRootNote(_model.project().rootNote());
-            canvas.setColor(Color::Bright);
-            FixedStringBuilder<8> str;
-
-            if (step.bypassScale()) {
-                const Scale &bypassScale = std::ref(Scale::get(0));
-                bypassScale.noteName(str, step.note(), rootNote, Scale::Short1);
-            
-                canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
-                str.reset();
-                bypassScale.noteName(str, step.note(), rootNote, Scale::Short2);
-                canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
-                break;
-            } 
-            scale.noteName(str, step.note(), rootNote, Scale::Short1);
-            
-            canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
-            str.reset();
-            scale.noteName(str, step.note(), rootNote, Scale::Short2);
-            canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
+        case Layer::Note:
             break;
-        }
         case Layer::NoteOctave: {
             if (step.noteOctave() != 0) {
                 canvas.setColor(Color::Bright);
@@ -417,14 +397,14 @@ void StochasticSequenceEditPage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
     auto &sequence = _project.selectedStochasticSequence();
 
-    if (key.isQuickEdit()) {
-        if (key.is(Key::Step15)) {
-            tieNotes();
-        }
-    }
-
     if (key.isContextMenu()) {
         contextShow();
+        event.consume();
+        return;
+    }
+
+    if (key.pageModifier() && event.count() == 2) {
+        contextShow(true);
         event.consume();
         return;
     }
@@ -436,11 +416,6 @@ void StochasticSequenceEditPage::keyPress(KeyPressEvent &event) {
     }
 
     if (key.pageModifier()) {
-        // XXX Added here, but should we move it to pageModifier structure?
-        if (key.is(Key::Step5)) {
-            setSectionTracking(not _sectionTracking);
-            event.consume();
-        }
 
         if (key.is(Key::Step4)) {
             sequence.setReseed(1, false);
@@ -485,40 +460,11 @@ void StochasticSequenceEditPage::keyPress(KeyPressEvent &event) {
     }
 
     if (key.isEncoder()) {
-        setSectionTracking(false);
-
         if (!_showDetail && _stepSelection.any() && allSelectedStepsActive()) {
             setSelectedStepsGate(false);
         } else {
             setSelectedStepsGate(true);
         }
-    }
-
-    const auto &scale = sequence.selectedScale(_project.scale());
-    if (key.isLeft()) {
-        if (key.shiftModifier()) {
-            sequence.shiftSteps(_stepSelection.selected(), -1);
-        } else {
-            setSectionTracking(false);
-            _section = std::max(0, (_section - 1) );
-        }
-        event.consume();
-    }
-    if (key.isRight()) {
-        if (key.shiftModifier()) {
-            sequence.shiftSteps(_stepSelection.selected(), 1);
-        } else {
-            int stepsToDraw = scale.notesPerOctave();
-            if (scale.notesPerOctave() % 16 != scale.notesPerOctave() && _section > 0) {
-                stepsToDraw = scale.notesPerOctave() % 16;
-            }
-
-            if (stepsToDraw > 16) {
-                setSectionTracking(false);
-                _section = std::min(3, _section + 1);
-            }
-        }
-        event.consume();
     }
 }
 
@@ -1011,12 +957,12 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
     }
 }
 
-void StochasticSequenceEditPage::contextShow() {
+void StochasticSequenceEditPage::contextShow(bool doubleClick) {
     showContextMenu(ContextMenu(
         contextMenuItems,
         int(ContextAction::Last),
         [&] (int index) { contextAction(index); },
-        [&] (int index) { return contextActionEnabled(index); }
+        [&] (int index) { return contextActionEnabled(index); }, doubleClick
     ));
 }
 
@@ -1033,9 +979,6 @@ void StochasticSequenceEditPage::contextAction(int index) {
         break;
     case ContextAction::Duplicate:
         duplicateSequence();
-        break;
-    case ContextAction::Generate:
-        generateSequence();
         break;
     case ContextAction::Last:
         break;
@@ -1071,59 +1014,10 @@ void StochasticSequenceEditPage::duplicateSequence() {
     showMessage("STEPS DUPLICATED");
 }
 
-/*
- * Makes the UI track the current step section
- */
-void StochasticSequenceEditPage::setSectionTracking(bool track) {
-    _sectionTracking = track;
-}
 
-void StochasticSequenceEditPage::tieNotes() {
-
-    auto &sequence = _project.selectedStochasticSequence();
-
-    if (_stepSelection.any()) {
-        int first=-1;
-        int last=-1;
-
-        for (size_t i = 0; i < sequence.steps().size(); ++i) {
-            if (_stepSelection[i]) {
-                if (first == -1 ) {
-                    first = i;
-                }
-                last = i;
-            }
-        }
-
-        for (int i = first; i <= last; i++) {
-            sequence.step(i).setGate(true);
-            if (i != last) {
-                sequence.step(i).setLength(StochasticSequence::Length::Max);
-                showMessage("NOTES TIED");
-            }
-            sequence.step(i).setNote(sequence.step(first).note());
-            std::cerr << _stepSelection[i];
-        }
-    }
-}
-
-void StochasticSequenceEditPage::generateSequence() {
-    _manager.pages().generatorSelect.show([this] (bool success, Generator::Mode mode) {
-        if (success) {
-            auto builder = _builderContainer.create<StochasticSequenceBuilder>(_project.selectedStochasticSequence(), layer());
-            if (_stepSelection.none()) {
-                _stepSelection.selectAll();
-            }
-
-            auto generator = Generator::execute(mode, *builder, _stepSelection.selected());
-            if (generator) {
-                _manager.pages().generator.show(generator, &_stepSelection);
-            }
-        }
-    });
-}
 
 void StochasticSequenceEditPage::quickEdit(int index) {
+    
     _listModel.setSequence(&_project.selectedStochasticSequence());
     if (quickEditItems[index] != StochasticSequenceListModel::Item::Last) {
         _manager.pages().quickEdit.show(_listModel, int(quickEditItems[index]));
