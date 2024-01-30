@@ -83,6 +83,21 @@ static int evalTransposition(const Scale &scale, int octave, int transpose) {
 
 // evaluate note voltage
 static float evalStepNote(const StochasticSequence::Step &step, int probabilityBias, const Scale &scale, int rootNote, int octave, int transpose, bool useVariation = true) {
+    if (step.bypassScale()) {
+        const Scale &bypassScale = Scale::get(0);
+        int note = step.note() + evalTransposition(bypassScale, octave, transpose);
+        int probability = clamp(step.noteOctaveProbability() + probabilityBias, -1, StochasticSequence::NoteOctaveProbability::Max);
+        if (useVariation && int(rng.nextRange(StochasticSequence::NoteOctaveProbability::Range)) <= probability) {
+            int oct = 0;
+            if (step.noteOctave() > 0) {
+                oct = 0 + ( std::rand() % ( step.noteOctave() - 0 + 1 ) );
+            } else {
+                oct = step.noteOctave() + (std::rand() % ( 0 - step.noteOctave() + 1 ) );
+            }
+            note = StochasticSequence::Note::clamp(note + (bypassScale.notesPerOctave()*oct));
+        }
+        return scale.noteToVolts(note) + (bypassScale.isChromatic() ? rootNote : 0) * (1.f / 12.f);
+    }
     int note = step.note() + evalTransposition(scale, octave, transpose);
     int probability = clamp(step.noteOctaveProbability() + probabilityBias, -1, StochasticSequence::NoteOctaveProbability::Max);
     if (useVariation && int(rng.nextRange(StochasticSequence::NoteOctaveProbability::Range)) <= probability) {

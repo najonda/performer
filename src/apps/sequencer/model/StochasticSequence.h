@@ -56,6 +56,7 @@ public:
         NoteOctave,
         NoteOctaveProbability,
         Slide,
+        BypassScale,
         Condition,
         Last
     };
@@ -66,6 +67,7 @@ public:
         case Layer::GateProbability:            return "GATE PROB";
         case Layer::GateOffset:                 return "GATE OFFSET";
         case Layer::Slide:                      return "SLIDE";
+        case Layer::BypassScale:                 return "BYPASS SCALE";
         case Layer::Retrigger:                  return "RETRIG";
         case Layer::RetriggerProbability:       return "RETRIG PROB";
         case Layer::Length:                     return "LENGTH";
@@ -223,6 +225,15 @@ public:
         int layerValue(Layer layer) const;
         void setLayerValue(Layer layer, int value);
 
+
+        bool bypassScale() const { return _data0.bypassScale ? true : false; }
+        void setBypassScale(bool bypass) {
+            _data0.bypassScale = bypass;
+        }
+        void toggleBypassScale() {
+            setBypassScale(!bypassScale());
+        }
+
         //----------------------------------------
         // Methods
         //----------------------------------------
@@ -254,7 +265,7 @@ public:
             BitField<uint32_t, 20, NoteOctave::Bits> noteOctave;
             BitField<uint32_t, 23, NoteVariationProbability::Bits> noteVariationProbability;
             BitField<uint32_t, 27, NoteOctaveProbability::Bits> noteOctaveProbability;
-            // 1 bits left
+            BitField<uint32_t, 31, 1> bypassScale;
         } _data0;
         union {
             uint32_t raw;
@@ -323,7 +334,7 @@ public:
             setRootNote(rootNote() + value);
         }
     }
-
+ 
     void printRootNote(StringBuilder &str) const {
         printRouted(str, Routing::Target::RootNote);
         if (rootNote() < 0) {

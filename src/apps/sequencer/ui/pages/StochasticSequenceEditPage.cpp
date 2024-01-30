@@ -95,7 +95,7 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
     const int stepWidth = Width / StepCount;
     const int stepOffset = this->stepOffset();
 
-    int stepsToDraw = scale.notesPerOctave();
+    int stepsToDraw = 12;
     if (scale.notesPerOctave() % 16 != scale.notesPerOctave() && _section > 0) {
         stepsToDraw = scale.notesPerOctave() % 16;
     } else if (stepsToDraw > 16) {
@@ -218,7 +218,19 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
             int rootNote = sequence.selectedRootNote(_model.project().rootNote());
             canvas.setColor(Color::Bright);
             FixedStringBuilder<8> str;
+
+            if (step.bypassScale()) {
+                const Scale &bypassScale = std::ref(Scale::get(0));
+                bypassScale.noteName(str, step.note(), rootNote, Scale::Short1);
+            
+                canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
+                str.reset();
+                bypassScale.noteName(str, step.note(), rootNote, Scale::Short2);
+                canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
+                break;
+            } 
             scale.noteName(str, step.note(), rootNote, Scale::Short1);
+            
             canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
             str.reset();
             scale.noteName(str, step.note(), rootNote, Scale::Short2);
@@ -233,7 +245,21 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
             canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
             str.reset();
             int rootNote = sequence.selectedRootNote(_model.project().rootNote());
-            canvas.setColor(Color::Bright);
+            if (scale.isNotePresent(step.note())) {
+                canvas.setColor(Color::Bright);
+            } else {
+                canvas.setColor(Color::Low);
+            }
+            if (step.bypassScale()) {
+                const Scale &bypassScale = std::ref(Scale::get(0));
+                bypassScale.noteName(str, step.note(), rootNote, Scale::Short1);
+            
+                canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
+                str.reset();
+                bypassScale.noteName(str, step.note(), rootNote, Scale::Short2);
+                canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
+                break;
+            } 
             scale.noteName(str, step.note(), rootNote, Scale::Short1);
             canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
             break;
@@ -245,8 +271,18 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
                 step.noteOctaveProbability() + 1, StochasticSequence::NoteOctaveProbability::Range
             );
             int rootNote = sequence.selectedRootNote(_model.project().rootNote());
-            canvas.setColor(Color::Bright);
+            if (scale.isNotePresent(step.note())) {
+                canvas.setColor(Color::Bright);
+            } else {
+                canvas.setColor(Color::Low);
+            }
             FixedStringBuilder<8> str;
+            if (step.bypassScale()) {
+                const Scale &bypassScale = std::ref(Scale::get(0));
+                bypassScale.noteName(str, step.note(), rootNote, Scale::Short1);
+                canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
+                break;
+            } 
             scale.noteName(str, step.note(), rootNote, Scale::Short1);
             canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
             break;
@@ -258,8 +294,20 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
                 step.noteVariationProbability() + 1, StochasticSequence::NoteVariationProbability::Range
             );
             int rootNote = sequence.selectedRootNote(_model.project().rootNote());
-            canvas.setColor(Color::Bright);
+
+            if (scale.isNotePresent(step.note())) {
+                canvas.setColor(Color::Bright);
+            } else {
+                canvas.setColor(Color::Low);
+            }
+            
             FixedStringBuilder<8> str;
+            if (step.bypassScale()) {
+                const Scale &bypassScale = std::ref(Scale::get(0));
+                bypassScale.noteName(str, step.note(), rootNote, Scale::Short1);
+                canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
+                break;
+            } 
             scale.noteName(str, step.note(), rootNote, Scale::Short1);
             canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
             break;
@@ -269,6 +317,13 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
                 canvas,
                 x + 4, y + 18, stepWidth - 8, 4,
                 step.slide()
+            );
+            break;
+        case Layer::BypassScale:
+            SequencePainter::drawBypassScale(
+                canvas,
+                x + 4, y + 18, stepWidth - 8, 4,
+                step.bypassScale()
             );
             break;
         case Layer::Condition: {
@@ -303,7 +358,7 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
     // handle detail display
 
     if (_showDetail) {
-        if (layer() == Layer::Gate || layer() == Layer::Slide || _stepSelection.none()) {
+        if (layer() == Layer::Gate || layer() == Layer::Slide || _stepSelection.none() || layer() == Layer::BypassScale) {
             _showDetail = false;
         }
         if (_stepSelection.isPersisted() && os::ticks() > _showDetailTicks + os::time::ms(500)) {
@@ -520,6 +575,8 @@ void StochasticSequenceEditPage::encoder(EncoderEvent &event) {
         case Layer::Slide:
             setLayer(event.value() > 0 ? Layer::Note : Layer::NoteVariationProbability);
             break;
+        case Layer::BypassScale:
+            setLayer(event.value() > 0 ? Layer::Note : Layer::Slide);
         default:
             break;
         }
@@ -576,6 +633,9 @@ void StochasticSequenceEditPage::encoder(EncoderEvent &event) {
                 break;
             case Layer::Slide:
                 step.setSlide(event.value() > 0);
+                break;
+            case Layer::BypassScale:
+                step.setBypassScale(event.value() > 0);
                 break;
             case Layer::Condition:
                 step.setCondition(ModelUtils::adjustedEnum(step.condition(), event.value()));
@@ -706,6 +766,9 @@ void StochasticSequenceEditPage::switchLayer(int functionKey, bool shift) {
         case Layer::NoteOctaveProbability:
             setLayer(Layer::Slide);
             break;
+        case Layer::Slide:
+            setLayer(Layer::BypassScale);
+            break;
         default:
             setLayer(Layer::NoteVariationProbability);
             break;
@@ -737,6 +800,7 @@ int StochasticSequenceEditPage::activeFunctionKey() {
     case Layer::NoteVariationProbability:
     case Layer::NoteOctaveProbability:
     case Layer::Slide:
+    case Layer::BypassScale:
         return 3;
     case Layer::Condition:
         return 4;
@@ -783,6 +847,7 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
     switch (layer()) {
     case Layer::Gate:
     case Layer::Slide:
+    case Layer::BypassScale:
         break;
     case Layer::GateProbability:
         SequencePainter::drawProbability(
