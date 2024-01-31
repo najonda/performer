@@ -36,10 +36,13 @@ class StochasticStep {
 class StochasticLoopStep {
     public:
         StochasticLoopStep() {}
-        StochasticLoopStep(int index, bool gate, StochasticSequence::Step step) {
+        StochasticLoopStep(int index, bool gate, StochasticSequence::Step step, float noteValue, uint32_t stepLength, int stepRetrigger ) {
             _index = index;
             _gate = gate;
             _step = step;
+            _noteValue = noteValue;
+            _stepLength = stepLength;
+            _stepRetrigger = stepRetrigger;
         }
 
         int index() {
@@ -54,10 +57,26 @@ class StochasticLoopStep {
             return _step;
         }
 
+        float noteValue() {
+            return _noteValue;
+        }
+
+        uint32_t stepLength() {
+            return _stepLength;
+        }
+
+        int stepRetrigger() {
+            return _stepRetrigger;
+        }
+
+
     private:
         int _index;
         bool _gate;
         StochasticSequence::Step _step;
+        float _noteValue;
+        uint32_t _stepLength;
+        int _stepRetrigger;
 };
 
 class StochasticEngine : public TrackEngine {

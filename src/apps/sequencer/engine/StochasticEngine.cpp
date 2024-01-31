@@ -175,7 +175,7 @@ TrackEngine::TickResult StochasticEngine::tick(uint32_t tick) {
                 _sequenceState.calculateNextStepAligned(
                         (relativeTick + divisor) / divisor,
                         sequence.runMode(),
-                        sequence.firstStep(),
+                        0,
                         sequence.sequenceLength(),
                         rng
                     );
@@ -372,10 +372,13 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     StochasticSequence::Step step;
     uint32_t stepTick;
     bool stepGate = false;
+    float noteValue;
+    uint32_t stepLength;
+    int stepRetrigger;
 
     if (!sequence.useLoop() || (sequence.useLoop() && int(inMemSteps.size()) < sequence.sequenceLength())) { 
         if (evalRestProbability(sequence.restProbability())) {
-            inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(-1, false, step));
+            inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(-1, false, step, 0, 0, 0));
             return;
         }
 
@@ -447,6 +450,11 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
                     }
                     break;
         }
+        const auto &scale = evalSequence.selectedScale(_model.project().scale());
+        int rootNote = evalSequence.selectedRootNote(_model.project().rootNote());
+        noteValue = evalStepNote(step, _stochasticTrack.noteProbabilityBias(), scale, rootNote, octave, transpose);
+        stepLength = (divisor * evalStepLength(step, _stochasticTrack.lengthBias())) / StochasticSequence::Length::Range;
+        stepRetrigger = evalStepRetrigger(step, _stochasticTrack.retriggerProbabilityBias());
     }
 
     if (!sequence.useLoop() && int(inMemSteps.size()) >= sequence.sequenceLength()) {
@@ -454,10 +462,10 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     }
 
     if (sequence.useLoop() && int(inMemSteps.size()) < sequence.sequenceLength()) {
-        inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(stepIndex, stepGate, step));
+        inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(stepIndex, stepGate, step, noteValue, stepLength, stepRetrigger));
     } else {
         if (!sequence.useLoop()) {
-            inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(stepIndex, stepGate, step));
+            inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(stepIndex, stepGate, step, noteValue, stepLength, stepRetrigger));
         } else {
             stepIndex = inMemSteps.at(index).index();
             if (stepIndex == -1) {
@@ -467,14 +475,17 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
             step = inMemSteps.at(index).step();
             int gateOffset = ((int) divisor * step.gateOffset()) / (StochasticSequence::GateOffset::Max + 1);
             stepTick = (int) tick + gateOffset;
+            noteValue = inMemSteps.at(index).noteValue();
+            stepLength = inMemSteps.at(index).stepLength();
+            stepRetrigger = inMemSteps.at(index).stepRetrigger();
         }
     }
 
     if (stepGate) {
         sequence.setStepBounds(stepIndex);
         
-        uint32_t stepLength = (divisor * evalStepLength(step, _stochasticTrack.lengthBias())) / StochasticSequence::Length::Range;
-        int stepRetrigger = evalStepRetrigger(step, _stochasticTrack.retriggerProbabilityBias());
+        stepLength = (divisor * evalStepLength(step, _stochasticTrack.lengthBias())) / StochasticSequence::Length::Range;
+        stepRetrigger = evalStepRetrigger(step, _stochasticTrack.retriggerProbabilityBias());
         if (stepRetrigger > 1) {
             uint32_t retriggerLength = divisor / stepRetrigger;
             uint32_t retriggerOffset = 0;
@@ -490,9 +501,8 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     }
 
     if (stepGate || _stochasticTrack.cvUpdateMode() == StochasticTrack::CvUpdateMode::Always) {
-        const auto &scale = evalSequence.selectedScale(_model.project().scale());
-        int rootNote = evalSequence.selectedRootNote(_model.project().rootNote());
-        _cvQueue.push({ Groove::applySwing(stepTick, swing()), evalStepNote(step, _stochasticTrack.noteProbabilityBias(), scale, rootNote, octave, transpose), step.slide() });
+
+        _cvQueue.push({ Groove::applySwing(stepTick, swing()), noteValue, step.slide() });
     }
 }
 
