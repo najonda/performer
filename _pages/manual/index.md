@@ -1905,3 +1905,20 @@ The update procedure is performed by the bootloader on the sequencer. There are 
 The bootloader will verify the integrity of the **UPDATE.DAT** file using an MD5 hash. Once verified, a confirmation is requested to actually initiate the update process. Simply rotate the `ENCODER` to change to **YES** and press the `ENCODER` to start the update.
 
 After the firmware is written to the flash memory, it is verified again to ensure it was written properly. In case the verification fails, the firmware is erased from flash memory. At this point the sequencer will always enter the bootloader when powering up, allowing to load a different firmware.
+
+
+<!-- Matomo -->
+<script>
+  var _paq = window._paq = window._paq || [];
+  /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="//matomo.mebitek.com/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '3']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<!-- End Matomo Code -->
