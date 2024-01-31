@@ -171,6 +171,14 @@ TrackEngine::TickResult StochasticEngine::tick(uint32_t tick) {
         case Types::PlayMode::Aligned:
             if (relativeTick % divisor == 0) {
                 triggerStep(tick, divisor);
+
+                _sequenceState.calculateNextStepAligned(
+                        (relativeTick + divisor) / divisor,
+                        sequence.runMode(),
+                        sequence.firstStep(),
+                        sequence.sequenceLength(),
+                        rng
+                    );
             }
             break;
         case Types::PlayMode::Free:
