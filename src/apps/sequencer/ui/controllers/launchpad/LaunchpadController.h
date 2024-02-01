@@ -196,8 +196,8 @@ private:
     } _performButton;
 
 
-    int startingFirstStep = 1;
-    int startingLastStep = 16;
+    int _startingFirstStep = 1;
+    int _startingLastStep = 16;
 
     Project &_project;
     

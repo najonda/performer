@@ -526,7 +526,7 @@ void LaunchpadController::sequenceSetLayer(int row, int col) {
 }
 
 void LaunchpadController::sequenceSetFirstStep(int step) {
-    startingFirstStep = step;
+    _startingFirstStep = step;
     switch (_project.selectedTrack().trackMode()) {
     case Track::TrackMode::Note:
         _project.selectedNoteSequence().setFirstStep(step);
@@ -540,7 +540,7 @@ void LaunchpadController::sequenceSetFirstStep(int step) {
 }
 
 void LaunchpadController::sequenceSetLastStep(int step) {
-    startingLastStep = step;
+    _startingLastStep = step;
     switch (_project.selectedTrack().trackMode()) {
     case Track::TrackMode::Note:
         _project.selectedNoteSequence().setLastStep(step);
@@ -925,8 +925,8 @@ void LaunchpadController::patternButton(const Button &button, ButtonAction actio
 //----------------------------------------
 
 void LaunchpadController::performerEnter() {
-    startingFirstStep = _project.selectedNoteSequence().firstStep();
-    startingLastStep = _project.selectedNoteSequence().lastStep();
+    _startingFirstStep = _project.selectedNoteSequence().firstStep();
+    _startingLastStep = _project.selectedNoteSequence().lastStep();
 }
 
 void LaunchpadController::performerExit() {
@@ -1042,8 +1042,8 @@ void LaunchpadController::performerButton(const Button &button, ButtonAction act
             
             for (int i = 0; i < 8; ++i)  {
                 if (_performButton.firstStepButton.row == -1 && _performButton.lastStepButton.row == -1) {
-                    _project.track(i).noteTrack().sequence(0).setFirstStep(startingFirstStep);    
-                    _project.track(i).noteTrack().sequence(0).setLastStep(startingLastStep);
+                    _project.track(i).noteTrack().sequence(0).setFirstStep(_startingFirstStep);    
+                    _project.track(i).noteTrack().sequence(0).setLastStep(_startingLastStep);
                 }
                 if (_performButton.lastStepButton.row == -1) {
                     
