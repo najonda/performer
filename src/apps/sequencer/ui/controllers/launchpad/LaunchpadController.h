@@ -190,6 +190,15 @@ private:
         uint8_t count = 1;
     } _buttonTracker;
 
+    struct {
+        Button firstStepButton;
+        Button lastStepButton;
+    } _performButton;
+
+
+    int startingFirstStep = 1;
+    int startingLastStep = 16;
+
     Project &_project;
     
     Container<LaunchpadDevice, LaunchpadMk2Device, LaunchpadMk3Device, LaunchpadProDevice, LaunchpadProMk3Device> _deviceContainer;

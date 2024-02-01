@@ -215,8 +215,7 @@ bool LaunchpadController::globalButton(const Button &button, ButtonAction action
                 setMode(Mode::Pattern);
                 break;
             case 2:
-                // TODO implement performer mode
-                // setMode(Mode::Performer);
+                setMode(Mode::Performer);
                 break;
             case 6:
                 _engine.togglePlay();
@@ -527,6 +526,7 @@ void LaunchpadController::sequenceSetLayer(int row, int col) {
 }
 
 void LaunchpadController::sequenceSetFirstStep(int step) {
+    startingFirstStep = step;
     switch (_project.selectedTrack().trackMode()) {
     case Track::TrackMode::Note:
         _project.selectedNoteSequence().setFirstStep(step);
@@ -540,6 +540,7 @@ void LaunchpadController::sequenceSetFirstStep(int step) {
 }
 
 void LaunchpadController::sequenceSetLastStep(int step) {
+    startingLastStep = step;
     switch (_project.selectedTrack().trackMode()) {
     case Track::TrackMode::Note:
         _project.selectedNoteSequence().setLastStep(step);
@@ -924,15 +925,133 @@ void LaunchpadController::patternButton(const Button &button, ButtonAction actio
 //----------------------------------------
 
 void LaunchpadController::performerEnter() {
+    startingFirstStep = _project.selectedNoteSequence().firstStep();
+    startingLastStep = _project.selectedNoteSequence().lastStep();
 }
 
 void LaunchpadController::performerExit() {
 }
 
+
 void LaunchpadController::performerDraw() {
+
+    sequenceUpdateNavigation();
+
+    mirrorButton<Navigate>(_style);
+
+    // selected track
+    if (buttonState<Shift>()) {
+        drawTracksGateAndMute(_engine, _project.playState());
+        return;
+    } else {
+        drawTracksGateAndSelected(_engine, _project.selectedTrackIndex());
+    }
+
+    if (buttonState<Navigate>()) {
+        // unused
+    } else if (buttonState<Layer>()) {
+        //mirrorButton<Layer>(_style);
+        //sequenceDrawLayer();
+    } else if (buttonState<FirstStep>()) {
+        mirrorButton<FirstStep>(_style);
+        sequenceDrawStepRange(0);
+    } else if (buttonState<LastStep>()) {
+        mirrorButton<LastStep>(_style);
+        sequenceDrawStepRange(1);
+    } else if (buttonState<RunMode>()) {
+        mirrorButton<RunMode>(_style);
+        sequenceDrawRunMode();
+    } else if (buttonState<FollowMode>()) {
+        mirrorButton<FollowMode>(_style);
+        sequenceDrawFollowMode();
+    } else {
+        mirrorButton<Fill>(_style);
+        //sequenceDrawSequence();
+    }
+
+
+    if (_performButton.firstStepButton.row != -1) {
+        setGridLed(_performButton.firstStepButton.row, _performButton.firstStepButton.col, colorGreen());
+    }
+    if (_performButton.lastStepButton.row != -1) {
+        setGridLed(_performButton.lastStepButton.row, _performButton.lastStepButton.col, colorGreen());
+    }
 }
 
 void LaunchpadController::performerButton(const Button &button, ButtonAction action) {
+
+    if (action == ButtonAction::Down) {
+    
+        if (buttonState<Shift>()) {
+            if (button.isScene()) {
+                _project.playState().toggleMuteTrack(button.scene());
+            }
+        } else if (buttonState<FirstStep>()) {
+            if (button.isGrid()) {
+                sequenceSetFirstStep(button.gridIndex());
+                
+            }
+        } else if (buttonState<LastStep>()) {
+            if (button.isGrid()) {
+                sequenceSetLastStep(button.gridIndex());
+            }
+        } else if (buttonState<RunMode>()) {
+            if (button.isGrid()) {
+                sequenceSetRunMode(button.gridIndex());
+            }
+        } else if (buttonState<FollowMode>()) {
+            if (button.isGrid()) {
+                sequenceSetFollowMode(button.col);
+            } else if (button.isScene()) {
+                _project.playState().toggleSoloTrack(button.scene());
+            }
+        } else if (buttonState<Fill>()) {
+            if (button.isScene()) {
+                _project.playState().fillTrack(button.scene(), true);
+            }
+        } else if (button.isGrid()) {
+            for (int row = 0; row < 8; ++row) {
+                for (int col = 0; col < 8; ++col) {
+                    if (buttonState(row, col)) {
+                        if (_performButton.firstStepButton.row != -1) {
+                            _performButton.lastStepButton  = button;
+                            break;
+                        } else {
+                            _performButton.firstStepButton = button;
+                            break;
+                        }
+                    }
+                }   
+            } 
+            int fs = (_performButton.firstStepButton.row * 8) + _performButton.firstStepButton.col;
+            int ls = (_performButton.lastStepButton.row * 8) + _performButton.lastStepButton.col;
+
+            for (int i = 0; i < 8; ++i)  {
+                _project.track(i).noteTrack().sequence(0).setFirstStep(fs);    
+                _project.track(i).noteTrack().sequence(0).setLastStep(ls);
+            }
+        }
+    } else if (action == ButtonAction::Up) {
+        if (button.isGrid() && (!buttonState<FirstStep>() && !buttonState<LastStep>())) {
+            if (_performButton.firstStepButton.row != -1 && !buttonState(_performButton.firstStepButton.row, _performButton.firstStepButton.col )) {
+                _performButton.firstStepButton = Button(-1,-1);
+            }
+            if (_performButton.lastStepButton.row != - 1 && !buttonState(_performButton.lastStepButton.row, _performButton.lastStepButton.col)) {
+                _performButton.lastStepButton = Button(-1,-1);
+            }
+            
+            for (int i = 0; i < 8; ++i)  {
+                if (_performButton.firstStepButton.row == -1 && _performButton.lastStepButton.row == -1) {
+                    _project.track(i).noteTrack().sequence(0).setFirstStep(startingFirstStep);    
+                    _project.track(i).noteTrack().sequence(0).setLastStep(startingLastStep);
+                }
+                if (_performButton.lastStepButton.row == -1) {
+                    
+                }
+            }
+        }
+    }
+
 }
 
 //----------------------------------------
