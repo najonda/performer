@@ -92,7 +92,7 @@ void NoteSequenceEditPage::draw(Canvas &canvas) {
 
     const auto &trackEngine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
 
-    const auto &sequence = _project.selectedNoteSequence();
+    auto &sequence = _project.selectedNoteSequence();
     const auto &scale = sequence.selectedScale(_project.scale());
     int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
     int currentRecordStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentRecordStep() : -1;
@@ -106,8 +106,8 @@ void NoteSequenceEditPage::draw(Canvas &canvas) {
     if (track.isPatternFollowDisplayOn() && _engine.state().running()) {
         bool section_change = bool((currentStep) % StepCount == 0); // StepCount is relative to screen
         int section_no = int((currentStep) / StepCount);
-        if (section_change && section_no != _section) {
-            _section = section_no;
+        if (section_change && section_no != sequence.section()) {
+            sequence.setSecion(section_no);
         }
     }
 
@@ -309,7 +309,7 @@ void NoteSequenceEditPage::draw(Canvas &canvas) {
 
 void NoteSequenceEditPage::updateLeds(Leds &leds) {
     const auto &trackEngine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
-    const auto &sequence = _project.selectedNoteSequence();
+    auto &sequence = _project.selectedNoteSequence();
     int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
 
     for (int i = 0; i < 16; ++i) {
@@ -319,7 +319,7 @@ void NoteSequenceEditPage::updateLeds(Leds &leds) {
         leds.set(MatrixMap::fromStep(i), red, green);
     }
 
-    LedPainter::drawSelectedSequenceSection(leds, _section);
+    LedPainter::drawSelectedSequenceSection(leds, sequence.section());
 
     // show quick edit keys
     if (globalKeyState()[Key::Page] && !globalKeyState()[Key::Shift]) {
@@ -443,7 +443,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
             _stepSelection.shiftLeft();
         } else {
             track.setPatternFollowDisplay(false);
-            _section = std::max(0, _section - 1);
+             sequence.setSecion(std::max(0, sequence.section() - 1));
         }
         event.consume();
     }
@@ -454,7 +454,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
             _stepSelection.shiftRight();
         } else {
             track.setPatternFollowDisplay(false);
-            _section = std::min(3, _section + 1);
+            sequence.setSecion(std::min(3, sequence.section() + 1));
         }
         event.consume();
     }

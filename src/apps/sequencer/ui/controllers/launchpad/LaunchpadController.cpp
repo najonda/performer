@@ -431,6 +431,11 @@ void LaunchpadController::manageCircuitKeyboard(const Button &button) {
                     default:
                         break;
                 }
+            } else if (button.row == 7) {
+                if (button.col <=3) {
+                    Button btn = Button(3,button.col);
+                    navigationButtonDown(_sequence.navigation, btn);  
+                }
             }
         default:
             sequenceEditStep(button.row, button.col);
@@ -961,6 +966,8 @@ void LaunchpadController::navigationButtonDown(Navigation &navigation, const But
         if (col >= navigation.left && col <= navigation.right && row >= navigation.bottom && row <= navigation.top) {
             navigation.col = col;
             navigation.row = row;
+            auto &sequence = _project.selectedNoteSequence();
+            sequence.setSecion(col);
         }
     }
 }
@@ -1156,6 +1163,11 @@ void LaunchpadController::drawNoteSequenceNotes(const NoteSequence &sequence, No
                     
                     }
             }
+        }
+
+        // draw pages
+        for (int col = 0; col < 4; ++col) {
+            setGridLed(7, col, sequence.section() == col ? colorYellow(): colorYellow(1));
         }
 
 

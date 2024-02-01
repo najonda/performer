@@ -523,6 +523,13 @@ public:
         return _trackIndex;
     }
 
+    int section() { return _section; }
+    const int section() const { return _section; }
+
+    void setSecion(int section) {
+        _section = section;
+    }
+
 private:
     void setTrackIndex(int trackIndex) { _trackIndex = trackIndex; }
 
@@ -552,6 +559,8 @@ private:
     StepArray _steps;
 
     uint8_t _edited;
+
+    int _section = 0;
 
     friend class NoteTrack;
 };
