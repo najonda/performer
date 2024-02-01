@@ -30,6 +30,8 @@ private:
     void selectRoute(int routeIndex);
     void assignMidiLearn(const MidiLearn::Result &result);
 
+    void functionShortcuts(KeyPressEvent event);
+
     Routing::Route _editRoute;
     RouteListModel _routeListModel;
     Routing::Route *_route;

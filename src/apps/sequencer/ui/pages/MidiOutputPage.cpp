@@ -1,5 +1,7 @@
 #include "MidiOutputPage.h"
 
+#include "Pages.h"
+
 #include "ui/painters/WindowPainter.h"
 
 #include "core/utils/StringBuilder.h"
@@ -44,6 +46,8 @@ void MidiOutputPage::draw(Canvas &canvas) {
 
 void MidiOutputPage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
+
+    functionShortcuts(event);
 
     if (key.isFunction()) {
         switch (Function(key.function())) {
@@ -93,5 +97,26 @@ void MidiOutputPage::selectOutput(int outputIndex) {
     outputIndex = clamp(outputIndex, 0, CONFIG_MIDI_OUTPUT_COUNT - 1);
     if (outputIndex != _outputIndex) {
         showOutput(outputIndex);
+    }
+}
+
+void MidiOutputPage::functionShortcuts(KeyPressEvent event) {
+    {
+        const auto &key = event.key();
+        if (key.isFunction() && key.is(Key::F0) && event.count() == 2) {
+            _manager.pages().top.setMode(TopPage::Mode::Project);
+        }
+
+        if (key.isFunction() && key.is(Key::F1) && event.count() == 2) {
+            _manager.pages().top.setMode(TopPage::Mode::Layout);
+        }
+
+        if (key.isFunction() && key.is(Key::F2) && event.count() == 2) {
+            _manager.pages().top.setMode(TopPage::Mode::Routing);
+        }
+
+        if (key.isFunction() && key.is(Key::F4) && event.count() == 2) {
+            _manager.pages().top.setMode(TopPage::Mode::UserScale);
+        }
     }
 }
