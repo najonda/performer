@@ -75,7 +75,6 @@ void QuickEditPage::keyPress(KeyPressEvent &event) {
     }
 
     if (_row == 5 && key.isEncoder()) {
-        showMessage("Change scale");
         _listModel->setSelectedScale(_project.scale(), true);
         close();
     }
