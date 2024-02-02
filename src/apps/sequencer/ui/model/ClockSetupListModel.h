@@ -32,6 +32,8 @@ public:
         }
     }
 
+    virtual void setSelectedScale(int defaultScale, bool force = false) override {};
+
 private:
     enum Item {
         Mode,

@@ -191,6 +191,8 @@ private:
         }
     }
 
+    virtual void setSelectedScale(int defaultScale, bool force = false) override {};
+    
     Project &_project;
     private:
         std::array<int, 23> _scales;
