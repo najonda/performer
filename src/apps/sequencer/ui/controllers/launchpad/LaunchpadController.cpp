@@ -351,8 +351,7 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
                     sequenceEditStep(button.row, button.col);
                 } else {
                     switch (_project.selectedTrack().trackMode()) {
-                        case (Track::TrackMode::Note):
-                        case (Track::TrackMode::Stochastic): {
+                        case (Track::TrackMode::Note):{
                             if (_project.selectedNoteSequenceLayer()==NoteSequence::Layer::Note) {
                                 manageCircuitKeyboard(button);    
                             } else {
@@ -362,6 +361,13 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
                         }
                         case Track::TrackMode::Curve:
                             sequenceEditStep(button.row, button.col);
+                            break;
+                         case (Track::TrackMode::Stochastic): {
+                            if (_project.selectedStochasticSequenceLayer()==StochasticSequence::Layer::NoteVariationProbability) {
+                                manageStochasticCircuitKeyboard(button);    
+                            }
+                         }
+
                             break;
                         default:
                             break;
@@ -422,10 +428,11 @@ void LaunchpadController::manageCircuitKeyboard(const Button &button) {
                 break;
             } else if (button.row >= 0 && button.row <= 2) {
                 auto &sequence = _project.selectedNoteSequence();
+                const auto &scale = sequence.selectedScale(_project.scale());
                 auto layer = _project.selectedNoteSequenceLayer();
                 int ofs = _sequence.navigation.col * 16;
                 int linearIndex = button.col + ofs + (button.row*8);
-                if (isNoteKeyboardPressed()) { 
+                if (isNoteKeyboardPressed(scale)) { 
                     sequence.step(linearIndex).setLayerValue(layer, selectedNote);
                     if (!sequence.step(linearIndex).gate()) {
                         sequence.step(linearIndex).toggleGate();    
@@ -476,9 +483,85 @@ void LaunchpadController::manageCircuitKeyboard(const Button &button) {
     }   
 }
 
-bool LaunchpadController::isNoteKeyboardPressed() {
-    const auto &sequence = _project.selectedNoteSequence();
+void LaunchpadController::manageStochasticCircuitKeyboard(const Button &button) {
+    const auto &sequence = _project.selectedStochasticSequence();
     const auto &scale = sequence.selectedScale(_project.scale());
+    switch ( _project.selectedStochasticSequenceLayer()) {
+        case StochasticSequence::Layer::NoteVariationProbability:
+            
+            if (button.row >=3 && button.row <= 4) {
+                int ft = -1;
+                if (button.row == 3) {
+                    ft = getMapValue(semitones, button.col);
+                } else if (button.row == 4) {
+                    ft = getMapValue(tones, button.col);
+                }
+                if (scale.isNotePresent(ft)) {
+                        int noteIndex = scale.getNoteIndex(ft);
+                        selectedNote = noteIndex + (scale.notesPerOctave()*selectedOctave);
+                        if (button.col == 7) {
+                            selectedNote = selectedNote + scale.notesPerOctave();
+                        }
+                    }
+                break;
+            } else if (button.row >= 0 && button.row <= 2) {
+                auto &sequence = _project.selectedStochasticSequence();
+                const auto &scale = sequence.selectedScale(_project.scale());
+                auto layer = _project.selectedStochasticSequenceLayer();
+                int ofs = _sequence.navigation.col * 16;
+                int linearIndex = button.col + ofs + (button.row*8);
+                if (isNoteKeyboardPressed(scale)) { 
+                    sequence.step(linearIndex).setLayerValue(layer, selectedNote);
+                    if (!sequence.step(linearIndex).gate()) {
+                        sequence.step(linearIndex).toggleGate();    
+                    }
+                } else {
+                    sequence.step(linearIndex).toggleGate();
+                }
+                break;
+            } else if (button.row == 6) {
+                switch (button.col) {
+                    case 0:
+                        selectedOctave = -4;
+                        break;
+                    case 1:
+                        selectedOctave = -3;
+                        break;
+                    case 2:
+                        selectedOctave = -2;
+                        break;
+                    case 3:
+                        selectedOctave = -1;
+                        break;
+                    case 4:
+                        selectedOctave = 0;
+                        break;
+                    case 5:
+                        selectedOctave = 1;
+                        break;
+                    case 6:
+                        selectedOctave = 2;
+                        break;
+                    case 7:
+                        selectedOctave = 3;
+                        break;
+                    default:
+                        break;
+                }
+            } else if (button.row == 7) {
+                if (button.col <=3) {
+                    Button btn = Button(3,button.col);
+                    navigationButtonDown(_sequence.navigation, btn);  
+                }
+            }
+        default:
+            sequenceEditStep(button.row, button.col);
+            break;
+        break;
+    }   
+}
+
+bool LaunchpadController::isNoteKeyboardPressed(const Scale &scale) {
     for (int col = 0; col <= 7; ++col) {
         if (buttonState(3, col)) {
             if (semitones.find(col) != semitones.end()) {

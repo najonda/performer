@@ -94,7 +94,7 @@ private:
     void sequenceDraw();
     void sequenceButton(const Button &button, ButtonAction action);
 
-    bool isNoteKeyboardPressed();
+    bool isNoteKeyboardPressed(const Scale &scale);
 
     void sequenceUpdateNavigation();
 
@@ -119,6 +119,7 @@ private:
     void sequenceDrawStochasticSequence();
 
     void manageCircuitKeyboard(const Button &button);
+    void manageStochasticCircuitKeyboard(const Button &button);
 
     // Pattern mode
     void patternEnter();
