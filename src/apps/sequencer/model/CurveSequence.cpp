@@ -160,6 +160,7 @@ void CurveSequence::writeRouted(Routing::Target target, int intValue, float floa
 }
 
 void CurveSequence::clear() {
+    setName("INIT");
     setRange(Types::VoltageRange::Bipolar5V);
     setDivisor(12);
     setResetMeasure(0);
@@ -229,9 +230,12 @@ void CurveSequence::write(VersionedSerializedWriter &writer) const {
     writer.write(_lastStep.base);
 
     writeArray(writer, _steps);
+    writer.write(_name, NameLength + 1);
+    writer.write(_slot);
+    writer.writeHash();
 }
 
-void CurveSequence::read(VersionedSerializedReader &reader) {
+bool CurveSequence::read(VersionedSerializedReader &reader) {
     reader.read(_range);
     if (reader.dataVersion() < ProjectVersion::Version10) {
         reader.readAs<uint8_t>(_divisor.base);
@@ -244,4 +248,12 @@ void CurveSequence::read(VersionedSerializedReader &reader) {
     reader.read(_lastStep.base);
 
     readArray(reader, _steps);
+    reader.read(_name, NameLength + 1, ProjectVersion::Version35);
+    reader.read(_slot);
+    bool success = reader.checkHash();
+    if (!success) {
+        clear();
+    }
+
+    return success;
 }

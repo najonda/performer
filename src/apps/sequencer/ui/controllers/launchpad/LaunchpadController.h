@@ -130,6 +130,8 @@ private:
     void performerExit();
     void performerDraw();
     void performerButton(const Button &button, ButtonAction action);
+    void performDrawLayer();
+    void performSetLayer(int row, int col);
 
     // Navigation
     void navigationDraw(const Navigation &navigation);
@@ -190,6 +192,15 @@ private:
         uint8_t count = 1;
     } _buttonTracker;
 
+    struct {
+        Button firstStepButton;
+        Button lastStepButton;
+    } _performButton;
+
+
+    int _startingFirstStep = 1;
+    int _startingLastStep = 16;
+
     Project &_project;
     
     Container<LaunchpadDevice, LaunchpadMk2Device, LaunchpadMk3Device, LaunchpadProDevice, LaunchpadProMk3Device> _deviceContainer;
@@ -203,4 +214,6 @@ private:
     struct {
         Navigation navigation = { 0, 0, 0, 0, -1, 0 };
     } _pattern;
+
+    int _performSelectedLayer = 0;
 };

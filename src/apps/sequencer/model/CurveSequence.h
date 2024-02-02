@@ -7,9 +7,11 @@
 #include "Types.h"
 #include "Curve.h"
 #include "Routing.h"
+#include "FileDefs.h"
 
 #include "core/math/Math.h"
 #include "core/utils/StringBuilder.h"
+#include "core/utils/StringUtils.h"
 
 #include <array>
 #include <bitset>
@@ -53,6 +55,8 @@ public:
         }
         return nullptr;
     }
+
+    static constexpr size_t NameLength = FileHeader::NameLength;
 
     static Types::LayerRange layerRange(Layer layer);
     static int layerDefaultValue(Layer layer);
@@ -168,6 +172,24 @@ public:
     //----------------------------------------
     // Properties
     //----------------------------------------
+
+    // slot
+
+    int slot() const { return _slot; }
+    void setSlot(int slot) {
+        _slot = slot;
+    }
+    bool slotAssigned() const {
+        return _slot != uint8_t(-1);
+    }
+
+    // name
+
+    const char *name() const { return _name; }
+    void setName(const char *name) {
+        StringUtils::copy(_name, name, sizeof(_name));
+    }
+
 
     // trackIndex
 
@@ -334,7 +356,7 @@ public:
     void duplicateSteps();
 
     void write(VersionedSerializedWriter &writer) const;
-    void read(VersionedSerializedReader &reader);
+    bool read(VersionedSerializedReader &reader);
 
 private:
     void setTrackIndex(int trackIndex) { _trackIndex = trackIndex; }
@@ -350,6 +372,8 @@ private:
         }
     }
 
+    uint8_t _slot = uint8_t(-1);
+    char _name[NameLength + 1];
     int8_t _trackIndex = -1;
     Types::VoltageRange _range;
     Routable<uint16_t> _divisor;

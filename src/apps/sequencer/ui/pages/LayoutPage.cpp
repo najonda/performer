@@ -35,6 +35,8 @@ void LayoutPage::draw(Canvas &canvas) {
 void LayoutPage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
 
+    functionShortcuts(event);
+
     if (key.isFunction()) {
         if (key.function() == 4 && _mode == Mode::TrackMode && !_trackModeListModel.sameAsProject(_project)) {
             _manager.pages().confirmation.show("ARE YOU SURE?", [this] (bool result) {
@@ -76,4 +78,25 @@ void LayoutPage::setMode(Mode mode) {
         return;
     }
     _mode = mode;
+}
+
+void LayoutPage::functionShortcuts(KeyPressEvent event) {
+    {
+        const auto &key = event.key();
+        if (key.isFunction() && key.is(Key::F0) && event.count() == 2) {
+            _manager.pages().top.setMode(TopPage::Mode::Project);
+        }
+
+        if (key.isFunction() && key.is(Key::F2) && event.count() == 2) {
+            _manager.pages().top.setMode(TopPage::Mode::Routing);
+        }
+
+        if (key.isFunction() && key.is(Key::F3) && event.count() == 2) {
+            _manager.pages().top.setMode(TopPage::Mode::MidiOutput);
+        }
+
+        if (key.isFunction() && key.is(Key::F4) && event.count() == 2) {
+            _manager.pages().top.setMode(TopPage::Mode::UserScale);
+        }
+    }
 }

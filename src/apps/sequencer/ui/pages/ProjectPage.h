@@ -31,5 +31,7 @@ private:
     void saveProjectToSlot(int slot);
     void loadProjectFromSlot(int slot);
 
+    void functionShortcuts(KeyPressEvent event);
+
     ProjectListModel _listModel;
 };

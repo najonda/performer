@@ -99,6 +99,9 @@ enum ProjectVersion {
     // add bypass scale
     Version34 = 34,
 
+    // add sequence name
+    Version35 = 35,
+
     // automatically derive latest version
     Last,
     Latest = Last - 1,
