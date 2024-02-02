@@ -1,5 +1,12 @@
 # Changelog
 
+# v0.2.0 ()
+- Stochastic Track *
+- Load/Save Sequence
+- Launchpad Performance Mode
+- Submenu shortcuts
+- Page buttons on launchpad circuit note edit
+
 # v0.1.4.48 (30 January 2024)
 - Moving steps in a sequence
 - INIT by step selected

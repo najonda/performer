@@ -6,8 +6,8 @@
 #define CONFIG_VERSION_MAGIC            0xfadebabe
 #define CONFIG_VERSION_NAME             "PER|FORMER SEQUENCER"
 #define CONFIG_VERSION_MAJOR            0
-#define CONFIG_VERSION_MINOR            1
-#define CONFIG_VERSION_REVISION         48
+#define CONFIG_VERSION_MINOR            2
+#define CONFIG_VERSION_REVISION         0
 
 // Task priorities
 #define CONFIG_DRIVER_TASK_PRIORITY     5
