@@ -34,6 +34,8 @@ public:
         }
     }
 
+    virtual void setSelectedScale(int defaultScale, bool force = false) override {};
+
 private:
     UserSettings &_userSettings;
 };
@@ -65,6 +67,8 @@ public:
             _launchpadSettings.shift(row, value);
         }
     }
+
+    virtual void setSelectedScale(int defaultScale, bool force = false) override {};
 
 private:
     LaunchpadSettings &_launchpadSettings;

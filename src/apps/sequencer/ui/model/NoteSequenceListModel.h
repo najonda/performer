@@ -6,6 +6,7 @@
 
 #include "model/NoteSequence.h"
 #include "model/Scale.h"
+#include <iostream>
 
 class NoteSequenceListModel : public RoutableListModel {
 public:
@@ -35,6 +36,10 @@ public:
 
     void setSequence(NoteSequence *sequence) {
         _sequence = sequence;
+        if (sequence != nullptr) {
+            int trackIndex = _sequence->trackIndex();
+            _selectedScale[trackIndex] = sequence->scale()+1;
+        }
     }
 
     virtual int rows() const override {
@@ -92,8 +97,8 @@ public:
         }
     }
 
-    void setSelectedScale(int defaultScale) {
-        if (_editScale) {
+    void setSelectedScale(int defaultScale, bool force = false) override {
+        if (_editScale || force) {
             _sequence->editScale(_scales[_selectedScale[_sequence->trackIndex()]], false, defaultScale);
         }
         _editScale = !_editScale;

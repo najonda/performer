@@ -118,6 +118,7 @@ private:
     void sequenceDrawCurveSequence();
 
     void manageCircuitKeyboard(const Button &button);
+    void drawRunningKeyboardCircuit(int row, int col, const NoteSequence::Step &step, const Scale &scale, int rootNote);
 
     // Pattern mode
     void patternEnter();

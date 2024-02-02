@@ -36,6 +36,7 @@ public:
             _cvOutput->editItem(row, value, shift);
         }
     }
+    virtual void setSelectedScale(int defaultScale, bool force = false) override {};
 
 private:
     Calibration::CvOutput *_cvOutput;
