@@ -1027,8 +1027,13 @@ void LaunchpadController::performerButton(const Button &button, ButtonAction act
             int ls = (_performButton.lastStepButton.row * 8) + _performButton.lastStepButton.col;
 
             for (int i = 0; i < 8; ++i)  {
-                _project.track(i).noteTrack().sequence(0).setFirstStep(fs);    
-                _project.track(i).noteTrack().sequence(0).setLastStep(ls);
+                if (_project.track(i).trackMode() == Track::TrackMode::Note) {
+                    _project.track(i).noteTrack().sequence(0).setFirstStep(fs);    
+                    _project.track(i).noteTrack().sequence(0).setLastStep(ls);
+                } else if (_project.track(i).trackMode() == Track::TrackMode::Curve) {
+                    _project.track(i).curveTrack().sequence(0).setFirstStep(fs);    
+                    _project.track(i).curveTrack().sequence(0).setLastStep(ls);
+                }
             }
         }
     } else if (action == ButtonAction::Up) {
@@ -1042,8 +1047,14 @@ void LaunchpadController::performerButton(const Button &button, ButtonAction act
             
             for (int i = 0; i < 8; ++i)  {
                 if (_performButton.firstStepButton.row == -1 && _performButton.lastStepButton.row == -1) {
-                    _project.track(i).noteTrack().sequence(0).setFirstStep(_startingFirstStep);    
-                    _project.track(i).noteTrack().sequence(0).setLastStep(_startingLastStep);
+                    if (_project.track(i).trackMode() == Track::TrackMode::Note) {
+                        _project.track(i).noteTrack().sequence(0).setFirstStep(_startingFirstStep);    
+                        _project.track(i).noteTrack().sequence(0).setLastStep(_startingLastStep);
+                    } else if (_project.track(i).trackMode() == Track::TrackMode::Curve) {
+                        _project.track(i).curveTrack().sequence(0).setFirstStep(_startingFirstStep);    
+                        _project.track(i).curveTrack().sequence(0).setLastStep(_startingLastStep);
+                    }
+
                 }
                 if (_performButton.lastStepButton.row == -1) {
                     
