@@ -583,8 +583,6 @@ void LaunchpadController::manageStochasticCircuitKeyboard(const Button &button) 
 }
 
 bool LaunchpadController::isNoteKeyboardPressed(const Scale &scale) {
-    const auto &sequence = _project.selectedNoteSequence();
-    const auto &scale = Scale::get(0);
     for (int col = 0; col <= 7; ++col) {
         if (buttonState(3, col)) {
             if (semitones.find(col) != semitones.end()) {
