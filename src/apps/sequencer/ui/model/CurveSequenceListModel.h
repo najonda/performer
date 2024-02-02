@@ -201,5 +201,7 @@ private:
         }
     }
 
+    virtual void setSelectedScale(int defaultScale, bool force = false) override {};
+
     CurveSequence *_sequence = nullptr;
 };

@@ -73,6 +73,12 @@ void QuickEditPage::keyPress(KeyPressEvent &event) {
     } else if (key.isStep()) {
         _listModel->setIndexed(_row, key.step());
     }
+
+    if (_row == 5 && key.isEncoder()) {
+        showMessage("Change scale");
+        _listModel->setSelectedScale(_project.scale(), true);
+        close();
+    }
 }
 
 void QuickEditPage::encoder(EncoderEvent &event) {
