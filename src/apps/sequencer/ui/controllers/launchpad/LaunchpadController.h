@@ -116,6 +116,7 @@ private:
     void sequenceDrawSequence();
     void sequenceDrawNoteSequence();
     void sequenceDrawCurveSequence();
+    void sequenceDrawStochasticSequence();
 
     void manageCircuitKeyboard(const Button &button);
 
@@ -152,6 +153,9 @@ private:
     void drawNoteSequenceNotes(const NoteSequence &sequence, NoteSequence::Layer layer, int currentStep);
     void drawCurveSequenceBars(const CurveSequence &sequence, CurveSequence::Layer layer, int currentStep);
     void drawCurveSequenceDots(const CurveSequence &sequence, CurveSequence::Layer layer, int currentStep);
+
+    void drawStochasticSequenceBits(const StochasticSequence &sequence, StochasticSequence::Layer layer, int currentStep);
+
     void followModeAction(int currentStep, int);
     void drawBar(int row, int value, bool active, bool current);
 

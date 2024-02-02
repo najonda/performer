@@ -94,6 +94,28 @@ static constexpr int performLayerMapSize = sizeof(performLayerMap) / sizeof(perf
 
 static constexpr int curveSequenceLayerMapSize = sizeof(curveSequenceLayerMap) / sizeof(curveSequenceLayerMap[0]);
 
+
+static const LayerMapItem stochasticSequenceLayerMap[] = {
+    [int(StochasticSequence::Layer::Gate)]                        =  { 0, 0 },
+    [int(StochasticSequence::Layer::GateProbability)]             =  { 1, 0 },
+    [int(StochasticSequence::Layer::GateOffset)]                  =  { 2, 0 },
+    [int(StochasticSequence::Layer::Retrigger)]                   =  { 0, 1 },
+    [int(StochasticSequence::Layer::RetriggerProbability)]        =  { 1, 1 },
+    [int(StochasticSequence::Layer::StageRepeats)]                =  { 2, 1 },
+    [int(StochasticSequence::Layer::StageRepeatsMode)]            =  { 3, 1 },
+    [int(StochasticSequence::Layer::Length)]                      =  { 0, 2 },
+    [int(StochasticSequence::Layer::LengthVariationRange)]        =  { 1, 2 },
+    [int(StochasticSequence::Layer::LengthVariationProbability)]  =  { 2, 2 },
+    [int(StochasticSequence::Layer::NoteVariationProbability)]    =  { 0, 3 },
+    [int(StochasticSequence::Layer::NoteOctave)]                  =  { 1, 3 },
+    [int(StochasticSequence::Layer::NoteOctaveProbability)]       =  { 2, 3 },    
+    [int(StochasticSequence::Layer::Slide)]                       =  { 3, 3 },
+    [int(StochasticSequence::Layer::Condition)]                   =  { 0, 4 },
+};
+
+
+static constexpr int stochasticSequenceLayerMapSize = sizeof(stochasticSequenceLayerMap) / sizeof(stochasticSequenceLayerMap[0]);
+
 struct RangeMap {
     int16_t min[2];
     int16_t max[2];
@@ -329,7 +351,8 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
                     sequenceEditStep(button.row, button.col);
                 } else {
                     switch (_project.selectedTrack().trackMode()) {
-                        case (Track::TrackMode::Note): {
+                        case (Track::TrackMode::Note):
+                        case (Track::TrackMode::Stochastic): {
                             if (_project.selectedNoteSequenceLayer()==NoteSequence::Layer::Note) {
                                 manageCircuitKeyboard(button);    
                             } else {
@@ -509,7 +532,7 @@ void LaunchpadController::sequenceUpdateNavigation() {
 }
 
 void LaunchpadController::sequenceSetLayer(int row, int col) {
-    switch (_project.selectedTrack().trackMode()) {
+    switch (_project.selectedTrack().trackMode()) { 
     case Track::TrackMode::Note: {
         for (int i = 0; i < noteSequenceLayerMapSize; ++i) {
             const auto &item = noteSequenceLayerMap[i];
@@ -530,6 +553,15 @@ void LaunchpadController::sequenceSetLayer(int row, int col) {
         }
         break;
     }
+    case Track::TrackMode::Stochastic:   
+        for (int i = 0; i < stochasticSequenceLayerMapSize; ++i) {
+            const auto &item = stochasticSequenceLayerMap[i];
+            if (row == item.row && col == item.col) {
+                _project.setSelectedStochasticSequenceLayer(StochasticSequence::Layer(i));
+                break;
+            }
+        }
+        break;    
     default:
         break;
     }
@@ -670,6 +702,7 @@ void LaunchpadController::sequenceEditCurveStep(int row, int col) {
 
 void LaunchpadController::sequenceDrawLayer() {
     switch (_project.selectedTrack().trackMode()) {
+    
     case Track::TrackMode::Note:
         for (int i = 0; i < noteSequenceLayerMapSize; ++i) {
             const auto &item = noteSequenceLayerMap[i];
@@ -686,6 +719,13 @@ void LaunchpadController::sequenceDrawLayer() {
         for (int i = 0; i < curveSequenceLayerMapSize; ++i) {
             const auto &item = curveSequenceLayerMap[i];
             bool selected = i == int(_project.selectedCurveSequenceLayer());
+            setGridLed(item.row, item.col, selected ? colorYellow() : colorGreen());
+        }
+        break;
+   case Track::TrackMode::Stochastic: 
+        for (int i = 0; i < stochasticSequenceLayerMapSize; ++i) {
+            const auto &item = stochasticSequenceLayerMap[i];
+            bool selected = i == int(_project.selectedStochasticSequenceLayer());
             setGridLed(item.row, item.col, selected ? colorYellow() : colorGreen());
         }
         break;
@@ -749,6 +789,9 @@ void LaunchpadController::sequenceDrawSequence() {
     case Track::TrackMode::Curve:
         sequenceDrawCurveSequence();
         break;
+    case Track::TrackMode::Stochastic:
+        sequenceDrawStochasticSequence();
+        break;
     default:
         break;
     }
@@ -778,6 +821,34 @@ void LaunchpadController::sequenceDrawNoteSequence() {
         break;
     default:
         drawNoteSequenceBars(sequence, layer, currentStep);
+        break;
+    }
+}
+
+void LaunchpadController::sequenceDrawStochasticSequence() {
+    const auto &trackEngine = _engine.selectedTrackEngine().as<StochasticEngine>();
+
+    auto sequence = std::ref(_project.selectedStochasticSequence());
+    if (_project.playState().songState().playing()) {
+        auto trackIndex = _project.selectedTrackIndex() ;   
+        sequence = std::ref(_project.selectedTrack().stochasticTrack().sequence(_project.playState().trackState(trackIndex).pattern()));
+    }
+    auto layer = _project.selectedStochasticSequenceLayer();
+    int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
+
+    switch (layer) {
+    case StochasticSequence::Layer::Gate:
+    case StochasticSequence::Layer::Slide:
+        drawStochasticSequenceBits(sequence, layer, currentStep);
+        break;
+    //case NoteSequence::Layer::Note:
+    //    drawNoteSequenceNotes(sequence, layer, currentStep);
+    //    break;
+    //case NoteSequence::Layer::Condition:
+    //    drawNoteSequenceDots(sequence, layer, currentStep);
+    //    break;
+    default:
+    //    drawNoteSequenceBars(sequence, layer, currentStep);
         break;
     }
 }
@@ -1380,6 +1451,28 @@ void LaunchpadController::drawCurveSequenceDots(const CurveSequence &sequence, C
             value = rangeMap->map(value);
         }
         setGridLed((7 - value) + ofs, col, stepColor(true, stepIndex == currentStep));
+    }
+}
+
+void LaunchpadController::drawStochasticSequenceBits(const StochasticSequence &sequence, StochasticSequence::Layer layer, int currentStep) {
+    for (int row = 0; row < 8; ++row) {
+        for (int col = 0; col < 8; ++col) {
+            int stepIndex = row * 8 + col;
+            const auto &step = sequence.step(stepIndex);
+
+            Color color = colorOff();
+            if (step.gate()) {
+                color = colorYellow();
+            }
+            if (step.layerValue(layer) != 0) {
+                color = colorGreen();
+            }
+            if (stepIndex == currentStep) {
+                color = colorRed();
+            }
+            
+            setGridLed(row, col, color);
+        }
     }
 }
 

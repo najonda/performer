@@ -12,9 +12,7 @@ Types::LayerRange StochasticSequence::layerRange(Layer layer) {
     case Layer::Gate:
         return { 0, 1 };
     case Layer::Slide:
-        return { 0, 1 };
-    case Layer::BypassScale:
-        return {0 ,1 };  
+        return { 0, 1 }; 
     CASE(GateOffset)
     CASE(GateProbability)
     CASE(Retrigger)
@@ -22,7 +20,6 @@ Types::LayerRange StochasticSequence::layerRange(Layer layer) {
     CASE(Length)
     CASE(LengthVariationRange)
     CASE(LengthVariationProbability)
-    CASE(Note)
     CASE(NoteOctave)
     CASE(NoteOctaveProbability)
     CASE(NoteVariationProbability)
@@ -51,8 +48,6 @@ int StochasticSequence::layerDefaultValue(Layer layer)
         return step.gateOffset();
     case Layer::Slide:
         return step.slide();
-    case Layer::BypassScale:
-        return step.bypassScale();
     case Layer::Retrigger:
         return step.retrigger();
     case Layer::RetriggerProbability:
@@ -63,8 +58,6 @@ int StochasticSequence::layerDefaultValue(Layer layer)
         return step.lengthVariationRange();
     case Layer::LengthVariationProbability:
         return step.lengthVariationProbability();
-    case Layer::Note:
-        return step.note();
     case Layer::NoteOctave:
         return step.noteOctave();
     case Layer::NoteOctaveProbability:
@@ -90,8 +83,6 @@ int StochasticSequence::Step::layerValue(Layer layer) const {
         return gate() ? 1 : 0;
     case Layer::Slide:
         return slide() ? 1 : 0;
-    case Layer::BypassScale:
-        return bypassScale() ? 1 : 0;
     case Layer::GateProbability:
         return gateProbability();
     case Layer::GateOffset:
@@ -106,8 +97,6 @@ int StochasticSequence::Step::layerValue(Layer layer) const {
         return lengthVariationRange();
     case Layer::LengthVariationProbability:
         return lengthVariationProbability();
-    case Layer::Note:
-        return note();
     case Layer::NoteOctave:
         return noteOctave();
     case Layer::NoteOctaveProbability:
@@ -135,9 +124,6 @@ void StochasticSequence::Step::setLayerValue(Layer layer, int value) {
     case Layer::Slide:
         setSlide(value);
         break;
-    case Layer::BypassScale:
-        setBypassScale(value);
-        break;
     case Layer::GateProbability:
         setGateProbability(value);
         break;
@@ -158,9 +144,6 @@ void StochasticSequence::Step::setLayerValue(Layer layer, int value) {
         break;
     case Layer::LengthVariationProbability:
         setLengthVariationProbability(value);
-        break;
-    case Layer::Note:
-        setNote(value);
         break;
     case Layer::NoteOctave:
         setNoteOctave(value);

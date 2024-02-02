@@ -215,8 +215,6 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
                 step.lengthVariationProbability() + 1, StochasticSequence::LengthVariationProbability::Range
             );
             break;
-        case Layer::Note:
-            break;
         case Layer::NoteOctave: {
             if (step.noteOctave() != 0) {
                 canvas.setColor(Color::Bright);
@@ -298,8 +296,6 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
                 step.slide()
             );
             break;
-        case Layer::BypassScale:
-            break;
         case Layer::Condition: {
             canvas.setColor(Color::Bright);
             FixedStringBuilder<8> str;
@@ -332,7 +328,7 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
     // handle detail display
 
     if (_showDetail) {
-        if (layer() == Layer::Gate || layer() == Layer::Slide || _stepSelection.none() || layer() == Layer::BypassScale) {
+        if (layer() == Layer::Gate || layer() == Layer::Slide || _stepSelection.none()) {
             _showDetail = false;
         }
         if (_stepSelection.isPersisted() && os::ticks() > _showDetailTicks + os::time::ms(500)) {
@@ -500,8 +496,6 @@ void StochasticSequenceEditPage::encoder(EncoderEvent &event) {
         case Layer::LengthVariationProbability:
             setLayer(event.value() > 0 ? Layer::Length : Layer::LengthVariationRange);
             break;
-        case Layer::Note:
-            break;
         case Layer::NoteVariationProbability:
             setLayer(event.value() > 0 ? Layer::NoteOctave : Layer::Slide);
             break;
@@ -513,8 +507,6 @@ void StochasticSequenceEditPage::encoder(EncoderEvent &event) {
             break;
         case Layer::Slide:
             setLayer(event.value() > 0 ? Layer::NoteVariationProbability : Layer::NoteVariationProbability);
-            break;
-        case Layer::BypassScale:
             break;
         default:
             break;
@@ -556,10 +548,6 @@ void StochasticSequenceEditPage::encoder(EncoderEvent &event) {
             case Layer::LengthVariationProbability:
                 step.setLengthVariationProbability(step.lengthVariationProbability() + event.value());
                 break;
-            case Layer::Note:
-                step.setNote(step.note() + event.value() * ((shift && scale.isChromatic()) ? scale.notesPerOctave() : 1));
-                updateMonitorStep();
-                break;
             case Layer::NoteOctave:
                 step.setNoteOctave(step.noteOctave() + event.value());
                 updateMonitorStep();
@@ -569,11 +557,10 @@ void StochasticSequenceEditPage::encoder(EncoderEvent &event) {
                 break;
             case Layer::NoteVariationProbability:
                 step.setNoteVariationProbability(step.noteVariationProbability() + event.value());
+                updateMonitorStep();
                 break;
             case Layer::Slide:
                 step.setSlide(event.value() > 0);
-                break;
-            case Layer::BypassScale:
                 break;
             case Layer::Condition:
                 step.setCondition(ModelUtils::adjustedEnum(step.condition(), event.value()));
@@ -598,7 +585,7 @@ void StochasticSequenceEditPage::encoder(EncoderEvent &event) {
 }
 
 void StochasticSequenceEditPage::midi(MidiEvent &event) {
-    if (!_engine.recording() && layer() == Layer::Note && _stepSelection.any()) {
+    if (!_engine.recording() && layer() == Layer::NoteVariationProbability && _stepSelection.any()) {
         auto &trackEngine = _engine.selectedTrackEngine().as<StochasticEngine>();
         auto &sequence = _project.selectedStochasticSequence();
         const auto &scale = sequence.selectedScale(_project.scale());
@@ -633,9 +620,6 @@ void StochasticSequenceEditPage::switchLayer(int functionKey, bool shift) {
             break;
         case Function::Length:
             setLayer(Layer::StageRepeatsMode);
-            break;
-        case Function::Note:
-            setLayer(Layer::Slide);
             break;
         case Function::Condition:
             setLayer(Layer::Condition);
@@ -689,12 +673,6 @@ void StochasticSequenceEditPage::switchLayer(int functionKey, bool shift) {
         break;
     case Function::Note:
         switch (layer()) {
-        case Layer::Note:
-            setLayer(Layer::NoteVariationProbability);
-            break;
-        //case Layer::NoteOctave:
-            //setLayer(Layer::Slide);
-            //break;
         case Layer::NoteVariationProbability:
             setLayer(Layer::NoteOctave);
             break;
@@ -732,12 +710,10 @@ int StochasticSequenceEditPage::activeFunctionKey() {
     case Layer::LengthVariationRange:
     case Layer::LengthVariationProbability:
         return 2;
-    case Layer::Note:
     case Layer::NoteOctave:
     case Layer::NoteVariationProbability:
     case Layer::NoteOctaveProbability:
     case Layer::Slide:
-    case Layer::BypassScale:
         return 3;
     case Layer::Condition:
         return 4;
@@ -752,7 +728,7 @@ void StochasticSequenceEditPage::updateMonitorStep() {
     auto &trackEngine = _engine.selectedTrackEngine().as<StochasticEngine>();
 
     // TODO should we monitor an all layers not just note?
-    if (layer() == Layer::Note && !_stepSelection.isPersisted() && _stepSelection.any()) {
+    if (layer() == Layer::NoteVariationProbability && !_stepSelection.isPersisted() && _stepSelection.any()) {
         trackEngine.setMonitorStep(_stepSelection.first());
     } else {
         trackEngine.setMonitorStep(-1);
@@ -784,7 +760,6 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
     switch (layer()) {
     case Layer::Gate:
     case Layer::Slide:
-    case Layer::BypassScale:
         break;
     case Layer::GateProbability:
         SequencePainter::drawProbability(
@@ -862,12 +837,6 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
         str("%.1f%%", 100.f * (step.lengthVariationProbability() + 1.f) / StochasticSequence::LengthVariationProbability::Range);
         canvas.setColor(Color::Bright);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
-        break;
-    case Layer::Note:
-        str.reset();
-        scale.noteName(str, step.note(), sequence.selectedRootNote(_model.project().rootNote()), Scale::Long);
-        canvas.setFont(Font::Small);
-        canvas.drawTextCentered(64 + 32, 16, 64, 32, str);
         break;
     case Layer::NoteOctave:
         str.reset();
