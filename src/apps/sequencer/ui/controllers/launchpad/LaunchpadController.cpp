@@ -1574,11 +1574,10 @@ void LaunchpadController::drawStochasticSequenceNotes(const StochasticSequence &
     const auto &scale = sequence.selectedScale(_project.scale());
 
         // draw steps
-        for (int row = 0; row < 2; ++row) {
+        /*for (int row = 0; row < 2; ++row) {
             for (int col = 0; col < 8; ++col) {
                 int stepIndex = col + ofs + (row*8);
                 int lastStep = sequence.lastStep();
-                followModeAction(currentStep, lastStep);
                 const auto &step = sequence.step(stepIndex);   
                 Color color = colorOff();
                 if (step.gate()) {
@@ -1589,7 +1588,10 @@ void LaunchpadController::drawStochasticSequenceNotes(const StochasticSequence &
                 }         
                 setGridLed(row, col, color);
             }
-        }       
+        }*/       
+
+        const auto &step = sequence.step(0);   
+        drawBarH(0, step.noteVariationProbability(), true, false);
 
         int rootNote = sequence.selectedRootNote(_model.project().rootNote());
 
@@ -1716,6 +1718,13 @@ void LaunchpadController::drawBar(int col, int value, bool active, bool current)
         }
     }
     setGridLed((7 - value) + ofs, col, stepColor(active, current));
+}
+
+void LaunchpadController::drawBarH(int col, int value, bool active, bool current) {
+    for (int i = 0; i <= value; ++i) {
+        setGridLed(col, i, colorYellow());
+    }
+    setGridLed(col, value, stepColor(active, current));
 }
 
 //----------------------------------------

@@ -161,6 +161,7 @@ private:
 
     void followModeAction(int currentStep, int);
     void drawBar(int row, int value, bool active, bool current);
+    void drawBarH(int row, int value, bool active, bool current);
 
     // Led handling
     void setGridLed(int row, int col, Color color);
