@@ -49,6 +49,10 @@ struct LayerMapItem {
     uint8_t col;
 };
 
+enum class PerforModeLayers {
+        SequenceLength
+    };
+
 static const LayerMapItem noteSequenceLayerMap[] = {
     [int(NoteSequence::Layer::Gate)]                        =  { 0, 0 },
     [int(NoteSequence::Layer::GateProbability)]             =  { 1, 0 },
@@ -81,6 +85,12 @@ static const LayerMapItem curveSequenceLayerMap[] = {
     [int(CurveSequence::Layer::Gate)]                       =  { 0, 3 },
     [int(CurveSequence::Layer::GateProbability)]            =  { 1, 3 },
 };
+
+static const LayerMapItem performLayerMap[] = {
+    [int(PerforModeLayers::SequenceLength)]                 =  { 0, 0 },
+};
+
+static constexpr int performLayerMapSize = sizeof(performLayerMap) / sizeof(performLayerMap[0]);
 
 static constexpr int curveSequenceLayerMapSize = sizeof(curveSequenceLayerMap) / sizeof(curveSequenceLayerMap[0]);
 
@@ -950,8 +960,8 @@ void LaunchpadController::performerDraw() {
     if (buttonState<Navigate>()) {
         // unused
     } else if (buttonState<Layer>()) {
-        //mirrorButton<Layer>(_style);
-        //sequenceDrawLayer();
+        mirrorButton<Layer>(_style);
+        performDrawLayer();
     } else if (buttonState<FirstStep>()) {
         mirrorButton<FirstStep>(_style);
         sequenceDrawStepRange(0);
@@ -989,7 +999,9 @@ void LaunchpadController::performerButton(const Button &button, ButtonAction act
         } else if (buttonState<Navigate>()) {
             //
         } else if(buttonState<Layer>()) {
-            //
+            if (button.isGrid()) {
+                performSetLayer(button.row, button.col);
+            }
         } else if (buttonState<FirstStep>()) {
             if (button.isGrid()) {
                 sequenceSetFirstStep(button.gridIndex());
@@ -1067,6 +1079,24 @@ void LaunchpadController::performerButton(const Button &button, ButtonAction act
         }
     }
 
+}
+
+void LaunchpadController::performDrawLayer() {
+ for (int i = 0; i < performLayerMapSize; ++i) {
+            const auto &item = performLayerMap[i];
+            bool selected = i == _performSelectedLayer;
+            setGridLed(item.row, item.col, selected ? colorYellow() : colorGreen());
+        }
+}
+
+void LaunchpadController::performSetLayer(int row, int col) {
+        for (int i = 0; i < performLayerMapSize; ++i) {
+            const auto &item = performLayerMap[i];
+            if (row == item.row && col == item.col) {
+                _performSelectedLayer = i;
+                break;
+            }
+        }
 }
 
 //----------------------------------------

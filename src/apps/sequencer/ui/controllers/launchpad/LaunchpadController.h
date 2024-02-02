@@ -130,6 +130,8 @@ private:
     void performerExit();
     void performerDraw();
     void performerButton(const Button &button, ButtonAction action);
+    void performDrawLayer();
+    void performSetLayer(int row, int col);
 
     // Navigation
     void navigationDraw(const Navigation &navigation);
@@ -212,4 +214,6 @@ private:
     struct {
         Navigation navigation = { 0, 0, 0, 0, -1, 0 };
     } _pattern;
+
+    int _performSelectedLayer = 0;
 };
