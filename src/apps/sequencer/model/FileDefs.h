@@ -8,6 +8,7 @@
 enum class FileType : uint8_t {
     Project     = 0,
     UserScale   = 1,
+    NoteSequence= 2,
     Settings    = 255
 };
 

@@ -252,6 +252,7 @@ void NoteSequence::writeRouted(Routing::Target target, int intValue, float float
 }
 
 void NoteSequence::clear() {
+    setName("INIT");
     setScale(-1);
     setRootNote(-1);
     setDivisor(12);
@@ -332,9 +333,12 @@ void NoteSequence::write(VersionedSerializedWriter &writer) const {
     writer.write(_lastStep.base);
 
     writeArray(writer, _steps);
+    writer.write(_name, NameLength + 1);
+    writer.write(_slot);
+    writer.writeHash();
 }
 
-void NoteSequence::read(VersionedSerializedReader &reader) {
+bool NoteSequence::read(VersionedSerializedReader &reader) {
     reader.read(_scale.base);
     reader.read(_rootNote.base);
     if (reader.dataVersion() < ProjectVersion::Version10) {
@@ -348,4 +352,13 @@ void NoteSequence::read(VersionedSerializedReader &reader) {
     reader.read(_lastStep.base);
 
     readArray(reader, _steps);
+
+    reader.read(_name, NameLength + 1, ProjectVersion::Version35);
+    reader.read(_slot);
+    bool success = reader.checkHash();
+    if (!success) {
+        clear();
+    }
+
+    return success;
 }

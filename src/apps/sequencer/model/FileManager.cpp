@@ -1,6 +1,7 @@
 #include "FileManager.h"
 #include "ProjectVersion.h"
 
+#include "Routing.h"
 #include "core/utils/StringBuilder.h"
 #include "core/fs/FileSystem.h"
 #include "core/fs/FileWriter.h"
@@ -105,6 +106,19 @@ fs::Error FileManager::readUserScale(UserScale &userScale, int slot) {
     });
 }
 
+
+fs::Error FileManager::writeNoteSequence(const NoteSequence &noteSequence, int slot) {
+    return writeFile(FileType::NoteSequence, slot, [&] (const char *path) {
+        return writeNoteSequence(noteSequence, path);
+    });
+}
+
+fs::Error FileManager::readNoteSequence(NoteSequence &noteSequence, int slot) {
+    return readFile(FileType::NoteSequence, slot, [&] (const char *path) {
+        return readNoteSequence(noteSequence, path);
+    });
+}
+
 fs::Error FileManager::writeProject(const Project &project, const char *path) {
     fs::FileWriter fileWriter(path);
     if (fileWriter.error() != fs::OK) {
@@ -182,6 +196,49 @@ fs::Error FileManager::readUserScale(UserScale &userScale, const char *path) {
     );
 
     bool success = userScale.read(reader);
+
+    auto error = fileReader.finish();
+    if (error == fs::OK && !success) {
+        error = fs::INVALID_CHECKSUM;
+    }
+
+    return error;
+}
+
+fs::Error FileManager::writeNoteSequence(const NoteSequence &noteSequence, const char *path) {
+    fs::FileWriter fileWriter(path);
+    if (fileWriter.error() != fs::OK) {
+        return fileWriter.error();
+    }
+
+    FileHeader header(FileType::NoteSequence, 0, noteSequence.name());
+    fileWriter.write(&header, sizeof(header));
+
+    VersionedSerializedWriter writer(
+        [&fileWriter] (const void *data, size_t len) { fileWriter.write(data, len); },
+        ProjectVersion::Latest
+    );
+
+    noteSequence.write(writer);
+
+    return fileWriter.finish();
+}
+
+fs::Error FileManager::readNoteSequence(NoteSequence &noteSequence, const char *path) {
+    fs::FileReader fileReader(path);
+    if (fileReader.error() != fs::OK) {
+        return fileReader.error();
+    }
+
+    FileHeader header;
+    fileReader.read(&header, sizeof(header));
+
+    VersionedSerializedReader reader(
+        [&fileReader] (void *data, size_t len) { fileReader.read(data, len); },
+        ProjectVersion::Latest
+    );
+
+    bool success = noteSequence.read(reader);
 
     auto error = fileReader.finish();
     if (error == fs::OK && !success) {

@@ -2,6 +2,7 @@
 
 #include "FileDefs.h"
 #include "Project.h"
+#include "Routing.h"
 #include "UserScale.h"
 #include "Settings.h"
 
@@ -28,11 +29,17 @@ public:
     static fs::Error writeUserScale(const UserScale &userScale, int slot);
     static fs::Error readUserScale(UserScale &userScale, int slot);
 
+    static fs::Error writeNoteSequence(const NoteSequence &noteSequence, int slot);
+    static fs::Error readNoteSequence(NoteSequence &noteSequence, int slot);
+
     static fs::Error writeProject(const Project &project, const char *path);
     static fs::Error readProject(Project &project, const char *path);
 
     static fs::Error writeUserScale(const UserScale &userScale, const char *path);
     static fs::Error readUserScale(UserScale &userScale, const char *path);
+
+    static fs::Error writeNoteSequence(const NoteSequence &noteSequence, const char *path);
+    static fs::Error readNoteSequence(NoteSequence &noteSequence, const char *path);
 
     static fs::Error writeSettings(const Settings &settings, const char *path);
     static fs::Error readSettings(Settings &settings, const char *path);
