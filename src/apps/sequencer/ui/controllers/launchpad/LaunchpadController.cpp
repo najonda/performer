@@ -841,14 +841,14 @@ void LaunchpadController::sequenceDrawStochasticSequence() {
     case StochasticSequence::Layer::Slide:
         drawStochasticSequenceBits(sequence, layer, currentStep);
         break;
-    //case NoteSequence::Layer::Note:
-    //    drawNoteSequenceNotes(sequence, layer, currentStep);
-    //    break;
+    case StochasticSequence::Layer::NoteVariationProbability:
+        drawStochasticSequenceNotes(sequence, layer, currentStep);
+        break;
     //case NoteSequence::Layer::Condition:
     //    drawNoteSequenceDots(sequence, layer, currentStep);
     //    break;
     default:
-    //    drawNoteSequenceBars(sequence, layer, currentStep);
+        drawStochasticSequenceBars(sequence, layer, currentStep);
         break;
     }
 }
@@ -1474,6 +1474,114 @@ void LaunchpadController::drawStochasticSequenceBits(const StochasticSequence &s
             setGridLed(row, col, color);
         }
     }
+}
+
+void LaunchpadController::drawStochasticSequenceBars(const StochasticSequence &sequence, StochasticSequence::Layer layer, int currentStep) {
+    for (int col = 0; col < 8; ++col) {
+        int stepIndex = col + _sequence.navigation.col * 8;
+        int lastStep = sequence.lastStep();
+        followModeAction(currentStep, lastStep);
+        const auto &step = sequence.step(stepIndex);
+        drawBar(col, step.layerValue(layer), true, stepIndex == currentStep);
+    }
+}
+
+void LaunchpadController::drawStochasticSequenceNotes(const StochasticSequence &sequence, StochasticSequence::Layer layer, int currentStep) {
+    int ofs = _sequence.navigation.col * 16;
+    const auto &scale = sequence.selectedScale(_project.scale());
+
+        // draw steps
+        for (int row = 0; row < 2; ++row) {
+            for (int col = 0; col < 8; ++col) {
+                int stepIndex = col + ofs + (row*8);
+                int lastStep = sequence.lastStep();
+                followModeAction(currentStep, lastStep);
+                const auto &step = sequence.step(stepIndex);   
+                Color color = colorOff();
+                if (step.gate()) {
+                    color = colorGreen();
+                }
+                if (stepIndex == currentStep) {
+                    color = colorRed();
+                }         
+                setGridLed(row, col, color);
+            }
+        }       
+
+        int rootNote = sequence.selectedRootNote(_model.project().rootNote());
+
+        // draw keyboard
+        for (int row = 3; row<=4; ++row) {
+            for (int col = 0; col < 8; col++) {
+                int index = (col+((row-3)*8));
+            
+                if (noteGridValues[index]==1) {
+                    int n = getMapValue(semitones, index);
+                    if (row == 4) {
+                        n = getMapValue(tones, col);
+                    }
+                    if (scale.isNotePresent(n)) {
+                        n = scale.getNoteIndex(n);
+                        if (col == 7) {
+                            n = n + scale.notesPerOctave();
+                        }
+                        Color color = (selectedNote - (scale.notesPerOctave()*selectedOctave))== n ? colorYellow() : colorGreen(2);
+                        setGridLed(row, col, color);
+                    } else {
+                        setGridLed(row, col, colorGreen(1));
+                    }
+                }
+                if (_engine.state().running()) {
+                    const auto &step = sequence.step(currentStep);
+                    int noteOctave = step.note() / scale.notesPerOctave();
+                    int s = step.note() - (scale.notesPerOctave()*noteOctave);
+                    if (row == 4 && col == 7) {
+                        s = step.note();
+                    }
+
+                    for (auto const& x : semitones)
+                    {
+                        if (step.gate() && s == scale.getNoteIndex(x.second)) {
+                            setGridLed(3, x.first, step.gate() && s == scale.getNoteIndex(x.second) ? colorRed() : colorGreen());
+                            break;
+                        }
+                    }
+                    for (auto const& x : tones)
+                    {
+
+                        if (step.gate() && s == scale.getNoteIndex(x.second)+noteOctave*scale.notesPerOctave()) {
+                            if (step.note() == rootNote+(scale.notesPerOctave()*noteOctave) && noteOctave == selectedOctave +1) {
+                                setGridLed(4, 7, colorRed());
+                            } else {
+                                setGridLed(4, x.first, step.gate() && s == scale.getNoteIndex(x.second)+noteOctave*scale.notesPerOctave() ? colorRed() : colorGreen());
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // draw octave
+        for (int col = 0; col < 8; ++col) {
+            int o = getMapValue(octaveMap, col);
+            setGridLed(6, col, o==selectedOctave ? colorYellow(): colorYellow(1));
+
+            if (_engine.state().running()) {
+                const auto &step = sequence.step(currentStep);
+                int s = step.note();
+
+                int octave = s / scale.notesPerOctave();
+                for (auto const& x : octaveMap)
+                    {
+                        if (step.gate() && octave == x.second) {
+                            setGridLed(6, x.first, step.gate() && octave == x.second ? colorRed() : colorYellow(1));
+                            break;
+                        }
+                    
+                    }
+            }
+        }
 }
 
 void LaunchpadController::followModeAction(int currentStep, int lastStep) {

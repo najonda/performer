@@ -155,6 +155,8 @@ private:
     void drawCurveSequenceDots(const CurveSequence &sequence, CurveSequence::Layer layer, int currentStep);
 
     void drawStochasticSequenceBits(const StochasticSequence &sequence, StochasticSequence::Layer layer, int currentStep);
+    void drawStochasticSequenceBars(const StochasticSequence &sequence, StochasticSequence::Layer layer, int currentStep);
+    void drawStochasticSequenceNotes(const StochasticSequence &sequence, StochasticSequence::Layer layer, int currentStep);
 
     void followModeAction(int currentStep, int);
     void drawBar(int row, int value, bool active, bool current);
