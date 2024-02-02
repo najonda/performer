@@ -18,7 +18,10 @@ public:
 
 private:
     void contextShow(bool doubleClick = false);
+    void saveContextShow(bool doubleClick = false);
+    void saveContextAction(bool doubleClick = false);
     void contextAction(int index);
+    void saveContextAction(int index);
     bool contextActionEnabled(int index) const;
 
     void initSequence();
@@ -26,6 +29,12 @@ private:
     void pasteSequence();
     void duplicateSequence();
     void initRoute();
+
+    void loadSequence();
+    void saveSequence();
+    void saveAsSequence();
+    void saveSequenceToSlot(int slot);
+    void loadSequenceFromSlot(int slot);
 
     CurveSequenceListModel _listModel;
 };

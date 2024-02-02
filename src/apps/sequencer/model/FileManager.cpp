@@ -119,6 +119,18 @@ fs::Error FileManager::readNoteSequence(NoteSequence &noteSequence, int slot) {
     });
 }
 
+fs::Error FileManager::writeCurveSequence(const CurveSequence &curveSequence, int slot) {
+    return writeFile(FileType::CurveSequence, slot, [&] (const char *path) {
+        return writeCurveSequence(curveSequence, path);
+    });
+}
+
+fs::Error FileManager::readCurveSequence(CurveSequence &curveSequence, int slot) {
+    return readFile(FileType::CurveSequence, slot, [&] (const char *path) {
+        return readCurveSequence(curveSequence, path);
+    });
+}
+
 fs::Error FileManager::writeProject(const Project &project, const char *path) {
     fs::FileWriter fileWriter(path);
     if (fileWriter.error() != fs::OK) {
@@ -239,6 +251,49 @@ fs::Error FileManager::readNoteSequence(NoteSequence &noteSequence, const char *
     );
 
     bool success = noteSequence.read(reader);
+
+    auto error = fileReader.finish();
+    if (error == fs::OK && !success) {
+        error = fs::INVALID_CHECKSUM;
+    }
+
+    return error;
+}
+
+fs::Error FileManager::writeCurveSequence(const CurveSequence &curveSequence, const char *path) {
+    fs::FileWriter fileWriter(path);
+    if (fileWriter.error() != fs::OK) {
+        return fileWriter.error();
+    }
+
+    FileHeader header(FileType::CurveSequence, 0, curveSequence.name());
+    fileWriter.write(&header, sizeof(header));
+
+    VersionedSerializedWriter writer(
+        [&fileWriter] (const void *data, size_t len) { fileWriter.write(data, len); },
+        ProjectVersion::Latest
+    );
+
+    curveSequence.write(writer);
+
+    return fileWriter.finish();
+}
+
+fs::Error FileManager::readCurveSequence(CurveSequence &curveSequence, const char *path) {
+    fs::FileReader fileReader(path);
+    if (fileReader.error() != fs::OK) {
+        return fileReader.error();
+    }
+
+    FileHeader header;
+    fileReader.read(&header, sizeof(header));
+
+    VersionedSerializedReader reader(
+        [&fileReader] (void *data, size_t len) { fileReader.read(data, len); },
+        ProjectVersion::Latest
+    );
+
+    bool success = curveSequence.read(reader);
 
     auto error = fileReader.finish();
     if (error == fs::OK && !success) {
