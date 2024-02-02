@@ -986,6 +986,10 @@ void LaunchpadController::performerButton(const Button &button, ButtonAction act
             if (button.isScene()) {
                 _project.playState().toggleMuteTrack(button.scene());
             }
+        } else if (buttonState<Navigate>()) {
+            //
+        } else if(buttonState<Layer>()) {
+            //
         } else if (buttonState<FirstStep>()) {
             if (button.isGrid()) {
                 sequenceSetFirstStep(button.gridIndex());
