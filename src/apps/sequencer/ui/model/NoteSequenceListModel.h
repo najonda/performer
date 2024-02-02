@@ -142,7 +142,6 @@ private:
         case Scale: {
                 int trackIndex = _sequence->trackIndex();
                 bool isRouted = Routing::isRouted(Routing::Target::Scale, trackIndex);
-                std::cerr << _selectedScale[trackIndex] << "\n";
                 if (isRouted) {
                     _sequence->printScale(str);
                 } else {
