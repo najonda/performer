@@ -74,7 +74,7 @@ void QuickEditPage::keyPress(KeyPressEvent &event) {
         _listModel->setIndexed(_row, key.step());
     }
 
-    if (_row == 5 && key.isEncoder()) {
+    if (key.isEncoder()) {
         _listModel->setSelectedScale(_project.scale(), true);
         close();
     }

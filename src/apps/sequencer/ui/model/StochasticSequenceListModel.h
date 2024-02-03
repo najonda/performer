@@ -92,7 +92,7 @@ public:
     }
 
     void setSelectedScale(int defaultScale, bool force= false) override {
-        if (_editScale) {
+        if (_editScale || force) {
             _sequence->editScale(_scales[_selectedScale[_sequence->trackIndex()]], false, defaultScale);
         }
         _editScale = !_editScale;
