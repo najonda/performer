@@ -114,27 +114,12 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
         }
     }
 
-    // draw loop points
-    canvas.setBlendMode(BlendMode::Set);
-    canvas.setColor(Color::Bright);
-    SequencePainter::drawLoopStart(canvas, ((sequence.firstStep() - stepOffset) * stepWidth + 1)+((16 - stepsToDraw)*stepWidth)/2, loopY, stepWidth - 2);
-    SequencePainter::drawLoopEnd(canvas, ((sequence.lastStep() - stepOffset) * stepWidth + 1)+((16 - stepsToDraw)*stepWidth)/2, loopY, stepWidth - 2);
-
-
-  
-
     for (int i = 0; i < stepsToDraw; ++i) {
         int stepIndex = stepOffset + i;
         auto &step = sequence.step(stepIndex);
 
         int x = (i * stepWidth) + ((16 - stepsToDraw)*stepWidth)/2 ;
         int y = 20;
-
-        // loop
-        if (stepIndex > sequence.firstStep() && stepIndex <= sequence.lastStep()) {
-            canvas.setColor(Color::Bright);
-            canvas.point(x, loopY);
-        }
 
         // step index
         {
