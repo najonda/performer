@@ -439,7 +439,6 @@ void StochasticSequenceEditPage::keyPress(KeyPressEvent &event) {
 
 void StochasticSequenceEditPage::encoder(EncoderEvent &event) {
     auto &sequence = _project.selectedStochasticSequence();
-    const auto &scale = sequence.selectedScale(_project.scale());
 
     if (!_stepSelection.any())
     {
@@ -501,7 +500,6 @@ void StochasticSequenceEditPage::encoder(EncoderEvent &event) {
     for (size_t stepIndex = 0; stepIndex < sequence.steps().size(); ++stepIndex) {
         if (_stepSelection[stepIndex]) {
             auto &step = sequence.step(stepIndex);
-            bool shift = globalKeyState()[Key::Shift];
             switch (layer()) {
             case Layer::Gate:
                 step.setGate(event.value() > 0);
@@ -599,6 +597,9 @@ void StochasticSequenceEditPage::switchLayer(int functionKey, bool shift) {
             break;
         case Function::Length:
             setLayer(Layer::StageRepeatsMode);
+            break;
+        case Function::Note:
+            setLayer(Layer::NoteVariationProbability);
             break;
         case Function::Condition:
             setLayer(Layer::Condition);
@@ -716,7 +717,6 @@ void StochasticSequenceEditPage::updateMonitorStep() {
 
 void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequence::Step &step) {
 
-    const auto &sequence = _project.selectedStochasticSequence();
 
     FixedStringBuilder<16> str;
 
@@ -840,7 +840,6 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
             step.noteVariationProbability() + 1, StochasticSequence::NoteVariationProbability::Range
         );
         str.reset();
-        std::cerr << StochasticSequence::NoteVariationProbability::Range << "\n";
         str("%.1f%%", 100.f * (step.noteVariationProbability()) / (StochasticSequence::NoteVariationProbability::Range -1));
         canvas.setColor(Color::Bright);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
