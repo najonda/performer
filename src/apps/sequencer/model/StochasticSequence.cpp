@@ -301,7 +301,7 @@ void StochasticSequence::setNotes(std::initializer_list<int> notes) {
 
 void StochasticSequence::shiftSteps(const std::bitset<CONFIG_STEP_COUNT> &selected, int direction) {
     if (selected.any()) {
-        ModelUtils::shiftSteps(_steps, selected, direction);
+        ModelUtils::shiftSteps(_steps, selected, firstStep(), lastStep(), direction);
     } else {
         ModelUtils::shiftSteps(_steps, firstStep(), lastStep(), direction);
     }
