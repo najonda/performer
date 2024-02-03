@@ -13,6 +13,7 @@
 
 #include "core/utils/StringBuilder.h"
 #include <cstddef>
+#include <iostream>
 
 enum class ContextAction {
     Init,
@@ -97,13 +98,6 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
     const int stepOffset = this->stepOffset();
 
     int stepsToDraw = 12;
-    if (scale.notesPerOctave() % 16 != scale.notesPerOctave() && _section > 0) {
-        stepsToDraw = scale.notesPerOctave() % 16;
-    } else if (stepsToDraw > 16) {
-        stepsToDraw = 16;
-    }
-    const int loopY = 16;
-
 
     // Track Pattern Section on the UI
     if (_sectionTracking && _engine.state().running()) {
@@ -723,7 +717,6 @@ void StochasticSequenceEditPage::updateMonitorStep() {
 void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequence::Step &step) {
 
     const auto &sequence = _project.selectedStochasticSequence();
-    const auto &scale = sequence.selectedScale(_project.scale());
 
     FixedStringBuilder<16> str;
 
@@ -753,7 +746,7 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
             step.gateProbability() + 1, StochasticSequence::GateProbability::Range
         );
         str.reset();
-        str("%.1f%%", 100.f * (step.gateProbability() + 1.f) / StochasticSequence::GateProbability::Range);
+        str("%.1f%%", 100.f * (step.gateProbability()) / (StochasticSequence::GateProbability::Range-1));
         canvas.setColor(Color::Bright);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
@@ -786,7 +779,7 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
             step.retriggerProbability() + 1, StochasticSequence::RetriggerProbability::Range
         );
         str.reset();
-        str("%.1f%%", 100.f * (step.retriggerProbability() + 1.f) / StochasticSequence::RetriggerProbability::Range);
+        str("%.1f%%", 100.f * (step.retriggerProbability()) / (StochasticSequence::RetriggerProbability::Range-1));
         canvas.setColor(Color::Bright);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
@@ -808,7 +801,7 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
             step.length() + 1, step.lengthVariationRange(), StochasticSequence::Length::Range
         );
         str.reset();
-        str("%.1f%%", 100.f * (step.lengthVariationRange()) / StochasticSequence::Length::Range);
+        str("%.1f%%", 100.f * (step.lengthVariationRange()) / (StochasticSequence::Length::Range-1));
         canvas.setColor(Color::Bright);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
@@ -819,7 +812,7 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
             step.lengthVariationProbability() + 1, StochasticSequence::LengthVariationProbability::Range
         );
         str.reset();
-        str("%.1f%%", 100.f * (step.lengthVariationProbability() + 1.f) / StochasticSequence::LengthVariationProbability::Range);
+        str("%.1f%%", 100.f * (step.lengthVariationProbability()) / (StochasticSequence::LengthVariationProbability::Range-1));
         canvas.setColor(Color::Bright);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
@@ -836,7 +829,7 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
             step.noteOctaveProbability() + 1, StochasticSequence::NoteOctaveProbability::Range
         );
         str.reset();
-        str("%.1f%%", 100.f * (step.noteOctaveProbability() + 1.f) / StochasticSequence::NoteOctaveProbability::Range);
+        str("%.1f%%", 100.f * (step.noteOctaveProbability()) / (StochasticSequence::NoteOctaveProbability::Range-1));
         canvas.setColor(Color::Bright);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
@@ -847,7 +840,8 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
             step.noteVariationProbability() + 1, StochasticSequence::NoteVariationProbability::Range
         );
         str.reset();
-        str("%.1f%%", 100.f * (step.noteVariationProbability() + 1.f) / StochasticSequence::NoteVariationProbability::Range);
+        std::cerr << StochasticSequence::NoteVariationProbability::Range << "\n";
+        str("%.1f%%", 100.f * (step.noteVariationProbability()) / (StochasticSequence::NoteVariationProbability::Range -1));
         canvas.setColor(Color::Bright);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
