@@ -56,14 +56,14 @@ static void drawCurve(Canvas &canvas, int x, int y, int w, int h, float &lastY, 
 static void drawStochasticTrack(Canvas &canvas, int trackIndex, const StochasticEngine &trackEngine, const StochasticSequence &sequence) {
     canvas.setBlendMode(BlendMode::Set);
 
-    int stepOffset = (std::max(0, trackEngine.currentStep()) / 16) * 16;
+    int stepOffset = (std::max(0, trackEngine.currentStep()) / 12) * 12;
     int y = trackIndex * 8;
 
-    for (int i = 0; i < 16; ++i) {
+    for (int i = 0; i < 12; ++i) {
         int stepIndex = stepOffset + i;
         const auto &step = sequence.step(stepIndex);
 
-        int x = 64 + i * 8;
+        int x = 16 + (68 + i * 8);
 
         if (trackEngine.currentStep() == stepIndex) {
             canvas.setColor(step.gate() ? Color::Bright : Color::MediumBright);
@@ -154,6 +154,9 @@ void OverviewPage::draw(Canvas &canvas) {
                 break;
             case Track::TrackMode::MidiCv:
                 canvas.drawText(2, y, track.midiCvTrack().name());
+                break;
+            case Track::TrackMode::Stochastic:
+                canvas.drawText(2, y, track.stochasticTrack().name());
                 break;
             default:
                 break;
