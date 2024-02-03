@@ -385,12 +385,16 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         std::vector<StochasticStep> probability;
         int sum =0;
         for (int i = 0; i < 12; i++) {
-            probability.insert(probability.end(), StochasticStep(i, clamp(sequence.step(i).noteVariationProbability() + _stochasticTrack.noteProbabilityBias(), -1, StochasticSequence::NoteVariationProbability::Max)));
+            if (sequence.step(i).gate()) {
+                probability.insert(probability.end(), StochasticStep(i, clamp(sequence.step(i).noteVariationProbability() + _stochasticTrack.noteProbabilityBias(), -1, StochasticSequence::NoteVariationProbability::Max)));
+            } else {
+                probability.insert(probability.end(), StochasticStep(i, 0));
+            }
             sum = sum + probability.at(i).probability();
         }
         if (sum==0) { return;}
         std::sort (std::begin(probability), std::end(probability), sortTaskByProbRev);
-        stepIndex = getNextWeightedPitch(probability, sequence.reseed(), 12);
+        stepIndex = getNextWeightedPitch(probability, sequence.reseed(), probability.size());
 
         step = sequence.step(stepIndex);    
         
