@@ -524,23 +524,50 @@ public:
         _reseed.set(!reseed(), isRouted(Routing::Target::Reseed));
     }
 
-    int sequenceLength() const {
-        return _sequenceLength.get(isRouted(Routing::Target::SequenceLength));
+    int sequenceLastStep() const {
+        return std::max(sequenceFirstStep(), int(_sequenceLastStep.get(isRouted(Routing::Target::SequenceLastStep))));
     }
 
-    void setSequenceLength(int l, bool routed = false) {
-        _sequenceLength.set(clamp(l, 1, CONFIG_STEP_COUNT), routed);
+    void setSequenceLastStep(int lastStep, bool routed = false) {
+         _sequenceLastStep.set(clamp(lastStep, sequenceFirstStep(), CONFIG_STEP_COUNT - 1), routed);
     }
 
-    void editSequenceLength(int value, bool shift) {
-        if (!isRouted(Routing::Target::RestProbability)) {
-            setSequenceLength(sequenceLength() + value);
+    void editSequenceLastStep(int value, bool shift) {
+        if (shift) {
+            offsetSequenceFirstAndLastStep(value);
+        } else if (!isRouted(Routing::Target::SequenceLastStep)) {
+            setSequenceLastStep(sequenceLastStep() + value);
         }
     }
 
-    void printSequenceLength(StringBuilder &str) const {
-        printRouted(str, Routing::Target::SequenceLength);
-        str("%d", sequenceLength());
+    void printSequenceLastStep(StringBuilder &str) const {
+        printRouted(str, Routing::Target::SequenceLastStep);
+        str("%d", sequenceLastStep()+1);
+    }
+
+     int sequenceFirstStep() const {
+        return _sequenceFirstStep.get(isRouted(Routing::Target::SequenceFirstStep));
+    }
+
+    void setSequenceFirstStep(int firstStep, bool routed = false) {
+        _sequenceFirstStep.set(clamp(firstStep, 0, sequenceLastStep()), routed);
+    }
+
+    void editSequenceFirstStep(int value, bool shift) {
+        if (shift) {
+            offsetSequenceFirstAndLastStep(value);
+        } else if (!isRouted(Routing::Target::FirstStep)) {
+            setSequenceFirstStep(sequenceFirstStep() + value);
+        }
+    }
+
+    void printSequenceFirstStep(StringBuilder &str) const {
+        printRouted(str, Routing::Target::SequenceFirstStep);
+        str("%d", sequenceFirstStep()+1);
+    }
+
+    int sequenceLength() {
+        return _sequenceLastStep.base - _sequenceFirstStep.base + 1;
     }
 
     void setUseLoop() {
@@ -567,6 +594,17 @@ private:
         }
     }
 
+    void offsetSequenceFirstAndLastStep(int value) {
+        value = clamp(value, -sequenceFirstStep(), CONFIG_STEP_COUNT - 1 - sequenceLastStep());
+        if (value > 0) {
+            editSequenceLastStep(value, false);
+            editSequenceFirstStep(value, false);
+        } else {
+            editSequenceFirstStep(value, false);
+            editSequenceLastStep(value, false);
+        }
+    }
+
     int8_t _trackIndex = -1;
     Routable<int8_t> _scale;
     Routable<int8_t> _rootNote;
@@ -577,7 +615,8 @@ private:
     Routable<uint8_t> _lastStep;
     Routable<uint8_t> _reseed;
     Routable<int8_t> _restProbability;
-    Routable<uint8_t> _sequenceLength;
+    Routable<uint8_t> _sequenceLastStep;
+    Routable<uint8_t> _sequenceFirstStep;
     
     StepArray _steps;
 

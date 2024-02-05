@@ -240,6 +240,12 @@ void StochasticSequence::writeRouted(Routing::Target target, int intValue, float
     case Routing::Target::RestProbability:
         setRestProbability(intValue, true);
         break;
+    case Routing::Target::SequenceFirstStep:
+        setSequenceFirstStep(intValue, true);
+        break;
+    case Routing::Target::SequenceLastStep:
+        setSequenceLastStep(intValue, true);
+        break;
     default:
         break;
     }
@@ -254,7 +260,8 @@ void StochasticSequence::clear() {
     setFirstStep(0);
     setLastStep(0);
     setRestProbability(0);
-    setSequenceLength(16);
+    setSequenceFirstStep(0);
+    setSequenceLastStep(15);
 
     clearSteps();
 }

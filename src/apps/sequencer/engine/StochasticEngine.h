@@ -129,6 +129,23 @@ private:
         return false;
     }
 
+    std::vector<StochasticLoopStep> slicing(std::vector<StochasticLoopStep>& arr, int X, int Y)
+    {
+    
+        // Starting and Ending iterators
+        auto start = arr.begin() + X;
+        auto end = arr.begin() + Y + 1;
+    
+        // To store the sliced vector
+        std::vector<StochasticLoopStep> result(Y - X + 1);
+    
+        // Copy vector using copy function()
+        copy(start, end, result.begin());
+    
+        // Return the final sliced vector
+        return result;
+    }
+
     StochasticTrack &_stochasticTrack;
 
     TrackLinkData _linkData;

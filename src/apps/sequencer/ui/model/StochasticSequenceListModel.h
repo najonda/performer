@@ -16,7 +16,8 @@ public:
         Scale,
         RootNote,
         RestProbability,
-        SequenceLength,
+        SequenceFirstStep,
+        SequenceLastStep,
         Last
     };
 
@@ -84,8 +85,10 @@ public:
             return Routing::Target::RootNote;
         case RestProbability:
             return Routing::Target::RestProbability;
-        case SequenceLength:
-            return Routing::Target::SequenceLength;
+        case SequenceFirstStep:
+            return Routing::Target::SequenceFirstStep;
+        case SequenceLastStep:
+            return Routing::Target::SequenceLastStep;
         default:
             return Routing::Target::None;
         }
@@ -107,7 +110,8 @@ private:
         case Scale:             return "Scale";
         case RootNote:          return "Root Note";
         case RestProbability:   return "Rest Prob.";
-        case SequenceLength:    return "Sequence Length";
+        case SequenceFirstStep:    return "Seq First Step";
+        case SequenceLastStep:  return "Seq Last Step";
         case Last:              break;
         }
         return nullptr;
@@ -145,8 +149,11 @@ private:
         case RestProbability:
             _sequence->printRestProbability(str);
             break;
-        case SequenceLength:
-            _sequence->printSequenceLength(str);
+        case SequenceFirstStep:
+            _sequence->printSequenceFirstStep(str);
+            break;
+        case SequenceLastStep:
+            _sequence->printSequenceLastStep(str);
             break;
         case Last:
             break;
@@ -179,8 +186,11 @@ private:
         case RestProbability:
             _sequence->editRestProbability(value, shift);
             break;
-        case SequenceLength:
-            _sequence->editSequenceLength(value, shift);
+        case SequenceFirstStep:
+            _sequence->editSequenceFirstStep(value, shift);
+            break;
+        case SequenceLastStep:
+            _sequence->editSequenceLastStep(value, shift);
             break;
         case Last:
             break;
@@ -189,7 +199,8 @@ private:
 
     int indexedCountValue(Item item) const {
         switch (item) {
-        case SequenceLength:
+        case SequenceFirstStep:
+        case SequenceLastStep:
             return 16;
         case RunMode:
             return int(Types::RunMode::Last);
@@ -222,8 +233,10 @@ private:
             return _sequence->indexedRootNote();
         case RestProbability:
             return _sequence->restProbability();
-        case SequenceLength:
-            return _sequence->sequenceLength();
+        case SequenceFirstStep:
+            return _sequence->sequenceFirstStep();
+        case SequenceLastStep:
+            return _sequence->sequenceLastStep();
         case Last:
             break;
         }
@@ -244,8 +257,10 @@ private:
             return _sequence->setIndexedRootNote(index);
         case RestProbability:
             return _sequence->setRestProbability(index);
-        case SequenceLength:
-            return _sequence->setSequenceLength(index);
+        case SequenceFirstStep:
+            return _sequence->setSequenceFirstStep(index);
+        case SequenceLastStep:
+            return _sequence->setSequenceLastStep(index);
         case Last:
             break;
         }

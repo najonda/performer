@@ -295,15 +295,15 @@ void LaunchpadController::sequenceDraw() {
         sequenceDrawLayer();
     } else if (buttonState<FirstStep>()) {
         mirrorButton<FirstStep>(_style);
-        if (_project.selectedTrack().trackMode() == Track::TrackMode::Stochastic) {
-            stochasticDrawRestProbability();
-            return;
-        }
         sequenceDrawStepRange(0);
     } else if (buttonState<LastStep>()) {
         mirrorButton<LastStep>(_style);
         sequenceDrawStepRange(1);
     } else if (buttonState<RunMode>()) {
+        if (_project.selectedTrack().trackMode() == Track::TrackMode::Stochastic) {
+            stochasticDrawRestProbability();
+            return;
+        }
         mirrorButton<RunMode>(_style);
         sequenceDrawRunMode();
     } else if (buttonState<FollowMode>()) {
@@ -699,7 +699,7 @@ void LaunchpadController::sequenceSetFirstStep(int step) {
         _project.selectedCurveSequence().setFirstStep(step);
         break;
     case Track::TrackMode::Stochastic:
-        _project.selectedStochasticSequence().setRestProbability(step);
+        _project.selectedStochasticSequence().setSequenceFirstStep(step);
     default:
         break;
     }
@@ -715,7 +715,7 @@ void LaunchpadController::sequenceSetLastStep(int step) {
         _project.selectedCurveSequence().setLastStep(step);
         break;
     case Track::TrackMode::Stochastic:
-        _project.selectedStochasticSequence().setSequenceLength(step+1);
+        _project.selectedStochasticSequence().setSequenceLastStep(step);
     default:
         break;
     }
@@ -728,6 +728,9 @@ void LaunchpadController::sequenceSetRunMode(int mode) {
         break;
     case Track::TrackMode::Curve:
         _project.selectedCurveSequence().setRunMode(Types::RunMode(mode));
+        break;
+    case Track::TrackMode::Stochastic:
+        _project.selectedStochasticSequence().setRestProbability(mode);
         break;
     default:
         break;
@@ -898,7 +901,7 @@ void LaunchpadController::sequenceDrawStepRange(int highlight) {
     }
     case Track::TrackMode::Stochastic: {
         const auto &sequence = _project.selectedStochasticSequence();
-        drawRange(0, sequence.sequenceLength()-1, highlight == 0 ? 0 : sequence.sequenceLength()-1);
+        drawRange(sequence.sequenceFirstStep(), sequence.sequenceLastStep(), highlight == 0 ? sequence.sequenceFirstStep() : sequence.sequenceLastStep());
         break;
     }
     default:
