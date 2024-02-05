@@ -557,7 +557,7 @@ void LaunchpadController::manageStochasticCircuitKeyboard(const Button &button) 
                 int ofs = _sequence.navigation.col * 16;
                 int linearIndex = button.col + ofs + (button.row*8);
 
-                sequence.step(fullNoteSelected).setNoteVariationProbability(linearIndex);
+                sequence.step(fullSelectedNote).setNoteVariationProbability(linearIndex);
 
                 break;
             } else if (button.row == 6) {
