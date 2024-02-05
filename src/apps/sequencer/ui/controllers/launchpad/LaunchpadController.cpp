@@ -908,7 +908,6 @@ void LaunchpadController::sequenceDrawStepRange(int highlight) {
 
 void LaunchpadController::stochasticDrawRestProbability() {
     const auto &sequence = _project.selectedStochasticSequence();
-    std::cerr << sequence.restProbability() << "\n";
     drawRange(0, sequence.restProbability(), false);
 }
 
