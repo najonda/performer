@@ -520,6 +520,10 @@ public:
         _reseed.set(r, routed);
     }
 
+    void toggleReseed() {
+        _reseed.set(!reseed(), isRouted(Routing::Target::Reseed));
+    }
+
     int sequenceLength() const {
         return _sequenceLength.get(isRouted(Routing::Target::SequenceLength));
     }
@@ -546,6 +550,8 @@ public:
     bool useLoop() {
         return _useLoop;
     }
+
+    const bool useLoop() const { return _useLoop;}
 
 private:
     void setTrackIndex(int trackIndex) { _trackIndex = trackIndex; }

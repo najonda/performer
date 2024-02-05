@@ -518,7 +518,7 @@ void LaunchpadController::manageCircuitKeyboard(const Button &button) {
 }
 
 void LaunchpadController::manageStochasticCircuitKeyboard(const Button &button) {
-    const auto &sequence = _project.selectedStochasticSequence();
+    auto &sequence = _project.selectedStochasticSequence();
     const auto &scale = sequence.selectedScale(_project.scale());
         const Scale &bypasssScale = Scale::get(0);
 
@@ -563,28 +563,10 @@ void LaunchpadController::manageStochasticCircuitKeyboard(const Button &button) 
             } else if (button.row == 6) {
                 switch (button.col) {
                     case 0:
-                        selectedOctave = -4;
+                        sequence.setUseLoop();
                         break;
                     case 1:
-                        selectedOctave = -3;
-                        break;
-                    case 2:
-                        selectedOctave = -2;
-                        break;
-                    case 3:
-                        selectedOctave = -1;
-                        break;
-                    case 4:
-                        selectedOctave = 0;
-                        break;
-                    case 5:
-                        selectedOctave = 1;
-                        break;
-                    case 6:
-                        selectedOctave = 2;
-                        break;
-                    case 7:
-                        selectedOctave = 3;
+                        sequence.toggleReseed();
                         break;
                     default:
                         break;
@@ -1713,26 +1695,9 @@ void LaunchpadController::drawStochasticSequenceNotes(const StochasticSequence &
         }
 
 
-        // draw octave
-        for (int col = 0; col < 8; ++col) {
-            int o = getMapValue(octaveMap, col);
-            setGridLed(6, col, o==selectedOctave ? colorYellow(): colorYellow(1));
-
-            if (_engine.state().running()) {
-                const auto &step = sequence.step(currentStep);
-                int s = step.note();
-
-                int octave = s / scale.notesPerOctave();
-                for (auto const& x : octaveMap)
-                    {
-                        if (step.gate() && octave == x.second) {
-                            setGridLed(6, x.first, step.gate() && octave == x.second ? colorRed() : colorYellow(1));
-                            break;
-                        }
-                    
-                    }
-            }
-        }
+        // draw options
+        setGridLed(6, 0, sequence.useLoop() ? colorYellow(): colorYellow(1));
+        setGridLed(6,1, sequence.reseed() == 1 ? colorYellow(): colorYellow(1));
 }
 
 void LaunchpadController::followModeAction(int currentStep, int lastStep) {
