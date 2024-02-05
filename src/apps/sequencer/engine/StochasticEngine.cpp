@@ -467,6 +467,17 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
     if (sequence.useLoop() && int(inMemSteps.size()) < CONFIG_STEP_COUNT) {
         inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(stepIndex, stepGate, step, noteValue, stepLength, stepRetrigger));
+        if (index <= inMemSteps.size()) {
+            auto subArray = slicing(inMemSteps, sequence.sequenceFirstStep(), sequence.sequenceLastStep());
+
+            stepGate = subArray.at(index).gate();
+            step = subArray.at(index).step();
+            int gateOffset = ((int) divisor * step.gateOffset()) / (StochasticSequence::GateOffset::Max + 1);
+            stepTick = (int) tick + gateOffset;
+            noteValue = subArray.at(index).noteValue();
+            stepLength = subArray.at(index).stepLength();
+            stepRetrigger = inMemSteps.at(index).stepRetrigger();
+        }
     } else {
         if (!sequence.useLoop()) {
             inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(stepIndex, stepGate, step, noteValue, stepLength, stepRetrigger));

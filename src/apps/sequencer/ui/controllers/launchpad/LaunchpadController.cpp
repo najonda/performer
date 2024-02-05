@@ -576,6 +576,7 @@ void LaunchpadController::manageStochasticCircuitKeyboard(const Button &button) 
                     default:
                         break;
                 }
+                break;
             } else if (button.row == 7) {
                 if (button.col <=3) {
                     Button btn = Button(3,button.col);
