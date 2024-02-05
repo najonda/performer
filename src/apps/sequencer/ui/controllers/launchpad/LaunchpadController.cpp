@@ -3,6 +3,7 @@
 #include "LaunchpadDevice.h"
 #include "core/Debug.h"
 #include "os/os.h"
+#include <algorithm>
 #include <functional>
 #include <iostream>
 #include <map>
@@ -369,6 +370,8 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
                          case (Track::TrackMode::Stochastic): {
                             if (_project.selectedStochasticSequenceLayer()==StochasticSequence::Layer::NoteVariationProbability) {
                                 manageStochasticCircuitKeyboard(button);    
+                            } else {
+                                sequenceEditStep(button.row, button.col);
                             }
                          }
 
@@ -404,9 +407,7 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
             // toggle gate
 
             switch (_project.selectedTrack().trackMode()) {
-            case Track::TrackMode::Note: 
-            case Track::TrackMode::Curve:
-            case Track::TrackMode::MidiCv: 
+            default:
                 break;
             case Track::TrackMode::Stochastic: {
                 if (button.row >=3 && button.row <=4) {
@@ -632,6 +633,17 @@ void LaunchpadController::sequenceUpdateNavigation() {
         _sequence.navigation.bottom = (range.min - 7) / 8;
         break;
     }
+    case Track::TrackMode::Stochastic: {
+        auto layer = _project.selectedStochasticSequenceLayer();
+        _sequence.navigation.left = 0;
+        _sequence.navigation.right = layer == StochasticSequence::Layer::Gate || layer == StochasticSequence::Layer::Slide || layer == StochasticSequence::Layer::NoteVariationProbability ? 0 : 7;
+
+        auto range = StochasticSequence::layerRange(_project.selectedStochasticSequenceLayer());
+        _sequence.navigation.top = layer == StochasticSequence::Layer::NoteVariationProbability ? 0 : range.max / 8;
+        _sequence.navigation.bottom = (range.min - 7) / 8;
+
+        break;
+    }
     default:
         break;
     }
@@ -761,6 +773,9 @@ void LaunchpadController::sequenceEditStep(int row, int col) {
     case Track::TrackMode::Curve:
         sequenceEditCurveStep(row, col);
         break;
+    case Track::Track::TrackMode::Stochastic:
+        sequenceEditStochasticStep(row, col);
+        break;
     default:
         break;
     }
@@ -804,6 +819,27 @@ void LaunchpadController::sequenceEditCurveStep(int row, int col) {
     }
 
     sequence.step(linearIndex).setLayerValue(layer, value);
+}
+
+void LaunchpadController::sequenceEditStochasticStep(int row, int col) {
+    auto &sequence = _project.selectedStochasticSequence();
+    auto layer = _project.selectedStochasticSequenceLayer();
+
+    int gridIndex = row * 8 + col;
+    int linearIndex = col + _sequence.navigation.col * 8;
+    int value = (7 - row) + _sequence.navigation.row * 8;
+
+    switch (layer) {
+    case StochasticSequence::Layer::Gate:
+        sequence.step(gridIndex).toggleGate();
+        break;
+    case StochasticSequence::Layer::Slide:
+        sequence.step(gridIndex).toggleSlide();
+        break;
+    default:
+        sequence.step(linearIndex).setLayerValue(layer, value);
+        break;
+    }
 }
 
 void LaunchpadController::sequenceDrawLayer() {
@@ -1307,8 +1343,16 @@ void LaunchpadController::navigationButtonDown(Navigation &navigation, const But
         if (col >= navigation.left && col <= navigation.right && row >= navigation.bottom && row <= navigation.top) {
             navigation.col = col;
             navigation.row = row;
-            auto &sequence = _project.selectedNoteSequence();
-            sequence.setSecion(col);
+            switch (_project.selectedTrack().trackMode()) {
+                case Track::TrackMode::Note: {
+                    auto &sequence = _project.selectedNoteSequence();
+                    sequence.setSecion(col);
+                }
+                break;
+                default:
+                    break;
+            }
+
         }
     }
 }

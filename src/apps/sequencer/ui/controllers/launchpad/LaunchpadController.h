@@ -108,6 +108,8 @@ private:
     void sequenceEditStep(int row, int col);
     void sequenceEditNoteStep(int row, int col);
     void sequenceEditCurveStep(int row, int col);
+    void sequenceEditStochasticStep(int row, int col);
+
 
     void sequenceDrawLayer();
     void sequenceDrawStepRange(int highlight);
