@@ -690,7 +690,7 @@ void LaunchpadController::sequenceSetLayer(int row, int col) {
 }
 
 void LaunchpadController::sequenceSetFirstStep(int step) {
-    _startingFirstStep = step;
+    _startingFirstStep[_project.selectedTrackIndex()] = step;
     switch (_project.selectedTrack().trackMode()) {
     case Track::TrackMode::Note:
         _project.selectedNoteSequence().setFirstStep(step);
@@ -706,7 +706,7 @@ void LaunchpadController::sequenceSetFirstStep(int step) {
 }
 
 void LaunchpadController::sequenceSetLastStep(int step) {
-    _startingLastStep = step;
+    _startingLastStep[_project.selectedTrackIndex()] = step;
     switch (_project.selectedTrack().trackMode()) {
     case Track::TrackMode::Note:
         _project.selectedNoteSequence().setLastStep(step);
@@ -1167,8 +1167,25 @@ void LaunchpadController::patternButton(const Button &button, ButtonAction actio
 //----------------------------------------
 
 void LaunchpadController::performerEnter() {
-    _startingFirstStep = _project.selectedNoteSequence().firstStep();
-    _startingLastStep = _project.selectedNoteSequence().lastStep();
+
+
+    for (int i = 0; i<8; ++i) {
+        switch (_project.track(i).trackMode()) {
+            case Track::TrackMode::Note: {
+                    _startingFirstStep[i] = _project.track(i).noteTrack().sequence(0).firstStep();
+                    _startingLastStep[i] = _project.track(i).noteTrack().sequence(0).lastStep();
+                }
+                break;
+            case Track::TrackMode::Curve: {
+                    _startingFirstStep[i] = _project.track(i).curveTrack().sequence(0).firstStep();
+                    _startingLastStep[i] = _project.track(i).curveTrack().sequence(0).lastStep();
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
 }
 
 void LaunchpadController::performerExit() {
@@ -1296,11 +1313,11 @@ void LaunchpadController::performerButton(const Button &button, ButtonAction act
             for (int i = 0; i < 8; ++i)  {
                 if (_performButton.firstStepButton.row == -1 && _performButton.lastStepButton.row == -1) {
                     if (_project.track(i).trackMode() == Track::TrackMode::Note) {
-                        _project.track(i).noteTrack().sequence(0).setFirstStep(_startingFirstStep);    
-                        _project.track(i).noteTrack().sequence(0).setLastStep(_startingLastStep);
+                        _project.track(i).noteTrack().sequence(0).setFirstStep(_startingFirstStep[i]);    
+                        _project.track(i).noteTrack().sequence(0).setLastStep(_startingLastStep[i]);
                     } else if (_project.track(i).trackMode() == Track::TrackMode::Curve) {
-                        _project.track(i).curveTrack().sequence(0).setFirstStep(_startingFirstStep);    
-                        _project.track(i).curveTrack().sequence(0).setLastStep(_startingLastStep);
+                        _project.track(i).curveTrack().sequence(0).setFirstStep(_startingFirstStep[i]);    
+                        _project.track(i).curveTrack().sequence(0).setLastStep(_startingLastStep[i]);
                     }
 
                 }
@@ -1714,7 +1731,7 @@ void LaunchpadController::drawStochasticSequenceNotes(const StochasticSequence &
         const auto &step = sequence.step(stepIndex);  
         if (step.noteVariationProbability() > 7) { 
             drawBarH(0, step.noteVariationProbability(), true, false);
-            drawBarH(1, step.noteVariationProbability()/2, true, false);
+            drawBarH(1, step.noteVariationProbability()-8, true, false);
         } else {
             drawBarH(0, step.noteVariationProbability(), true, false);
         }
@@ -1736,7 +1753,19 @@ void LaunchpadController::drawStochasticSequenceNotes(const StochasticSequence &
                         if (col == 7) {
                             n = n + scale.notesPerOctave();
                         }
-                        Color color = (selectedNote - (scale.notesPerOctave()*selectedOctave))== n && !fullNoteSelected ? colorYellow() : colorGreen(2);
+                        int stepIndex = -1;
+                        if (row == 3) {
+                            stepIndex = getMapValue(semitones, col);
+                        } else if (row == 4) {
+                            stepIndex = getMapValue(tones, col);
+                        }
+                        const auto &step = sequence.step(stepIndex);
+                        Color alternate = colorGreen(2);
+                        if (step.gate()) {
+                            alternate = colorYellow(1);
+                        }
+
+                        Color color = (selectedNote - (scale.notesPerOctave()*selectedOctave))== n && !fullNoteSelected ? colorYellow() : alternate;
                         setGridLed(row, col, color);
                     } else {
                         n = bypassScale.getNoteIndex(n);
