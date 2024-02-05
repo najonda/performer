@@ -113,6 +113,7 @@ private:
 
     void sequenceDrawLayer();
     void sequenceDrawStepRange(int highlight);
+    void stochasticDrawRestProbability();
     void sequenceDrawRunMode();
     void sequenceDrawFollowMode();
     void sequenceDrawSequence();

@@ -295,6 +295,10 @@ void LaunchpadController::sequenceDraw() {
         sequenceDrawLayer();
     } else if (buttonState<FirstStep>()) {
         mirrorButton<FirstStep>(_style);
+        if (_project.selectedTrack().trackMode() == Track::TrackMode::Stochastic) {
+            stochasticDrawRestProbability();
+            return;
+        }
         sequenceDrawStepRange(0);
     } else if (buttonState<LastStep>()) {
         mirrorButton<LastStep>(_style);
@@ -694,6 +698,8 @@ void LaunchpadController::sequenceSetFirstStep(int step) {
     case Track::TrackMode::Curve:
         _project.selectedCurveSequence().setFirstStep(step);
         break;
+    case Track::TrackMode::Stochastic:
+        _project.selectedStochasticSequence().setRestProbability(step);
     default:
         break;
     }
@@ -708,6 +714,8 @@ void LaunchpadController::sequenceSetLastStep(int step) {
     case Track::TrackMode::Curve:
         _project.selectedCurveSequence().setLastStep(step);
         break;
+    case Track::TrackMode::Stochastic:
+        _project.selectedStochasticSequence().setSequenceLength(step+1);
     default:
         break;
     }
@@ -888,9 +896,20 @@ void LaunchpadController::sequenceDrawStepRange(int highlight) {
         drawRange(sequence.firstStep(), sequence.lastStep(), highlight == 0 ? sequence.firstStep() : sequence.lastStep());
         break;
     }
+    case Track::TrackMode::Stochastic: {
+        const auto &sequence = _project.selectedStochasticSequence();
+        drawRange(0, sequence.sequenceLength()-1, highlight == 0 ? 0 : sequence.sequenceLength()-1);
+        break;
+    }
     default:
         break;
     }
+}
+
+void LaunchpadController::stochasticDrawRestProbability() {
+    const auto &sequence = _project.selectedStochasticSequence();
+    std::cerr << sequence.restProbability() << "\n";
+    drawRange(0, sequence.restProbability(), false);
 }
 
 void LaunchpadController::sequenceDrawRunMode() {
