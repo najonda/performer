@@ -402,11 +402,20 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
             !buttonState<Fill>() &&
             button.isGrid()) {
             // toggle gate
-                auto &sequence = _project.selectedStochasticSequence();
-                if (button.row >=3 && button.row <=4) {
-                    sequence.step(selectedNote).toggleGate();
-                }
 
+            switch (_project.selectedTrack().trackMode()) {
+            case Track::TrackMode::Note: 
+            case Track::TrackMode::Curve:
+            case Track::TrackMode::MidiCv: 
+                break;
+            case Track::TrackMode::Stochastic: {
+                if (button.row >=3 && button.row <=4) {
+                    auto &sequence = _project.selectedStochasticSequence();
+                    sequence.step(fullSelectedNote).toggleGate();
+                }
+                break;
+            }
+            }
         }
     }
 }
@@ -511,10 +520,12 @@ void LaunchpadController::manageCircuitKeyboard(const Button &button) {
 void LaunchpadController::manageStochasticCircuitKeyboard(const Button &button) {
     const auto &sequence = _project.selectedStochasticSequence();
     const auto &scale = sequence.selectedScale(_project.scale());
+        const Scale &bypasssScale = Scale::get(0);
+
     switch ( _project.selectedStochasticSequenceLayer()) {
         case StochasticSequence::Layer::NoteVariationProbability:
             
-            if (button.row >=3 && button.row <= 4) {
+         if (button.row >=3 && button.row <= 4) {
                 int ft = -1;
                 if (button.row == 3) {
                     ft = getMapValue(semitones, button.col);
@@ -522,19 +533,31 @@ void LaunchpadController::manageStochasticCircuitKeyboard(const Button &button) 
                     ft = getMapValue(tones, button.col);
                 }
                 if (scale.isNotePresent(ft)) {
-                        int noteIndex = scale.getNoteIndex(ft);
-                        selectedNote = noteIndex + (scale.notesPerOctave()*selectedOctave);
-                        if (button.col == 7) {
-                            selectedNote = selectedNote + scale.notesPerOctave();
-                        }
+                    int noteIndex = scale.getNoteIndex(ft);
+                    selectedNote = noteIndex + (scale.notesPerOctave()*selectedOctave);
+                    if (button.col == 7) {
+                        selectedNote = selectedNote + scale.notesPerOctave();
+
                     }
+                    fullNoteSelected = false;
+                } else {
+                    fullNoteSelected = true;
+
+                }
+                int noteIndex = bypasssScale.getNoteIndex(ft);
+                fullSelectedNote = noteIndex + (bypasssScale.notesPerOctave()*selectedOctave);
+                if (button.col == 7) {
+                    fullSelectedNote = fullSelectedNote + bypasssScale.notesPerOctave();
+                }
+                         
+                    
                 break;
             } else if (button.row >= 0 && button.row <= 2) {
                 auto &sequence = _project.selectedStochasticSequence();
                 int ofs = _sequence.navigation.col * 16;
                 int linearIndex = button.col + ofs + (button.row*8);
 
-                sequence.step(selectedNote).setNoteVariationProbability(linearIndex);
+                sequence.step(fullNoteSelected).setNoteVariationProbability(linearIndex);
 
                 break;
             } else if (button.row == 6) {
@@ -1549,6 +1572,34 @@ void LaunchpadController::drawRunningKeyboardCircuit(int row, int col, const Not
     }
 }
 
+void LaunchpadController::drawRunningStochasticKeyboardCircuit(int row, int col, const StochasticSequence::Step &step, const Scale &scale, int rootNote) {
+    int noteOctave = step.note() / scale.notesPerOctave();
+    int s = step.note() - (scale.notesPerOctave()*noteOctave);
+    if (row == 4 && col == 7) {
+        s = step.note();
+    }
+
+    for (auto const& x : semitones)
+    {
+        if (step.gate() && s == scale.getNoteIndex(x.second)) {
+            setGridLed(3, x.first, step.gate() && s == scale.getNoteIndex(x.second) ? colorRed() : colorGreen());
+            break;
+        }
+    }
+    for (auto const& x : tones)
+    {
+
+        if (step.gate() && s == scale.getNoteIndex(x.second)+noteOctave*scale.notesPerOctave()) {
+            if (step.note() == rootNote+(scale.notesPerOctave()*noteOctave) && noteOctave == selectedOctave +1) {
+                setGridLed(4, 7, colorRed());
+            } else {
+                setGridLed(4, x.first, step.gate() && s == scale.getNoteIndex(x.second)+noteOctave*scale.notesPerOctave() ? colorRed() : colorGreen());
+            }
+            break;
+        }
+    }
+}
+
 void LaunchpadController::drawCurveSequenceBars(const CurveSequence &sequence, CurveSequence::Layer layer, int currentStep) {
     for (int col = 0; col < 8; ++col) {
         int stepIndex = col + _sequence.navigation.col * 8;
@@ -1608,10 +1659,10 @@ void LaunchpadController::drawStochasticSequenceBars(const StochasticSequence &s
 }
 
 void LaunchpadController::drawStochasticSequenceNotes(const StochasticSequence &sequence, StochasticSequence::Layer layer, int currentStep) {
-    int ofs = _sequence.navigation.col * 16;
+
     const auto &scale = sequence.selectedScale(_project.scale());
-      
-        int stepIndex = selectedNote;
+      const Scale &bypassScale = Scale::get(0);
+        int stepIndex = fullSelectedNote;
 
 
 
@@ -1640,55 +1691,27 @@ void LaunchpadController::drawStochasticSequenceNotes(const StochasticSequence &
                         if (col == 7) {
                             n = n + scale.notesPerOctave();
                         }
-
-                        int stepIndex = -1;
-                        if (row == 3) {
-                            stepIndex = getMapValue(semitones, col);
-                        } else if (row == 4) {
-                            stepIndex = getMapValue(tones, col);
-                        }
-                        const auto &step = sequence.step(stepIndex);
-                        Color alternate = colorGreen(2);
-                        if (step.gate()) {
-                            alternate = colorYellow(1);
-                        }
-
-                        Color color = (selectedNote - (scale.notesPerOctave()*selectedOctave))== n ? colorYellow() : alternate;
+                        Color color = (selectedNote - (scale.notesPerOctave()*selectedOctave))== n && !fullNoteSelected ? colorYellow() : colorGreen(2);
                         setGridLed(row, col, color);
                     } else {
-                        setGridLed(row, col, colorGreen(1));
+                        n = bypassScale.getNoteIndex(n);
+                        Color color = (fullSelectedNote - (bypassScale.notesPerOctave()*selectedOctave))== n && fullNoteSelected ? colorYellow() : colorGreen(1);
+                        setGridLed(row, col, color);
+                        
                     }
                 }
                 if (_engine.state().running()) {
                     const auto &step = sequence.step(currentStep);
-                    int noteOctave = step.note() / scale.notesPerOctave();
-                    int s = step.note() - (scale.notesPerOctave()*noteOctave);
-                    if (row == 4 && col == 7) {
-                        s = step.note();
-                    }
 
-                    for (auto const& x : semitones)
-                    {
-                        if (step.gate() && s == scale.getNoteIndex(x.second)) {
-                            setGridLed(3, x.first, step.gate() && s == scale.getNoteIndex(x.second) ? colorRed() : colorYellow(1));
-                            break;
-                        }
-                    }
-                    for (auto const& x : tones)
-                    {
-
-                        if (step.gate() && s == scale.getNoteIndex(x.second)+noteOctave*scale.notesPerOctave()) {
-                            if (step.note() == rootNote+(scale.notesPerOctave()*noteOctave) && noteOctave == selectedOctave +1) {
-                                setGridLed(4, 7, colorRed());
-                            } else {
-                                setGridLed(4, x.first, step.gate() && s == scale.getNoteIndex(x.second)+noteOctave*scale.notesPerOctave() ? colorRed() : colorGreen());
-                            }
-                            break;
-                        }
+                    if (step.bypassScale()) {
+                        drawRunningStochasticKeyboardCircuit(row, col, step, bypassScale, rootNote);
+                    } else {
+                        drawRunningStochasticKeyboardCircuit(row, col, step, scale, rootNote);
                     }
                 }
             }
         }
+
 
         // draw octave
         for (int col = 0; col < 8; ++col) {

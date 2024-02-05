@@ -121,6 +121,7 @@ private:
     void manageCircuitKeyboard(const Button &button);
     void manageStochasticCircuitKeyboard(const Button &button);
     void drawRunningKeyboardCircuit(int row, int col, const NoteSequence::Step &step, const Scale &scale, int rootNote);
+    void drawRunningStochasticKeyboardCircuit(int row, int col, const StochasticSequence::Step &step, const Scale &scale, int rootNote);
 
     // Pattern mode
     void patternEnter();
