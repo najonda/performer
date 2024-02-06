@@ -338,6 +338,8 @@ bool sortTaskByProbRev(const StochasticStep& lhs, const StochasticStep& rhs) {
 std::vector<StochasticLoopStep> inMemSteps;
 std::vector<StochasticLoopStep> lockedSteps;
 
+bool start = 0;
+
 void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextStep) {
     int octave = _stochasticTrack.octave();
     int transpose = _stochasticTrack.transpose();
@@ -357,8 +359,12 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
     uint32_t resetDivisor = sequence.resetMeasure() * _engine.measureDivisor();
     uint32_t relativeTick = resetDivisor == 0 ? tick : tick % resetDivisor;
-    auto abstoluteStep = (relativeTick + divisor) / divisor;
+    auto abstoluteStep = ((relativeTick + divisor) / divisor) -1;
+    
     auto index = abstoluteStep % sequence.sequenceLength();
+
+
+    std::cerr << index << "\n";
 
     StochasticSequence::Step step;
     uint32_t stepTick = 0;
@@ -368,7 +374,7 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     int stepRetrigger = 0;
 
     // fill in memory step when sequence is running or when the in memory loop is not full filled
-    if (!sequence.useLoop() || (sequence.useLoop() && int(inMemSteps.size()) < CONFIG_STEP_COUNT)) { 
+    if (!sequence.useLoop() || (sequence.useLoop() && int(inMemSteps.size()) < sequence.bufferLoopLength())) { 
         if (evalRestProbability(sequence.restProbability())) {
             inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(-1, false, step, 0, 0, 0));
             return;
@@ -451,13 +457,13 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         noteValue = evalStepNote(step, _stochasticTrack.noteProbabilityBias(), scale, rootNote, octave, transpose);
         stepLength = (divisor * evalStepLength(step, _stochasticTrack.lengthBias())) / StochasticSequence::Length::Range;
         stepRetrigger = evalStepRetrigger(step, _stochasticTrack.retriggerProbabilityBias());
-        if (int(inMemSteps.size()) < CONFIG_STEP_COUNT) {
+        if (int(inMemSteps.size()) < sequence.bufferLoopLength()) {
             inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(stepIndex, stepGate, step, noteValue, stepLength, stepRetrigger));
         }
     }
 
     // clear the in memory sequence when reaches the max size
-    if (!sequence.useLoop() && int(inMemSteps.size()) >= CONFIG_STEP_COUNT) {
+    if (!sequence.useLoop() && int(inMemSteps.size()) >= sequence.bufferLoopLength()) {
         inMemSteps.clear();
     }
 
@@ -469,7 +475,7 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     }
 
     // use the locked loop to retrieve steps data
-    if (sequence.useLoop() && int(inMemSteps.size()) >= sequence.sequenceLength()) {
+    if (sequence.useLoop() && int(inMemSteps.size()) >= sequence.bufferLoopLength()) {
 
         if (int(lockedSteps.size()) != int(inMemSteps.size())) {
             lockedSteps = inMemSteps;

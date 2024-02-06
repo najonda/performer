@@ -570,6 +570,15 @@ public:
         return _sequenceLastStep.base - _sequenceFirstStep.base + 1;
     }
 
+    int bufferLoopLength() {
+        if (_sequenceLastStep.base > 16) {
+            _bufferLoopLength = _sequenceLastStep.base;
+        } else {
+            _bufferLoopLength = 16;
+        }
+        return _bufferLoopLength;
+    }
+
     void setUseLoop() {
         _useLoop = !_useLoop;
     }
@@ -633,6 +642,8 @@ private:
     Routable<int8_t> _restProbability;
     Routable<uint8_t> _sequenceLastStep;
     Routable<uint8_t> _sequenceFirstStep;
+
+    int _bufferLoopLength = 16;
     
     
     StepArray _steps;
