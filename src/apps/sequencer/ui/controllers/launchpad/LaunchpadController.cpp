@@ -580,11 +580,6 @@ void LaunchpadController::manageStochasticCircuitKeyboard(const Button &button) 
                         break;
                 }
                 break;
-            } else if (button.row == 7) {
-                if (button.col <=3) {
-                    Button btn = Button(3,button.col);
-                    navigationButtonDown(_sequence.navigation, btn);  
-                }
             }
         default:
             sequenceEditStep(button.row, button.col);
@@ -1009,6 +1004,8 @@ void LaunchpadController::sequenceDrawStochasticSequence() {
         drawStochasticSequenceBits(sequence, layer, currentStep);
         break;
     case StochasticSequence::Layer::NoteVariationProbability:
+            _sequence.navigation.col = 0;
+            _sequence.navigation.row = 3;
         drawStochasticSequenceNotes(sequence, layer, currentStep);
         break;
     //case NoteSequence::Layer::Condition:
