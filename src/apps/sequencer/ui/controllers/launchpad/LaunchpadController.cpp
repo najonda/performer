@@ -1008,9 +1008,9 @@ void LaunchpadController::sequenceDrawStochasticSequence() {
             _sequence.navigation.row = 3;
         drawStochasticSequenceNotes(sequence, layer, currentStep);
         break;
-    //case NoteSequence::Layer::Condition:
-    //    drawNoteSequenceDots(sequence, layer, currentStep);
-    //    break;
+    case StochasticSequence::Layer::Condition:
+        drawStochasticSequenceDots(sequence, layer, currentStep);
+        break;
     default:
         drawStochasticSequenceBars(sequence, layer, currentStep);
         break;
@@ -1484,6 +1484,17 @@ void LaunchpadController::drawNoteSequenceDots(const NoteSequence &sequence, Not
         int stepIndex = col + _sequence.navigation.col * 8;
         int lastStep = sequence.lastStep();
         followModeAction(currentStep, lastStep);
+        const auto &step = sequence.step(stepIndex);
+        int value = step.layerValue(layer);
+        setGridLed((7 - value) + ofs, col, stepColor(true, stepIndex == currentStep));
+    }
+}
+
+void LaunchpadController::drawStochasticSequenceDots(const StochasticSequence &sequence, StochasticSequence::Layer layer, int currentStep) {
+    int ofs = _sequence.navigation.row * 8;
+    for (int col = 0; col < 8; ++col) {
+        int stepIndex = col + _sequence.navigation.col * 8;
+        int lastStep = sequence.lastStep();
         const auto &step = sequence.step(stepIndex);
         int value = step.layerValue(layer);
         setGridLed((7 - value) + ofs, col, stepColor(true, stepIndex == currentStep));
