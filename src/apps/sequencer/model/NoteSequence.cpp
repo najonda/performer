@@ -353,12 +353,16 @@ bool NoteSequence::read(VersionedSerializedReader &reader) {
 
     readArray(reader, _steps);
 
-    reader.read(_name, NameLength + 1, ProjectVersion::Version35);
-    reader.read(_slot);
-    bool success = reader.checkHash();
-    if (!success) {
-        clear();
-    }
+    if (reader.dataVersion() >= ProjectVersion::Version35) {
+        reader.read(_name, NameLength + 1, ProjectVersion::Version35);
+        reader.read(_slot);
+        bool success = reader.checkHash();
+        if (!success) {
+            clear();
+        }
 
-    return success;
+        return success;
+    } else {
+        return true;
+    }
 }
