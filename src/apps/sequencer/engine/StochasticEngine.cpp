@@ -355,16 +355,6 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     
     int stepIndex;
 
-    if (forNextStep) {
-        stepIndex = _sequenceState.nextStep();
-    } else {
-        stepIndex = _currentStep;
-    }
-
-    if (stepIndex < 0) return;
-
-    auto &scale = sequence.selectedScale(_model.project().scale());
-
     uint32_t resetDivisor = sequence.resetMeasure() * _engine.measureDivisor();
     uint32_t relativeTick = resetDivisor == 0 ? tick : tick % resetDivisor;
     auto abstoluteStep = (relativeTick + divisor) / divisor;
@@ -381,9 +371,6 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     if (!sequence.useLoop() || (sequence.useLoop() && int(inMemSteps.size()) < CONFIG_STEP_COUNT)) { 
         if (evalRestProbability(sequence.restProbability())) {
             inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(-1, false, step, 0, 0, 0));
-            if (int(lockedSteps.size()) < CONFIG_STEP_COUNT) {
-                lockedSteps.insert(lockedSteps.end(), StochasticLoopStep(-1, false, step, 0, 0, 0));
-            }
             return;
         }
 
@@ -466,9 +453,6 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         stepRetrigger = evalStepRetrigger(step, _stochasticTrack.retriggerProbabilityBias());
         if (int(inMemSteps.size()) < CONFIG_STEP_COUNT) {
             inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(stepIndex, stepGate, step, noteValue, stepLength, stepRetrigger));
-            if (int(lockedSteps.size()) < CONFIG_STEP_COUNT) {
-                lockedSteps.insert(lockedSteps.end(), StochasticLoopStep(stepIndex, stepGate, step, noteValue, stepLength, stepRetrigger));
-            }
         }
     }
 
@@ -486,6 +470,11 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
     // use the locked loop to retrieve steps data
     if (sequence.useLoop() && int(inMemSteps.size()) >= sequence.sequenceLength()) {
+
+        if (int(lockedSteps.size()) != int(inMemSteps.size())) {
+            lockedSteps = inMemSteps;
+        }
+
         stepIndex = lockedSteps.at(index).index();
         if (stepIndex == -1) {
             return;
