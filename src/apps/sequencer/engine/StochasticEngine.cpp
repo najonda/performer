@@ -463,6 +463,12 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         noteValue = evalStepNote(step, _stochasticTrack.noteProbabilityBias(), scale, rootNote, octave, transpose);
         stepLength = (divisor * evalStepLength(step, _stochasticTrack.lengthBias())) / StochasticSequence::Length::Range;
         stepRetrigger = evalStepRetrigger(step, _stochasticTrack.retriggerProbabilityBias());
+        if (int(inMemSteps.size()) < CONFIG_STEP_COUNT) {
+            inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(stepIndex, stepGate, step, noteValue, stepLength, stepRetrigger));
+            if (int(lockedSteps.size()) < CONFIG_STEP_COUNT) {
+                lockedSteps.insert(lockedSteps.end(), StochasticLoopStep(stepIndex, stepGate, step, noteValue, stepLength, stepRetrigger));
+            }
+        }
     }
 
     if (!sequence.useLoop() && int(inMemSteps.size()) >= CONFIG_STEP_COUNT) {
@@ -475,50 +481,22 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         sequence.setUseLoop(true);
     }
 
-    if (sequence.useLoop() && int(inMemSteps.size()) < CONFIG_STEP_COUNT) {
-        inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(stepIndex, stepGate, step, noteValue, stepLength, stepRetrigger));
-        if (int(lockedSteps.size()) < CONFIG_STEP_COUNT) {
-            lockedSteps.insert(lockedSteps.end(), StochasticLoopStep(stepIndex, stepGate, step, noteValue, stepLength, stepRetrigger));
+    if (sequence.useLoop() && int(inMemSteps.size()) >= sequence.sequenceLength()) {
+        stepIndex = lockedSteps.at(index).index();
+        if (stepIndex == -1) {
+            return;
         }
-        if (index <= lockedSteps.size()) {
-            stepIndex = lockedSteps.at(index).index();
-            if (stepIndex == -1) {
-                return;
-            }
-            auto subArray = slicing(lockedSteps, sequence.sequenceFirstStep(), sequence.sequenceLastStep());
 
-            stepGate = subArray.at(index).gate();
-            step = subArray.at(index).step();
-            int gateOffset = ((int) divisor * step.gateOffset()) / (StochasticSequence::GateOffset::Max + 1);
-            stepTick = (int) tick + gateOffset;
-            noteValue = subArray.at(index).noteValue();
-            stepLength = subArray.at(index).stepLength();
-            stepRetrigger = lockedSteps.at(index).stepRetrigger();
-        }
-    } else {
-        if (!sequence.useLoop()) {
-            inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(stepIndex, stepGate, step, noteValue, stepLength, stepRetrigger));
-            if (int(lockedSteps.size()) < CONFIG_STEP_COUNT) {
-                lockedSteps.insert(lockedSteps.end(), StochasticLoopStep(stepIndex, stepGate, step, noteValue, stepLength, stepRetrigger));
-            }
-        } else {
-            
+        auto subArray = slicing(lockedSteps, sequence.sequenceFirstStep(), sequence.sequenceLastStep());
 
-            stepIndex = lockedSteps.at(index).index();
-            if (stepIndex == -1) {
-                return;
-            }
-
-            auto subArray = slicing(lockedSteps, sequence.sequenceFirstStep(), sequence.sequenceLastStep());
-
-            stepGate = subArray.at(index).gate();
-            step = subArray.at(index).step();
-            int gateOffset = ((int) divisor * step.gateOffset()) / (StochasticSequence::GateOffset::Max + 1);
-            stepTick = (int) tick + gateOffset;
-            noteValue = subArray.at(index).noteValue();
-            stepLength = subArray.at(index).stepLength();
-            stepRetrigger = lockedSteps.at(index).stepRetrigger();
-        }
+        stepGate = subArray.at(index).gate();
+        step = subArray.at(index).step();
+        int gateOffset = ((int) divisor * step.gateOffset()) / (StochasticSequence::GateOffset::Max + 1);
+        stepTick = (int) tick + gateOffset;
+        noteValue = subArray.at(index).noteValue();
+        stepLength = subArray.at(index).stepLength();
+        stepRetrigger = lockedSteps.at(index).stepRetrigger();
+    
     }
 
     if (stepGate) {
