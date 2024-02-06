@@ -204,6 +204,8 @@ void NoteSequence::Step::write(VersionedSerializedWriter &writer) const {
 }
 
 void NoteSequence::Step::read(VersionedSerializedReader &reader) {
+    std::cout << "Project v" << reader.dataVersion() << std::endl;
+
     if (reader.dataVersion() < ProjectVersion::Version27) {
         reader.read(_data0.raw);
         reader.readAs<uint16_t>(_data1.raw);
@@ -219,9 +221,21 @@ void NoteSequence::Step::read(VersionedSerializedReader &reader) {
     } else {
         reader.read(_data0.raw);
         reader.read(_data1.raw);
+        if (reader.dataVersion() < ProjectVersion::Version36) {
+            bool bypassScale = (bool)(_data0.raw & 1);
+
+            //_data0.raw = (_data0.raw & 0xC0000000 ) | ((_data0.raw & 0x3FFFFFFF) >> 1);
+            _data0.length = _data0.length >> 1;
+            _data1.raw = 0x7FFFFFFF & (_data1.raw << 1);
+            _data1.bypassScale = bypassScale;
+        }
+
         if (reader.dataVersion() < ProjectVersion::Version34) {
             setBypassScale(false);
         }
+
+
+
     }
 }
 
