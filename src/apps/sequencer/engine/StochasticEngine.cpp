@@ -343,7 +343,6 @@ bool start = 0;
 void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextStep) {
     int octave = _stochasticTrack.octave();
     int transpose = _stochasticTrack.transpose();
-    int rotate = _stochasticTrack.rotate();
     bool fillStep = fill() && (rng.nextRange(100) < uint32_t(fillAmount()));
     bool useFillGates = fillStep && _stochasticTrack.fillMode() == StochasticTrack::FillMode::Gates;
     bool useFillSequence = fillStep && _stochasticTrack.fillMode() == StochasticTrack::FillMode::NextPattern;
@@ -351,9 +350,6 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
     auto &sequence = *_sequence;
     auto &evalSequence = useFillSequence ? *_fillSequence : *_sequence;
-
-    // TODO do we need to encounter rotate?
-    _currentStep = SequenceUtils::rotateStep(_sequenceState.step(), sequence.firstStep(), sequence.lastStep(), rotate);
     
     int stepIndex;
 
@@ -362,9 +358,6 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     auto abstoluteStep = ((relativeTick + divisor) / divisor) -1;
     
     auto index = abstoluteStep % sequence.sequenceLength();
-
-
-    std::cerr << index << "\n";
 
     StochasticSequence::Step step;
     uint32_t stepTick = 0;
@@ -394,7 +387,8 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         std::sort (std::begin(probability), std::end(probability), sortTaskByProbRev);
         stepIndex = getNextWeightedPitch(probability, sequence.reseed(), probability.size());
 
-        step = sequence.step(stepIndex);    
+        step = sequence.step(stepIndex); 
+        _currentStep = stepIndex;   
         
         int gateOffset = ((int) divisor * step.gateOffset()) / (StochasticSequence::GateOffset::Max + 1);
         stepTick = (int) tick + gateOffset;
@@ -481,12 +475,12 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
             lockedSteps = inMemSteps;
         }
 
-        stepIndex = lockedSteps.at(index).index();
+        auto subArray = slicing(lockedSteps, sequence.sequenceFirstStep(), sequence.sequenceLastStep());
+        stepIndex = subArray.at(index).index();
         if (stepIndex == -1) {
             return;
         }
-
-        auto subArray = slicing(lockedSteps, sequence.sequenceFirstStep(), sequence.sequenceLastStep());
+        _currentStep = stepIndex;
 
         stepGate = subArray.at(index).gate();
         step = subArray.at(index).step();
