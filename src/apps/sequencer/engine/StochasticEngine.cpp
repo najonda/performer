@@ -336,6 +336,7 @@ bool sortTaskByProbRev(const StochasticStep& lhs, const StochasticStep& rhs) {
 }
 
 std::vector<StochasticLoopStep> inMemSteps;
+std::vector<StochasticLoopStep> lockedSteps;
 
 void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextStep) {
     int octave = _stochasticTrack.octave();
@@ -379,6 +380,9 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     if (!sequence.useLoop() || (sequence.useLoop() && int(inMemSteps.size()) < CONFIG_STEP_COUNT)) { 
         if (evalRestProbability(sequence.restProbability())) {
             inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(-1, false, step, 0, 0, 0));
+            if (int(lockedSteps.size()) < CONFIG_STEP_COUNT) {
+                lockedSteps.insert(lockedSteps.end(), StochasticLoopStep(-1, false, step, 0, 0, 0));
+            }
             return;
         }
 
@@ -465,10 +469,23 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         inMemSteps.clear();
     }
 
+    if (sequence.clearLoop()) {
+        lockedSteps = inMemSteps;
+        sequence.setClearLoop(false);
+        sequence.setUseLoop(true);
+    }
+
     if (sequence.useLoop() && int(inMemSteps.size()) < CONFIG_STEP_COUNT) {
         inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(stepIndex, stepGate, step, noteValue, stepLength, stepRetrigger));
-        if (index <= inMemSteps.size()) {
-            auto subArray = slicing(inMemSteps, sequence.sequenceFirstStep(), sequence.sequenceLastStep());
+        if (int(lockedSteps.size()) < CONFIG_STEP_COUNT) {
+            lockedSteps.insert(lockedSteps.end(), StochasticLoopStep(stepIndex, stepGate, step, noteValue, stepLength, stepRetrigger));
+        }
+        if (index <= lockedSteps.size()) {
+            stepIndex = lockedSteps.at(index).index();
+            if (stepIndex == -1) {
+                return;
+            }
+            auto subArray = slicing(lockedSteps, sequence.sequenceFirstStep(), sequence.sequenceLastStep());
 
             stepGate = subArray.at(index).gate();
             step = subArray.at(index).step();
@@ -476,18 +493,23 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
             stepTick = (int) tick + gateOffset;
             noteValue = subArray.at(index).noteValue();
             stepLength = subArray.at(index).stepLength();
-            stepRetrigger = inMemSteps.at(index).stepRetrigger();
+            stepRetrigger = lockedSteps.at(index).stepRetrigger();
         }
     } else {
         if (!sequence.useLoop()) {
             inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(stepIndex, stepGate, step, noteValue, stepLength, stepRetrigger));
+            if (int(lockedSteps.size()) < CONFIG_STEP_COUNT) {
+                lockedSteps.insert(lockedSteps.end(), StochasticLoopStep(stepIndex, stepGate, step, noteValue, stepLength, stepRetrigger));
+            }
         } else {
-            stepIndex = inMemSteps.at(index).index();
+            
+
+            stepIndex = lockedSteps.at(index).index();
             if (stepIndex == -1) {
                 return;
             }
 
-            auto subArray = slicing(inMemSteps, sequence.sequenceFirstStep(), sequence.sequenceLastStep());
+            auto subArray = slicing(lockedSteps, sequence.sequenceFirstStep(), sequence.sequenceLastStep());
 
             stepGate = subArray.at(index).gate();
             step = subArray.at(index).step();
@@ -495,7 +517,7 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
             stepTick = (int) tick + gateOffset;
             noteValue = subArray.at(index).noteValue();
             stepLength = subArray.at(index).stepLength();
-            stepRetrigger = inMemSteps.at(index).stepRetrigger();
+            stepRetrigger = lockedSteps.at(index).stepRetrigger();
         }
     }
 

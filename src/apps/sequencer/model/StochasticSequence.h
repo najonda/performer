@@ -574,11 +574,27 @@ public:
         _useLoop = !_useLoop;
     }
 
+    void setUseLoop(bool value) {
+        _useLoop = value;
+    }
+
     bool useLoop() {
         return _useLoop;
     }
 
     const bool useLoop() const { return _useLoop;}
+
+    void setClearLoop(bool clearLoop) {
+        _clearLoop = clearLoop;
+    }
+
+    bool clearLoop() {
+        return _clearLoop;
+    }
+
+    const bool clearLoop() const { return _clearLoop; }
+
+
 
 private:
     void setTrackIndex(int trackIndex) { _trackIndex = trackIndex; }
@@ -618,10 +634,12 @@ private:
     Routable<uint8_t> _sequenceLastStep;
     Routable<uint8_t> _sequenceFirstStep;
     
+    
     StepArray _steps;
 
     uint8_t _edited;
     bool _useLoop = false;
+    bool _clearLoop = false;
 
     friend class StochasticTrack;
 };

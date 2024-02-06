@@ -570,7 +570,10 @@ void LaunchpadController::manageStochasticCircuitKeyboard(const Button &button) 
                     case 0:
                         sequence.setUseLoop();
                         break;
-                    case 1:
+                    case 1: 
+                        sequence.setClearLoop(true);
+                        break;
+                    case 2:
                         sequence.toggleReseed();
                         break;
                     default:
@@ -1792,7 +1795,8 @@ void LaunchpadController::drawStochasticSequenceNotes(const StochasticSequence &
 
         // draw options
         setGridLed(6, 0, sequence.useLoop() ? colorYellow(): colorYellow(1));
-        setGridLed(6,1, sequence.reseed() == 1 ? colorYellow(): colorYellow(1));
+        setGridLed(6, 1, sequence.clearLoop() ? colorYellow(): colorYellow(1));
+        setGridLed(6,2, sequence.reseed() == 1 ? colorYellow(): colorYellow(1));
 }
 
 void LaunchpadController::followModeAction(int currentStep, int lastStep) {
