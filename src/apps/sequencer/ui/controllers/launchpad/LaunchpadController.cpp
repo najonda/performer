@@ -1494,7 +1494,6 @@ void LaunchpadController::drawStochasticSequenceDots(const StochasticSequence &s
     int ofs = _sequence.navigation.row * 8;
     for (int col = 0; col < 8; ++col) {
         int stepIndex = col + _sequence.navigation.col * 8;
-        int lastStep = sequence.lastStep();
         const auto &step = sequence.step(stepIndex);
         int value = step.layerValue(layer);
         setGridLed((7 - value) + ofs, col, stepColor(true, stepIndex == currentStep));
