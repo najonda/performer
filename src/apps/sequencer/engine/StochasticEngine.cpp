@@ -361,11 +361,11 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     auto index = abstoluteStep % sequence.sequenceLength();
 
     StochasticSequence::Step step;
-    uint32_t stepTick;
+    uint32_t stepTick = 0;
     bool stepGate = false;
-    float noteValue;
-    uint32_t stepLength;
-    int stepRetrigger;
+    float noteValue = 0;
+    uint32_t stepLength = 0;
+    int stepRetrigger = 0;
 
     // fill in memory step when sequence is running or when the in memory loop is not full filled
     if (!sequence.useLoop() || (sequence.useLoop() && int(inMemSteps.size()) < CONFIG_STEP_COUNT)) { 
