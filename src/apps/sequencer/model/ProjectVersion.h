@@ -102,6 +102,10 @@ enum ProjectVersion {
     // add sequence name
     Version35 = 35,
 
+    // change note length form 3 to 4 bits
+    Version36 = 36,
+
+
     // automatically derive latest version
     Last,
     Latest = Last - 1,
