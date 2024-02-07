@@ -6,6 +6,7 @@
 - Launchpad Performance Mode
 - Submenu shortcuts
 - Page buttons on launchpad circuit note edit
+- Extend gate Lenght to 4bits @glibersat
 
 # v0.1.4.48 (30 January 2024)
 - Moving steps in a sequence
