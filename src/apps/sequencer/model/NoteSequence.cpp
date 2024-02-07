@@ -204,7 +204,6 @@ void NoteSequence::Step::write(VersionedSerializedWriter &writer) const {
 }
 
 void NoteSequence::Step::read(VersionedSerializedReader &reader) {
-    std::cout << "Project v" << reader.dataVersion() << std::endl;
 
     if (reader.dataVersion() < ProjectVersion::Version27) {
         reader.read(_data0.raw);
