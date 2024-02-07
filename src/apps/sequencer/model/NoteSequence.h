@@ -255,10 +255,10 @@ public:
             BitField<uint32_t, 1, 1> slide;
             BitField<uint32_t, 2, Length::Bits> length;
             BitField<uint32_t, 6, LengthVariationRange::Bits> lengthVariationRange;
-            BitField<uint32_t, 9, LengthVariationProbability::Bits> lengthVariationProbability;
-            BitField<uint32_t, 13, Note::Bits> note;
-            BitField<uint32_t, 20, NoteVariationRange::Bits> noteVariationRange;
-            BitField<uint32_t, 27, NoteVariationProbability::Bits> noteVariationProbability;
+            BitField<uint32_t, 10, LengthVariationProbability::Bits> lengthVariationProbability;
+            BitField<uint32_t, 14, Note::Bits> note;
+            BitField<uint32_t, 21, NoteVariationRange::Bits> noteVariationRange;
+            BitField<uint32_t, 28, NoteVariationProbability::Bits> noteVariationProbability;
         } _data0;
         union {
             uint32_t raw;
