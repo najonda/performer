@@ -69,7 +69,7 @@ static void drawCurveTrack(Canvas &canvas, int trackIndex, const CurveTrackEngin
         float max = step.maxNormalized();
         const auto function = Curve::function(Curve::Type(std::min(Curve::Last - 1, step.shape())));
 
-        int x = 64 + i * 8;
+        int x = 68 + i * 8;
 
         drawCurve(canvas, x, y + 1, 8, 6, lastY, function, min, max);
     }
