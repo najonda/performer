@@ -631,10 +631,10 @@ void CurveSequenceEditPage::drawDetail(Canvas &canvas, const CurveSequence::Step
         SequencePainter::drawProbability(
             canvas,
             64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.gateProbability() + 1, CurveSequence::GateProbability::Range
+            step.gateProbability(), CurveSequence::GateProbability::Range-1
         );
         str.reset();
-        str("%.1f%%", 100.f * (step.gateProbability() + 1.f) / CurveSequence::GateProbability::Range);
+        str("%.1f%%", 100.f * (step.gateProbability()) / (CurveSequence::GateProbability::Range-1));
         canvas.setColor(Color::Bright);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
