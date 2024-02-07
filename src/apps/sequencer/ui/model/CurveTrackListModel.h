@@ -63,6 +63,7 @@ private:
         ShapeProbabilityBias,
         GateProbabilityBias,
         PatternFollow,
+        CurveCvInput,
         Last
     };
 
@@ -78,6 +79,7 @@ private:
         case ShapeProbabilityBias:  return "Shape P. Bias";
         case GateProbabilityBias:   return "Gate P. Bias";
         case PatternFollow:         return "Pattern Follow";
+        case CurveCvInput:          return "Curve CV Input";
         case Last:                  break;
         }
         return nullptr;
@@ -119,6 +121,9 @@ private:
         case PatternFollow:
             _track->printPatternFollow(str);
             break;
+        case CurveCvInput:
+            _track->printCurveCvInput(str);
+            break;
         case Last:
             break;
         }
@@ -154,6 +159,9 @@ private:
             break;
         case PatternFollow:
             _track->editPatternFollow(value, shift);
+            break;
+        case CurveCvInput:
+            _track->editCurveCvInput(value, shift);
             break;
         case Last:
             break;

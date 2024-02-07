@@ -70,7 +70,7 @@ private:
         MidiInput,
         MidiPgmChange,
         CvGateInput,
-        CurveCvInput,
+        //CurveCvInput,
         Last
     };
 
@@ -88,7 +88,7 @@ private:
         case MidiInput:         return "MIDI Input";
         case MidiPgmChange:     return "MIDI Pgm Chng";
         case CvGateInput:       return "CV/Gate Input";
-        case CurveCvInput:      return "Curve CV Input";
+        //case CurveCvInput:      return "Curve CV Input";
         case Last:              break;
         }
         return nullptr;
@@ -138,9 +138,9 @@ private:
         case CvGateInput:
             _project.printCvGateInput(str);
             break;
-        case CurveCvInput:
-            _project.printCurveCvInput(str);
-            break;
+        //case CurveCvInput:
+        //    _project.printCurveCvInput(str);
+        //    break;
         case Last:
             break;
         }
@@ -183,9 +183,9 @@ private:
         case CvGateInput:
             _project.editCvGateInput(value, shift);
             break;
-        case CurveCvInput:
-            _project.editCurveCvInput(value, shift);
-            break;
+        //case CurveCvInput:
+        //    _project.editCurveCvInput(value, shift);
+        //    break;
         case Last:
             break;
         }
