@@ -415,7 +415,7 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
                 break;
             case Track::TrackMode::Stochastic: {
                 if (button.row >=3 && button.row <=4) {
-                    if (button.row == 7) {
+                    if (button.col == 7) {
                         break;
                     }
                     auto &sequence = _project.selectedStochasticSequence();
