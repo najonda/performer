@@ -72,7 +72,11 @@ public:
         Divisor,
         Scale,
         RootNote,
-        SequenceLast = RootNote,
+        Reseed,
+        RestProbability,
+        SequenceFirstStep,
+        SequenceLastStep,
+        SequenceLast = SequenceLastStep,
 
         Last,
     };
@@ -112,7 +116,10 @@ public:
         case Target::Divisor:                   return "Divisor";
         case Target::Scale:                     return "Scale";
         case Target::RootNote:                  return "Root Note";
-
+        case Target::Reseed:                    return "Reseed";
+        case Target::RestProbability:           return "Rest Prob.";
+        case Target::SequenceFirstStep:          return "Sequence First Step";
+        case Target::SequenceLastStep:            return "Sequence Last Step";
         case Target::Last:                      break;
         }
         return nullptr;
@@ -154,6 +161,11 @@ public:
 
         case Target::PlayToggle:                return 26;
         case Target::RecordToggle:              return 27;
+        case Target::Reseed:                    return 28;
+        case Target::RestProbability:           return 29;
+        case Target::SequenceFirstStep:         return 30;
+        case Target::SequenceLastStep:            return 31;
+        
 
         case Target::Last:                      break;
         }

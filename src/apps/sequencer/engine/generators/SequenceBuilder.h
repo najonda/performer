@@ -2,6 +2,7 @@
 
 #include "model/NoteSequence.h"
 #include "model/CurveSequence.h"
+#include "model/StochasticSequence.h"
 
 class SequenceBuilder {
 public:
@@ -93,3 +94,4 @@ private:
 
 typedef SequenceBuilderImpl<NoteSequence> NoteSequenceBuilder;
 typedef SequenceBuilderImpl<CurveSequence> CurveSequenceBuilder;
+typedef SequenceBuilderImpl<StochasticSequence> StochasticSequenceBuilder;

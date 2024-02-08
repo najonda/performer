@@ -215,6 +215,15 @@ void Routing::writeTarget(Target target, uint8_t tracks, float normalized) {
                         track.midiCvTrack().writeRouted(target, intValue, floatValue);
                     }
                     break;
+                case Track::TrackMode::Stochastic:
+                    if (isTrackTarget(target)) {
+                        track.stochasticTrack().writeRouted(target, intValue, floatValue);
+                    } else {
+                        for (int patternIndex = 0; patternIndex < CONFIG_PATTERN_COUNT; ++patternIndex) {
+                            track.stochasticTrack().sequence(patternIndex).writeRouted(target, intValue, floatValue);
+                        }
+                    }
+                    break;
                 case Track::TrackMode::Last:
                     break;
                 }
@@ -307,6 +316,10 @@ static const TargetInfo targetInfos[int(Routing::Target::Last)] = {
     [int(Routing::Target::Divisor)]                         = { 1,      768,    6,      24,     1       },
     [int(Routing::Target::Scale)]                           = { 0,      23,     0,      23,     1       },
     [int(Routing::Target::RootNote)]                        = { 0,      11,     0,      11,     1       },
+    [int(Routing::Target::Reseed)]                          = { 0,      1,      0,      1,      1       },
+    [int(Routing::Target::RestProbability)]                 = { -8,     8,      -8,     8,      8       },
+    [int(Routing::Target::SequenceFirstStep)]                  = { 0,      63,      1,     63,     16       },
+    [int(Routing::Target::SequenceLastStep)]                  = { 0,      63,      0,     63,     16       },
 };
 
 float Routing::normalizeTargetValue(Routing::Target target, float value) {
@@ -357,6 +370,9 @@ void Routing::printTargetValue(Routing::Target target, float normalized, StringB
     case Target::LengthBias:
     case Target::NoteProbabilityBias:
     case Target::ShapeProbabilityBias:
+    case Target::RestProbability:
+    case Target::SequenceFirstStep:
+    case Target::SequenceLastStep:
         str("%+.1f%%", value * 12.5f);
         break;
     case Target::Divisor:

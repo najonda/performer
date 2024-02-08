@@ -53,6 +53,34 @@ static void drawCurve(Canvas &canvas, int x, int y, int w, int h, float &lastY, 
     lastY = fy0;
 }
 
+static void drawStochasticTrack(Canvas &canvas, int trackIndex, const StochasticEngine &trackEngine, const StochasticSequence &sequence) {
+    canvas.setBlendMode(BlendMode::Set);
+
+    int stepOffset = (std::max(0, trackEngine.currentStep()) / 12) * 12;
+    int y = trackIndex * 8;
+
+    for (int i = 0; i < 12; ++i) {
+        int stepIndex = stepOffset + i;
+        const auto &step = sequence.step(stepIndex);
+
+        int x = 16 + (68 + i * 8);
+
+        if (trackEngine.currentStep() == stepIndex) {
+            canvas.setColor(step.gate() ? Color::Bright : Color::MediumBright);
+            canvas.fillRect(x + 1, y + 1, 6, 6);
+        } else {
+            canvas.setColor(step.gate() ? Color::Medium : Color::Low);
+            canvas.fillRect(x + 1, y + 1, 6, 6);
+        }
+
+        // if (trackEngine.currentStep() == stepIndex) {
+        //     canvas.setColor(Color::Bright);
+        //     canvas.drawRect(x + 1, y + 1, 6, 6);
+        // }
+    }
+
+}
+
 static void drawCurveTrack(Canvas &canvas, int trackIndex, const CurveTrackEngine &trackEngine, const CurveSequence &sequence) {
     canvas.setBlendMode(BlendMode::Add);
     canvas.setColor(Color::MediumBright);
@@ -127,6 +155,9 @@ void OverviewPage::draw(Canvas &canvas) {
             case Track::TrackMode::MidiCv:
                 canvas.drawText(2, y, track.midiCvTrack().name());
                 break;
+            case Track::TrackMode::Stochastic:
+                canvas.drawText(2, y, track.stochasticTrack().name());
+                break;
             default:
                 break;
         }  
@@ -154,6 +185,9 @@ void OverviewPage::draw(Canvas &canvas) {
             break;
         case Track::TrackMode::Curve:
             drawCurveTrack(canvas, trackIndex, trackEngine.as<CurveTrackEngine>(), track.curveTrack().sequence(trackState.pattern()));
+            break;
+        case Track::TrackMode::Stochastic:
+            drawStochasticTrack(canvas, trackIndex, trackEngine.as<StochasticEngine>(), track.stochasticTrack().sequence(trackState.pattern()));
             break;
         case Track::TrackMode::MidiCv:
             break;

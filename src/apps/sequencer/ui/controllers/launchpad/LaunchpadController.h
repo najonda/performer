@@ -94,7 +94,7 @@ private:
     void sequenceDraw();
     void sequenceButton(const Button &button, ButtonAction action);
 
-    bool isNoteKeyboardPressed();
+    bool isNoteKeyboardPressed(const Scale &scale);
 
     void sequenceUpdateNavigation();
 
@@ -108,17 +108,23 @@ private:
     void sequenceEditStep(int row, int col);
     void sequenceEditNoteStep(int row, int col);
     void sequenceEditCurveStep(int row, int col);
+    void sequenceEditStochasticStep(int row, int col);
+
 
     void sequenceDrawLayer();
     void sequenceDrawStepRange(int highlight);
+    void stochasticDrawRestProbability();
     void sequenceDrawRunMode();
     void sequenceDrawFollowMode();
     void sequenceDrawSequence();
     void sequenceDrawNoteSequence();
     void sequenceDrawCurveSequence();
+    void sequenceDrawStochasticSequence();
 
     void manageCircuitKeyboard(const Button &button);
+    void manageStochasticCircuitKeyboard(const Button &button);
     void drawRunningKeyboardCircuit(int row, int col, const NoteSequence::Step &step, const Scale &scale, int rootNote);
+    void drawRunningStochasticKeyboardCircuit(int row, int col, const StochasticSequence::Step &step, const Scale &scale, int rootNote);
 
     // Pattern mode
     void patternEnter();
@@ -153,8 +159,15 @@ private:
     void drawNoteSequenceNotes(const NoteSequence &sequence, NoteSequence::Layer layer, int currentStep);
     void drawCurveSequenceBars(const CurveSequence &sequence, CurveSequence::Layer layer, int currentStep);
     void drawCurveSequenceDots(const CurveSequence &sequence, CurveSequence::Layer layer, int currentStep);
+
+    void drawStochasticSequenceBits(const StochasticSequence &sequence, StochasticSequence::Layer layer, int currentStep);
+    void drawStochasticSequenceBars(const StochasticSequence &sequence, StochasticSequence::Layer layer, int currentStep);
+    void drawStochasticSequenceNotes(const StochasticSequence &sequence, StochasticSequence::Layer layer, int currentStep);
+    void drawStochasticSequenceDots(const StochasticSequence &sequence, StochasticSequence::Layer layer, int currentStep);
+
     void followModeAction(int currentStep, int);
     void drawBar(int row, int value, bool active, bool current);
+    void drawBarH(int row, int value, bool active, bool current);
 
     // Led handling
     void setGridLed(int row, int col, Color color);
@@ -199,8 +212,8 @@ private:
     } _performButton;
 
 
-    int _startingFirstStep = 1;
-    int _startingLastStep = 16;
+    int _startingFirstStep[8];
+    int _startingLastStep[8];
 
     Project &_project;
     

@@ -1,6 +1,7 @@
 #include "SequencePainter.h"
 #include "core/gfx/Canvas.h"
 #include "model/NoteSequence.h"
+#include "model/StochasticSequence.h"
 #include <bitset>
 
 void SequencePainter::drawLoopStart(Canvas &canvas, int x, int y, int w) {
@@ -148,6 +149,53 @@ void SequencePainter::drawStageRepeatMode(Canvas &canvas, int x, int y, int w, i
     for (int i = 0; i < 4; i++) {
         if (mode == NoteSequence::StageRepeatMode::Random) {
             canvas.drawText(x-1, y+4, "????");
+        } else {
+            if (((enabled >> i) & mask) == 1) {
+                canvas.vline(x + 2 * i, y, h);
+            } else {
+                canvas.hline(x + 2 * i, bottom, 1);
+            }
+        }
+    }
+}
+
+void SequencePainter::drawStageRepeatMode(Canvas &canvas, int x, int y, int w, int h, StochasticSequence::StageRepeatMode mode) {
+    canvas.setBlendMode(BlendMode::Set);
+    canvas.setColor(Bright);
+    int bottom = y + h - 1;
+    std::bitset<4> enabled;
+    x += (w - 8) / 2;
+
+    switch (mode) {
+        case StochasticSequence::StageRepeatMode::Each:
+           enabled = 0xf;
+            break;
+        case StochasticSequence::StageRepeatMode::First:
+            enabled = 0x1;
+            break;
+        case StochasticSequence::StageRepeatMode::Middle:
+            enabled = 0x1 << 2;
+            break;
+        case StochasticSequence::StageRepeatMode::Last:
+            enabled = 0x8;
+            break;
+        case StochasticSequence::StageRepeatMode::Odd:
+            enabled = 0x5;
+            break;
+        case StochasticSequence::StageRepeatMode::Even:
+            enabled = 0x5 << 1;
+            break;
+        case StochasticSequence::StageRepeatMode::Triplets:
+            enabled = 0x9;
+            break;
+        case StochasticSequence::StageRepeatMode::Random:
+            enabled = 0xf;
+            break;
+    }
+
+    for (int i = 0; i < 4; i++) {
+        if (mode == StochasticSequence::StageRepeatMode::Random) {
+            canvas.drawTextCentered(x,y, x+6, h, "????");
         } else {
             if (((enabled >> i) & mask) == 1) {
                 canvas.vline(x + 2 * i, y, h);
