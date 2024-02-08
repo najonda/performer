@@ -415,6 +415,9 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
                 break;
             case Track::TrackMode::Stochastic: {
                 if (button.row >=3 && button.row <=4) {
+                    if (button.row == 7) {
+                        break;
+                    }
                     auto &sequence = _project.selectedStochasticSequence();
                     sequence.step(fullSelectedNote).toggleGate();
                 }
@@ -531,6 +534,19 @@ void LaunchpadController::manageStochasticCircuitKeyboard(const Button &button) 
         case StochasticSequence::Layer::NoteVariationProbability:
             
          if (button.row >=3 && button.row <= 4) {
+
+                auto &stochasticTrack = _project.selectedTrack().stochasticTrack();
+                auto currentOctave = stochasticTrack.octave();
+
+                if (button.row == 3 && button.col == 7) {
+                    stochasticTrack.setOctave(currentOctave+1);
+                    return;
+                } 
+                if (button.row == 4 && button.col == 7) {
+                    stochasticTrack.setOctave(currentOctave-1);
+                    return;
+                }
+
                 int ft = -1;
                 if (button.row == 3) {
                     ft = getMapValue(semitones, button.col);
@@ -1792,6 +1808,84 @@ void LaunchpadController::drawStochasticSequenceNotes(const StochasticSequence &
                         drawRunningStochasticKeyboardCircuit(row, col, step, scale, rootNote);
                     }
                 }
+
+                Color transposeUpColor = colorOff();
+                switch (_project.selectedTrack().stochasticTrack().octave()) {
+                    case 0:
+                        transposeUpColor = colorOff();
+                        break;
+                    case 1:
+                        transposeUpColor = Color(0,1);
+                        break;
+                    case 2:
+                        transposeUpColor = Color(0,2);
+                        break;
+                    case 3:
+                        transposeUpColor = Color(0,3);
+                        break;
+                    case 4:
+                        transposeUpColor = Color(1,0);
+                        break;
+                    case 5:
+                        transposeUpColor = Color(1,1);
+                        break;
+                    case 6:
+                        transposeUpColor = Color(1,2);
+                        break;
+                    case 7:
+                        transposeUpColor = Color(1, 3);
+                        break;
+                    case 8:
+                        transposeUpColor = Color(2, 0);
+                        break;
+                    case 9:
+                        transposeUpColor = Color(2,1);
+                        break;
+                    case 10:
+                        transposeUpColor = Color(2,2);
+                        break;
+                }
+
+                setCustomGridLed(3, 7,  transposeUpColor);
+
+                Color transposeDownColor = colorOff();
+                switch (_project.selectedTrack().stochasticTrack().octave()) {
+                    case 0:
+                        transposeDownColor = colorOff();
+                        break;
+                    case -1:
+                        transposeDownColor = Color(0,1);
+                        break;
+                    case -2:
+                        transposeDownColor = Color(0,2);
+                        break;
+                    case -3:
+                        transposeDownColor = Color(0,3);
+                        break;
+                    case -4:
+                        transposeDownColor = Color(1,0);
+                        break;
+                    case -5:
+                        transposeDownColor = Color(1,1);
+                        break;
+                    case -6:
+                        transposeDownColor = Color(1,2);
+                        break;
+                    case -7:
+                        transposeDownColor = Color(1, 3);
+                        break;
+                    case -8:
+                        transposeDownColor = Color(2, 0);
+                        break;
+                    case -9:
+                        transposeDownColor = Color(2,1);
+                        break;
+                    case -10:
+                        transposeDownColor = Color(2,2);
+                        break;
+                }
+
+                setCustomGridLed(4, 7,  transposeDownColor);
             }
         }
 
@@ -1867,6 +1961,12 @@ void LaunchpadController::drawBarH(int col, int value, bool active, bool current
 void LaunchpadController::setGridLed(int row, int col, Color color) {
     if (row >= 0 && row < 8 && col >= 0 && col < 8) {
         _device->setLed(row, col, color, _style);
+    }
+}
+
+void LaunchpadController::setCustomGridLed(int row, int col, Color color) {
+    if (row >= 0 && row < 8 && col >= 0 && col < 8) {
+        _device->setCustomLed(row, col, color, _style);
     }
 }
 

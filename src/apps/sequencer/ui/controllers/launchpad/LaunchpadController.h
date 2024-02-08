@@ -171,6 +171,7 @@ private:
 
     // Led handling
     void setGridLed(int row, int col, Color color);
+    void setCustomGridLed(int row, int col, Color color);
     void setGridLed(int index, Color color);
     void setFunctionLed(int col, Color color);
     void setSceneLed(int col, Color color);
