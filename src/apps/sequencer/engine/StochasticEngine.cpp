@@ -413,14 +413,12 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         
         if (skips != 0) {
             skips--;
+            inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(-1, false, step, 0, 0, 0));
             return;
         }
-            if (index % 2 == 0) {
+        if (index % 2 == 0) {
             int rest = evalRestProbability(sequence);
             if (rest != -1) {
-                for (int i = 0; i< rest; ++i) {
-                    inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(-1, false, step, 0, 0, 0));
-                }
                 skips = rest;
             }
         }
