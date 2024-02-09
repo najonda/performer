@@ -76,7 +76,9 @@ public:
         RestProbability,
         SequenceFirstStep,
         SequenceLastStep,
-        SequenceLast = SequenceLastStep,
+        LowOctaveRange,
+        HighOctaveRange,
+        SequenceLast = HighOctaveRange,
 
         Last,
     };
@@ -118,8 +120,12 @@ public:
         case Target::RootNote:                  return "Root Note";
         case Target::Reseed:                    return "Reseed";
         case Target::RestProbability:           return "Rest Prob.";
-        case Target::SequenceFirstStep:          return "Sequence First Step";
-        case Target::SequenceLastStep:            return "Sequence Last Step";
+        case Target::SequenceFirstStep:          return "Seq First Step";
+        case Target::SequenceLastStep:            return "Seq Last Step";
+        
+        case Target::LowOctaveRange:          return "L Oct Range";
+        case Target::HighOctaveRange:          return "H Oct Range";
+
         case Target::Last:                      break;
         }
         return nullptr;
@@ -165,6 +171,8 @@ public:
         case Target::RestProbability:           return 29;
         case Target::SequenceFirstStep:         return 30;
         case Target::SequenceLastStep:            return 31;
+        case Target::LowOctaveRange:            return 32;
+        case Target::HighOctaveRange:           return 33;
         
 
         case Target::Last:                      break;

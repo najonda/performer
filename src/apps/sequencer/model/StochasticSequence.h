@@ -604,6 +604,39 @@ public:
 
     const bool clearLoop() const { return _clearLoop; }
 
+    int lowOctaveRange() const { return _lowOctaveRange.get(isRouted(Routing::Target::LowOctaveRange)); }
+    void setLowOctaveRange(int octave, bool routed = false) {
+        _lowOctaveRange.set(clamp(octave, -10, highOctaveRange()), routed);
+    }
+
+    void editLowOctaveRange(int value, bool shift) {
+        if (!isRouted(Routing::Target::Octave)) {
+            setLowOctaveRange(lowOctaveRange() + value);
+        }
+    }
+
+    void printLowOctaveRange(StringBuilder &str) const {
+        printRouted(str, Routing::Target::LowOctaveRange);
+        str("%+d", lowOctaveRange());
+    }
+
+
+    int highOctaveRange() const { return _highOctaveRange.get(isRouted(Routing::Target::HighOctaveRange)); }
+    void setHighOctaveRange(int octave, bool routed = false) {
+        _highOctaveRange.set(clamp(octave, lowOctaveRange(), 10), routed);
+    }
+
+    void editHighOctaveRange(int value, bool shift) {
+        if (!isRouted(Routing::Target::Octave)) {
+            setHighOctaveRange(highOctaveRange() + value);
+        }
+    }
+
+    void printHighOctaveRange(StringBuilder &str) const {
+        printRouted(str, Routing::Target::HighOctaveRange);
+        str("%+d", highOctaveRange());
+    }
+
 
 
 private:
@@ -643,6 +676,9 @@ private:
     Routable<int8_t> _restProbability;
     Routable<uint8_t> _sequenceLastStep;
     Routable<uint8_t> _sequenceFirstStep;
+
+    Routable<int8_t> _lowOctaveRange;
+    Routable<int8_t> _highOctaveRange;
 
     int _bufferLoopLength = 16;
     

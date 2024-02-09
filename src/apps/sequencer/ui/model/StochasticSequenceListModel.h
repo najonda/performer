@@ -18,6 +18,8 @@ public:
         RestProbability,
         SequenceFirstStep,
         SequenceLastStep,
+        LowOctaveRange,
+        HighOctaveRange,
         Last
     };
 
@@ -89,6 +91,10 @@ public:
             return Routing::Target::SequenceFirstStep;
         case SequenceLastStep:
             return Routing::Target::SequenceLastStep;
+        case LowOctaveRange:
+            return Routing::Target::LowOctaveRange;
+        case HighOctaveRange:
+            return Routing::Target::HighOctaveRange;
         default:
             return Routing::Target::None;
         }
@@ -110,8 +116,10 @@ private:
         case Scale:             return "Scale";
         case RootNote:          return "Root Note";
         case RestProbability:   return "Rest Prob.";
-        case SequenceFirstStep:    return "Seq First Step";
+        case SequenceFirstStep: return "Seq First Step";
         case SequenceLastStep:  return "Seq Last Step";
+        case LowOctaveRange:    return "L Oct Range";
+        case HighOctaveRange:   return "H Oct Range";
         case Last:              break;
         }
         return nullptr;
@@ -155,6 +163,12 @@ private:
         case SequenceLastStep:
             _sequence->printSequenceLastStep(str);
             break;
+        case LowOctaveRange:
+            _sequence->printLowOctaveRange(str);
+            break;
+        case HighOctaveRange:
+            _sequence->printHighOctaveRange(str);
+            break;
         case Last:
             break;
         }
@@ -192,6 +206,12 @@ private:
         case SequenceLastStep:
             _sequence->editSequenceLastStep(value, shift);
             break;
+        case LowOctaveRange:
+            _sequence->editLowOctaveRange(value, shift);
+            break;
+        case HighOctaveRange:
+            _sequence->editHighOctaveRange(value, shift);
+            break;
         case Last:
             break;
         }
@@ -212,6 +232,8 @@ private:
         case RootNote:
             return 12 + 1;
         case RestProbability:
+        case LowOctaveRange:
+        case HighOctaveRange:
             return 0;
         case Last:
             break;
@@ -237,6 +259,10 @@ private:
             return _sequence->sequenceFirstStep();
         case SequenceLastStep:
             return _sequence->sequenceLastStep();
+        case LowOctaveRange:
+            return _sequence->lowOctaveRange();
+        case HighOctaveRange:
+            return _sequence->highOctaveRange();
         case Last:
             break;
         }
@@ -261,6 +287,10 @@ private:
             return _sequence->setSequenceFirstStep(index);
         case SequenceLastStep:
             return _sequence->setSequenceLastStep(index);
+        case LowOctaveRange:
+            return _sequence->setLowOctaveRange(index);
+        case HighOctaveRange:
+            return _sequence->setHighOctaveRange(index);
         case Last:
             break;
         }

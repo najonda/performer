@@ -85,7 +85,7 @@ static int evalTransposition(const Scale &scale, int octave, int transpose) {
 }
 
 // evaluate note voltage
-static float evalStepNote(const StochasticSequence::Step &step, int probabilityBias, const Scale &scale, int rootNote, int octave, int transpose, bool useVariation = true) {
+static float evalStepNote(const StochasticSequence::Step &step, int probabilityBias, const Scale &scale, int rootNote, int octave, int transpose, StochasticSequence sequence, bool useVariation = true) {
     if (step.bypassScale()) {
         const Scale &bypassScale = Scale::get(0);
         int note = step.note() + evalTransposition(bypassScale, octave, transpose);
@@ -93,26 +93,16 @@ static float evalStepNote(const StochasticSequence::Step &step, int probabilityB
         if (step.noteOctaveProbability()==0) {
             probability = 0;
         }
-        if (useVariation && int(rng.nextRange(StochasticSequence::NoteOctaveProbability::Range)) <= probability) {
-            int oct = 0;
-            if (step.noteOctave() > 0) {
-                oct = 0 + ( std::rand() % ( step.noteOctave() - 0 + 1 ) );
-            } else {
-                oct = step.noteOctave() + (std::rand() % ( 0 - step.noteOctave() + 1 ) );
-            }
+        if (useVariation && int(rng.nextRange(StochasticSequence::NoteOctaveProbability::Range)) <= probability && probability!= 0) {
+            int oct = step.noteOctave() + sequence.lowOctaveRange() + ( std::rand() % ( sequence.highOctaveRange() - sequence.lowOctaveRange() + 1 ) );
             note = StochasticSequence::Note::clamp(note + (bypassScale.notesPerOctave()*oct));
         }
         return bypassScale.noteToVolts(note) + (bypassScale.isChromatic() ? rootNote : 0) * (1.f / 12.f);
     }
     int note = step.note() + evalTransposition(scale, octave, transpose);
     int probability = clamp(step.noteOctaveProbability() + probabilityBias, -1, StochasticSequence::NoteOctaveProbability::Max);
-    if (useVariation && int(rng.nextRange(StochasticSequence::NoteOctaveProbability::Range)) <= probability) {
-        int oct = 0;
-        if (step.noteOctave() > 0) {
-            oct = 0 + ( std::rand() % ( step.noteOctave() - 0 + 1 ) );
-        } else {
-            oct = step.noteOctave() + (std::rand() % ( 0 - step.noteOctave() + 1 ) );
-        }
+    if (useVariation && int(rng.nextRange(StochasticSequence::NoteOctaveProbability::Range)) <= probability && probability != 0) {
+        int oct = step.noteOctave() + sequence.lowOctaveRange() + ( std::rand() % ( sequence.highOctaveRange() - sequence.lowOctaveRange() + 1 ) );
         note = StochasticSequence::Note::clamp(note + (scale.notesPerOctave()*oct));
     }
     return scale.noteToVolts(note) + (scale.isChromatic() ? rootNote : 0) * (1.f / 12.f);
@@ -292,7 +282,7 @@ void StochasticEngine::update(float dt) {
 
     if (stepMonitoring) {
         const auto &step = sequence.step(_monitorStepIndex);
-        setOverride(evalStepNote(step, 0, scale, rootNote, octave, transpose, false));
+        setOverride(evalStepNote(step, 0, scale, rootNote, octave, transpose, sequence, false));
     } else if (liveMonitoring && _recordHistory.isNoteActive()) {
         int note = noteFromMidiNote(_recordHistory.activeNote()) + evalTransposition(scale, octave, transpose);
         setOverride(scale.noteToVolts(note) + (scale.isChromatic() ? rootNote : 0) * (1.f / 12.f));
@@ -448,7 +438,7 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         }
         const auto &scale = evalSequence.selectedScale(_model.project().scale());
         int rootNote = evalSequence.selectedRootNote(_model.project().rootNote());
-        noteValue = evalStepNote(step, _stochasticTrack.noteProbabilityBias(), scale, rootNote, octave, transpose);
+        noteValue = evalStepNote(step, _stochasticTrack.noteProbabilityBias(), scale, rootNote, octave, transpose, sequence);
         stepLength = (divisor * evalStepLength(step, _stochasticTrack.lengthBias())) / StochasticSequence::Length::Range;
         stepRetrigger = evalStepRetrigger(step, _stochasticTrack.retriggerProbabilityBias());
         if (int(inMemSteps.size()) < sequence.bufferLoopLength()) {

@@ -2,6 +2,7 @@
 #include "ProjectVersion.h"
 
 #include "ModelUtils.h"
+#include "Routing.h"
 
 Types::LayerRange StochasticSequence::layerRange(Layer layer) {
     #define CASE(_layer_) \
@@ -245,6 +246,12 @@ void StochasticSequence::writeRouted(Routing::Target target, int intValue, float
         break;
     case Routing::Target::SequenceLastStep:
         setSequenceLastStep(intValue, true);
+        break;
+    case Routing::Target::LowOctaveRange:
+        setLowOctaveRange(intValue, true);
+        break;
+    case Routing::Target::HighOctaveRange:
+        setHighOctaveRange(intValue, true);
         break;
     default:
         break;
