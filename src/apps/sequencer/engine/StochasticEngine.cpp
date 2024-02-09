@@ -33,34 +33,26 @@ static bool evalStepGate(const StochasticSequence::Step &step, int probabilityBi
 }
 
 // evaluate if step gate is active
- int StochasticEngine::evalRestProbability(StochasticSequence sequence) {
+ int StochasticEngine::evalRestProbability(StochasticSequence &sequence) {
     int sum = 0;
     std::vector<StochasticStep> probability;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 4; i++) {
 
         switch (i) {
             case 0: {
-                int prob = 100 - sequence.restProbability() - sequence.restProbability2();
-                if (prob < 0) {
-                    prob = 0;
-                }
-                probability.insert(probability.end(), StochasticStep(i, clamp(prob, -1, StochasticSequence::NoteVariationProbability::Max)));
-
+                sequence.setRestProbability(8-sequence.restProbability2() - sequence.restProbability4() - sequence.restProbability8());
+                probability.insert(probability.end(), StochasticStep(i, clamp(sequence.restProbability(), -1, StochasticSequence::NoteVariationProbability::Max)));
             }
                 break;
             case 1: {
-                probability.insert(probability.end(), StochasticStep(i, clamp(sequence.restProbability(), -1, StochasticSequence::NoteVariationProbability::Max)));
-                break;
-            }
-            case 2: {
                 probability.insert(probability.end(), StochasticStep(i, clamp(sequence.restProbability2(), -1, StochasticSequence::NoteVariationProbability::Max)));
                 break;
             }
-            case 3: {
+            case 2: {
                 probability.insert(probability.end(), StochasticStep(i, clamp(sequence.restProbability4(), -1, StochasticSequence::NoteVariationProbability::Max)));
                 break;
             }
-            case 4: {
+            case 3: {
                 probability.insert(probability.end(), StochasticStep(i, clamp(sequence.restProbability8(), -1, StochasticSequence::NoteVariationProbability::Max)));
                 break;
             }
@@ -75,15 +67,13 @@ static bool evalStepGate(const StochasticSequence::Step &step, int probabilityBi
     int stepIndex = getNextWeightedPitch(probability, 0, probability.size());
     switch (stepIndex) {
         case 0:
-            return -1;
+            return 0;
         case 1:
             return 1;
         case 2:
-            return 2;
+            return 3;
         case 3:
-            return 4;
-        case 4:
-            return 8;
+            return 7;
     }
     return -1;
 }

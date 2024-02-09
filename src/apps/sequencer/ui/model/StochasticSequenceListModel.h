@@ -15,7 +15,6 @@ public:
         ResetMeasure,
         Scale,
         RootNote,
-        RestProbability,
         RestProbability2,
         RestProbability4,
         RestProbability8,
@@ -88,8 +87,6 @@ public:
             return Routing::Target::Scale;
         case RootNote:
             return Routing::Target::RootNote;
-        case RestProbability:
-            return Routing::Target::RestProbability;
         case RestProbability2:
             return Routing::Target::RestProbability2;
         case RestProbability4:
@@ -124,7 +121,6 @@ private:
         case ResetMeasure:      return "Reset Measure";
         case Scale:             return "Scale";
         case RootNote:          return "Root Note";
-        case RestProbability:   return "Rest Prob. 1";
         case RestProbability2:  return "Rest Prob. 2";
         case RestProbability4:  return "Rest Prob. 4";
         case RestProbability8:  return "Rest Prob. 8";
@@ -165,9 +161,6 @@ private:
             break;
         case RootNote:
             _sequence->printRootNote(str);
-            break;
-        case RestProbability:
-            _sequence->printRestProbability(str);
             break;
         case RestProbability2:
             _sequence->printRestProbability2(str);
@@ -218,9 +211,6 @@ private:
         case RootNote:
             _sequence->editRootNote(value, shift);
             break;
-        case RestProbability:
-            _sequence->editRestProbability(value, shift);
-            break;
         case RestProbability2:
             _sequence->editRestProbability2(value, shift);
             break;
@@ -261,7 +251,6 @@ private:
             return Scale::Count + 1;
         case RootNote:
             return 12 + 1;
-        case RestProbability:
         case RestProbability2:
         case RestProbability4:
         case RestProbability8:
@@ -286,8 +275,6 @@ private:
             return _sequence->indexedScale();
         case RootNote:
             return _sequence->indexedRootNote();
-        case RestProbability:
-            return _sequence->restProbability();
         case RestProbability2:
             return _sequence->restProbability2();
         case RestProbability4:
@@ -320,8 +307,6 @@ private:
             return _sequence->setIndexedScale(index);
         case RootNote:
             return _sequence->setIndexedRootNote(index);
-        case RestProbability:
-            return _sequence->setRestProbability(index);
         case RestProbability2:
             return _sequence->setRestProbability2(index);
         case RestProbability4:

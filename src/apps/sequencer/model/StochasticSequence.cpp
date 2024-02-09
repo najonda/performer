@@ -343,7 +343,10 @@ void StochasticSequence::write(VersionedSerializedWriter &writer) const {
     writer.write(_runMode.base);
     writer.write(_firstStep.base);
     writer.write(_lastStep.base);
-    writer.write(_restProbability.base);
+    writer.write(_restProbability);
+    writer.write(_restProbability2);  
+    writer.write(_restProbability4);
+    writer.write(_restProbability8);
 
     writeArray(writer, _steps);
 }
@@ -360,7 +363,11 @@ void StochasticSequence::read(VersionedSerializedReader &reader) {
     reader.read(_runMode.base);
     reader.read(_firstStep.base);
     reader.read(_lastStep.base);
-    reader.read(_restProbability.base);
+    reader.read(_restProbability, ProjectVersion::Version36);
+    reader.read(_restProbability2, ProjectVersion::Version36);  
+    reader.read(_restProbability4, ProjectVersion::Version36);
+    reader.read(_restProbability8, ProjectVersion::Version36);
+
 
     readArray(reader, _steps);
 }
