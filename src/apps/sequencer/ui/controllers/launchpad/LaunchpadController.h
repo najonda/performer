@@ -177,8 +177,19 @@ private:
             } else {
                 setGridLed(row, i, colorOff());
             }
-        
         } 
+        if (amount>7) {
+            for (int i = 0; i < 8; ++i) {
+            int p = amount-8;
+            if (i<p) {
+                setGridLed(row+1, i, colorYellow());    
+            } else if (i==p) {
+                setGridLed(row+1, i, colorGreen());
+            } else {
+                setGridLed(row+1, i, colorOff());
+            }
+        } 
+        }
     }
 
     void followModeAction(int currentStep, int);

@@ -462,7 +462,13 @@ public:
 
     // rest probability 1 step
 
-    int restProbability() const { return _restProbability.get(isRouted(Routing::Target::RestProbability)); }
+    int restProbability() const { 
+        int prob = 8 - restProbability2() - restProbability4() - restProbability8();
+        if (prob < 0) {
+            prob = 0;
+        }
+        return prob;
+    }
     void setRestProbability(int restProbability, bool routed = false) {
         _restProbability.set(clamp(restProbability, 0, 8), routed);
     }

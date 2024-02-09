@@ -40,7 +40,6 @@ static bool evalStepGate(const StochasticSequence::Step &step, int probabilityBi
 
         switch (i) {
             case 0: {
-                sequence.setRestProbability(8-sequence.restProbability2() - sequence.restProbability4() - sequence.restProbability8());
                 probability.insert(probability.end(), StochasticStep(i, clamp(sequence.restProbability(), -1, StochasticSequence::NoteVariationProbability::Max)));
             }
                 break;
@@ -303,7 +302,9 @@ void StochasticEngine::update(float dt) {
         // pass through to midi engine
         sendToMidiOutputEngine(true, cv);
     };
-
+    //if (button.row == 1) {
+    //    _project.selectedStochasticSequence().setRestProbability(button.gridIndex());
+    //}
     // clear monitor override
     auto clearOverride = [&] () {
         if (_monitorOverrideActive) {
@@ -414,12 +415,14 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
             skips--;
             return;
         }
-        int rest = evalRestProbability(sequence);
-        if (rest != -1) {
-            for (int i = 0; i< rest; ++i) {
-                inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(-1, false, step, 0, 0, 0));
+            if (index % 2 == 0) {
+            int rest = evalRestProbability(sequence);
+            if (rest != -1) {
+                for (int i = 0; i< rest; ++i) {
+                    inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(-1, false, step, 0, 0, 0));
+                }
+                skips = rest;
             }
-            skips = rest;
         }
 
         std::vector<StochasticStep> probability;

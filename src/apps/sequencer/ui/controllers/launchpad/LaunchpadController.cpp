@@ -740,29 +740,20 @@ void LaunchpadController::sequenceSetRunMode(int mode) {
     case Track::TrackMode::Curve:
         _project.selectedCurveSequence().setRunMode(Types::RunMode(mode));
         break;
-    case Track::TrackMode::Stochastic:
-        _project.selectedStochasticSequence().setRestProbability(mode);
-        break;
     default:
         break;
     }
 }
 
 void LaunchpadController::sequenceSetRests(Button button) {
-
-    int i = button.gridIndex();
-
-    //if (button.row == 1) {
-    //    _project.selectedStochasticSequence().setRestProbability(button.gridIndex());
-    //}
-    if (button.row == 1) {
-        _project.selectedStochasticSequence().setRestProbability2(button.gridIndex()%8);
+    if (button.row == 2 || button.row == 3) {
+        _project.selectedStochasticSequence().setRestProbability2(button.gridIndex()%16);
     }
-    if (button.row == 2) {
-        _project.selectedStochasticSequence().setRestProbability4(button.gridIndex()%16);
+    if (button.row == 4 || button.row == 5) {
+        _project.selectedStochasticSequence().setRestProbability4(button.gridIndex()%32);
     }
-    if (button.row == 3) {
-        _project.selectedStochasticSequence().setRestProbability8(button.gridIndex()%24);
+    if (button.row == 6 || button.row == 7) {
+        _project.selectedStochasticSequence().setRestProbability8(button.gridIndex()%48);
     }
     
 
@@ -943,11 +934,13 @@ void LaunchpadController::sequenceDrawStepRange(int highlight) {
 void LaunchpadController::stochasticDrawRestProbability() {
     const auto &sequence = _project.selectedStochasticSequence();
 
-
     drawBar(0, sequence.restProbability());
-    drawBar(1, sequence.restProbability2());
-    drawBar(2, sequence.restProbability4());
-    drawBar(3, sequence.restProbability8());
+
+    drawBar(2, sequence.restProbability2());
+
+    drawBar(4, sequence.restProbability4());
+    
+    drawBar(6, sequence.restProbability8());
 
 }
 
