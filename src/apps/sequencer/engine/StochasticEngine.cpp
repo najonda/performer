@@ -503,17 +503,14 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
         int rnd = 0;
         if (sequence.lengthModifier()!= 0) {
-            srand((unsigned int)time(NULL));
-            int bound = 0;
-            if (sequence.lengthModifier()>0) {
-                bound = StochasticSequence::NoteVariationProbability::Range;
+            std::random_device r;
+            int mean = sequence.lengthModifier();
+            std::seed_seq seed2{r(), r(), r(), r(), r(), r(), r(), r()};
+            std::mt19937 e2(seed2);
+            std::normal_distribution<> normal_dist(mean, 2);
 
-                rnd = sequence.lengthModifier() +  std::rand() % ( (bound) - sequence.lengthModifier() + 1 );
-            } else {
-                bound = -StochasticSequence::NoteVariationProbability::Range;
-
-                rnd = bound +  std::rand() % ( (sequence.lengthModifier()) - bound + 1 );
-            }
+            rnd = std::round(normal_dist(e2));
+            std::cerr << rnd << "\n";
             
         }
 
