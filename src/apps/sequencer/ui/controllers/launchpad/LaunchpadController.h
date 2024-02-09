@@ -102,6 +102,7 @@ private:
     void sequenceSetFirstStep(int step);
     void sequenceSetLastStep(int step);
     void sequenceSetRunMode(int mode);
+    void sequenceSetRests(Button btton);
     void sequenceSetFollowMode(int col);
     void sequenceToggleStep(int row, int col);
     void sequenceToggleNoteStep(int row, int col);
@@ -164,6 +165,21 @@ private:
     void drawStochasticSequenceBars(const StochasticSequence &sequence, StochasticSequence::Layer layer, int currentStep);
     void drawStochasticSequenceNotes(const StochasticSequence &sequence, StochasticSequence::Layer layer, int currentStep);
     void drawStochasticSequenceDots(const StochasticSequence &sequence, StochasticSequence::Layer layer, int currentStep);
+
+
+    void drawBar(int row, int amount) {
+        for (int i = 0; i < 8; ++i) {
+            int p = amount;
+            if (i<p) {
+                setGridLed(row, i, colorYellow());    
+            } else if (i==p) {
+                setGridLed(row, i, colorGreen());
+            } else {
+                setGridLed(row, i, colorOff());
+            }
+        
+        } 
+    }
 
     void followModeAction(int currentStep, int);
     void drawBar(int row, int value, bool active, bool current);

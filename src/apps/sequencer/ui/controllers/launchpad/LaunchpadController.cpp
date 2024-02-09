@@ -340,7 +340,7 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
             }
         } else if (buttonState<RunMode>()) {
             if (button.isGrid()) {
-                sequenceSetRunMode(button.gridIndex());
+                sequenceSetRests(button);
             }
         } else if (buttonState<FollowMode>()) {
             if (button.isGrid()) {
@@ -748,6 +748,26 @@ void LaunchpadController::sequenceSetRunMode(int mode) {
     }
 }
 
+void LaunchpadController::sequenceSetRests(Button button) {
+
+    int i = button.gridIndex();
+
+    if (button.row == 0) {
+        _project.selectedStochasticSequence().setRestProbability(button.gridIndex());
+    }
+    if (button.row == 1) {
+        _project.selectedStochasticSequence().setRestProbability2(button.gridIndex()%8);
+    }
+    if (button.row == 2) {
+        _project.selectedStochasticSequence().setRestProbability4(button.gridIndex()%16);
+    }
+    if (button.row == 3) {
+        _project.selectedStochasticSequence().setRestProbability8(button.gridIndex()%24);
+    }
+    
+
+}
+
 void LaunchpadController::sequenceSetFollowMode(int col) {
     switch (_project.selectedTrack().trackMode()) {
     case Track::TrackMode::Note:
@@ -922,7 +942,13 @@ void LaunchpadController::sequenceDrawStepRange(int highlight) {
 
 void LaunchpadController::stochasticDrawRestProbability() {
     const auto &sequence = _project.selectedStochasticSequence();
-    drawRange(0, sequence.restProbability(), false);
+
+
+    drawBar(0, sequence.restProbability());
+    drawBar(1, sequence.restProbability2());
+    drawBar(2, sequence.restProbability4());
+    drawBar(3, sequence.restProbability8());
+
 }
 
 void LaunchpadController::sequenceDrawRunMode() {

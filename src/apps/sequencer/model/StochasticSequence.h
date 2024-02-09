@@ -460,6 +460,8 @@ public:
         _lastStep.set(index, false);
     }
 
+    // rest probability 1 step
+
     int restProbability() const { return _restProbability.get(isRouted(Routing::Target::RestProbability)); }
     void setRestProbability(int restProbability, bool routed = false) {
         _restProbability.set(clamp(restProbability, 0, 8), routed);
@@ -474,6 +476,201 @@ public:
     void printRestProbability(StringBuilder &str) const {
         printRouted(str, Routing::Target::RestProbability);
         str("%+.1f%%", restProbability() * 12.5f);
+    }
+
+    // rest probability 2 steps
+
+    int restProbability2() const { return _restProbability2.get(isRouted(Routing::Target::RestProbability2)); }
+    void setRestProbability2(int restProbability, bool routed = false) {
+        _restProbability2.set(clamp(restProbability, 0, 8), routed);
+    }
+
+    void editRestProbability2(int value, bool shift) {
+        if (!isRouted(Routing::Target::RestProbability)) {
+            setRestProbability2(restProbability2() + value);
+        }
+    }
+
+    void printRestProbability2(StringBuilder &str) const {
+        printRouted(str, Routing::Target::RestProbability2);
+        str("%+.1f%%", restProbability2() * 12.5f);
+    }
+
+    // rest probability 4 steps
+
+    int restProbability4() const { return _restProbability4.get(isRouted(Routing::Target::RestProbability4)); }
+    void setRestProbability4(int restProbability, bool routed = false) {
+        _restProbability4.set(clamp(restProbability, 0, 8), routed);
+    }
+
+    void editRestProbability4(int value, bool shift) {
+        if (!isRouted(Routing::Target::RestProbability)) {
+            setRestProbability4(restProbability4() + value);
+        }
+    }
+
+    void printRestProbability4(StringBuilder &str) const {
+        printRouted(str, Routing::Target::RestProbability4);
+        str("%+.1f%%", restProbability4() * 12.5f);
+    }
+
+    // rest probability 8 steps
+
+    int restProbability8() const { return _restProbability8.get(isRouted(Routing::Target::RestProbability8)); }
+    void setRestProbability8(int restProbability, bool routed = false) {
+        _restProbability8.set(clamp(restProbability, 0, 8), routed);
+    }
+
+    void editRestProbability8(int value, bool shift) {
+        if (!isRouted(Routing::Target::RestProbability)) {
+            setRestProbability8(restProbability8() + value);
+        }
+    }
+
+    void printRestProbability8(StringBuilder &str) const {
+        printRouted(str, Routing::Target::RestProbability8);
+        str("%+.1f%%", restProbability8() * 12.5f);
+    }
+
+    // reseed
+
+    int reseed() const {
+        return _reseed.get(isRouted(Routing::Target::Reseed));
+    }
+
+    void setReseed(int r, bool routed = false) {
+        _reseed.set(r, routed);
+    }
+
+    void toggleReseed() {
+        _reseed.set(!reseed(), isRouted(Routing::Target::Reseed));
+    }
+
+    // sequence loop last step
+
+    int sequenceLastStep() const {
+        return std::max(sequenceFirstStep(), int(_sequenceLastStep.get(isRouted(Routing::Target::SequenceLastStep))));
+    }
+
+    void setSequenceLastStep(int lastStep, bool routed = false) {
+         _sequenceLastStep.set(clamp(lastStep, sequenceFirstStep(), CONFIG_STEP_COUNT - 1), routed);
+    }
+
+    void editSequenceLastStep(int value, bool shift) {
+        if (shift) {
+            offsetSequenceFirstAndLastStep(value);
+        } else if (!isRouted(Routing::Target::SequenceLastStep)) {
+            setSequenceLastStep(sequenceLastStep() + value);
+        }
+    }
+
+    void printSequenceLastStep(StringBuilder &str) const {
+        printRouted(str, Routing::Target::SequenceLastStep);
+        str("%d", sequenceLastStep()+1);
+    }
+
+    // sequence loop first step
+
+     int sequenceFirstStep() const {
+        return _sequenceFirstStep.get(isRouted(Routing::Target::SequenceFirstStep));
+    }
+
+    void setSequenceFirstStep(int firstStep, bool routed = false) {
+        _sequenceFirstStep.set(clamp(firstStep, 0, sequenceLastStep()), routed);
+    }
+
+    void editSequenceFirstStep(int value, bool shift) {
+        if (shift) {
+            offsetSequenceFirstAndLastStep(value);
+        } else if (!isRouted(Routing::Target::FirstStep)) {
+            setSequenceFirstStep(sequenceFirstStep() + value);
+        }
+    }
+
+    void printSequenceFirstStep(StringBuilder &str) const {
+        printRouted(str, Routing::Target::SequenceFirstStep);
+        str("%d", sequenceFirstStep()+1);
+    }
+
+    // sequence length
+
+    int sequenceLength() {
+        return _sequenceLastStep.base - _sequenceFirstStep.base + 1;
+    }
+
+    // buffer loop length
+
+    int bufferLoopLength() {
+        if (_sequenceLastStep.base > 16) {
+            _bufferLoopLength = _sequenceLastStep.base;
+        } else {
+            _bufferLoopLength = 16;
+        }
+        return _bufferLoopLength;
+    }
+
+    // use loop
+
+    void setUseLoop() {
+        _useLoop = !_useLoop;
+    }
+
+    void setUseLoop(bool value) {
+        _useLoop = value;
+    }
+
+    bool useLoop() {
+        return _useLoop;
+    }
+
+    const bool useLoop() const { return _useLoop;}
+
+    // clear loop
+
+    void setClearLoop(bool clearLoop) {
+        _clearLoop = clearLoop;
+    }
+
+    bool clearLoop() {
+        return _clearLoop;
+    }
+
+    const bool clearLoop() const { return _clearLoop; }
+
+    // low octave range
+
+    int lowOctaveRange() const { return _lowOctaveRange.get(isRouted(Routing::Target::LowOctaveRange)); }
+    void setLowOctaveRange(int octave, bool routed = false) {
+        _lowOctaveRange.set(clamp(octave, -10, highOctaveRange()), routed);
+    }
+
+    void editLowOctaveRange(int value, bool shift) {
+        if (!isRouted(Routing::Target::Octave)) {
+            setLowOctaveRange(lowOctaveRange() + value);
+        }
+    }
+
+    void printLowOctaveRange(StringBuilder &str) const {
+        printRouted(str, Routing::Target::LowOctaveRange);
+        str("%+d", lowOctaveRange());
+    }
+
+    // high octave range
+
+    int highOctaveRange() const { return _highOctaveRange.get(isRouted(Routing::Target::HighOctaveRange)); }
+    void setHighOctaveRange(int octave, bool routed = false) {
+        _highOctaveRange.set(clamp(octave, lowOctaveRange(), 10), routed);
+    }
+
+    void editHighOctaveRange(int value, bool shift) {
+        if (!isRouted(Routing::Target::Octave)) {
+            setHighOctaveRange(highOctaveRange() + value);
+        }
+    }
+
+    void printHighOctaveRange(StringBuilder &str) const {
+        printRouted(str, Routing::Target::HighOctaveRange);
+        str("%+d", highOctaveRange());
     }
 
     // steps
@@ -513,132 +710,6 @@ public:
     void write(VersionedSerializedWriter &writer) const;
     void read(VersionedSerializedReader &reader);
 
-    int reseed() const {
-        return _reseed.get(isRouted(Routing::Target::Reseed));
-    }
-
-    void setReseed(int r, bool routed = false) {
-        _reseed.set(r, routed);
-    }
-
-    void toggleReseed() {
-        _reseed.set(!reseed(), isRouted(Routing::Target::Reseed));
-    }
-
-    int sequenceLastStep() const {
-        return std::max(sequenceFirstStep(), int(_sequenceLastStep.get(isRouted(Routing::Target::SequenceLastStep))));
-    }
-
-    void setSequenceLastStep(int lastStep, bool routed = false) {
-         _sequenceLastStep.set(clamp(lastStep, sequenceFirstStep(), CONFIG_STEP_COUNT - 1), routed);
-    }
-
-    void editSequenceLastStep(int value, bool shift) {
-        if (shift) {
-            offsetSequenceFirstAndLastStep(value);
-        } else if (!isRouted(Routing::Target::SequenceLastStep)) {
-            setSequenceLastStep(sequenceLastStep() + value);
-        }
-    }
-
-    void printSequenceLastStep(StringBuilder &str) const {
-        printRouted(str, Routing::Target::SequenceLastStep);
-        str("%d", sequenceLastStep()+1);
-    }
-
-     int sequenceFirstStep() const {
-        return _sequenceFirstStep.get(isRouted(Routing::Target::SequenceFirstStep));
-    }
-
-    void setSequenceFirstStep(int firstStep, bool routed = false) {
-        _sequenceFirstStep.set(clamp(firstStep, 0, sequenceLastStep()), routed);
-    }
-
-    void editSequenceFirstStep(int value, bool shift) {
-        if (shift) {
-            offsetSequenceFirstAndLastStep(value);
-        } else if (!isRouted(Routing::Target::FirstStep)) {
-            setSequenceFirstStep(sequenceFirstStep() + value);
-        }
-    }
-
-    void printSequenceFirstStep(StringBuilder &str) const {
-        printRouted(str, Routing::Target::SequenceFirstStep);
-        str("%d", sequenceFirstStep()+1);
-    }
-
-    int sequenceLength() {
-        return _sequenceLastStep.base - _sequenceFirstStep.base + 1;
-    }
-
-    int bufferLoopLength() {
-        if (_sequenceLastStep.base > 16) {
-            _bufferLoopLength = _sequenceLastStep.base;
-        } else {
-            _bufferLoopLength = 16;
-        }
-        return _bufferLoopLength;
-    }
-
-    void setUseLoop() {
-        _useLoop = !_useLoop;
-    }
-
-    void setUseLoop(bool value) {
-        _useLoop = value;
-    }
-
-    bool useLoop() {
-        return _useLoop;
-    }
-
-    const bool useLoop() const { return _useLoop;}
-
-    void setClearLoop(bool clearLoop) {
-        _clearLoop = clearLoop;
-    }
-
-    bool clearLoop() {
-        return _clearLoop;
-    }
-
-    const bool clearLoop() const { return _clearLoop; }
-
-    int lowOctaveRange() const { return _lowOctaveRange.get(isRouted(Routing::Target::LowOctaveRange)); }
-    void setLowOctaveRange(int octave, bool routed = false) {
-        _lowOctaveRange.set(clamp(octave, -10, highOctaveRange()), routed);
-    }
-
-    void editLowOctaveRange(int value, bool shift) {
-        if (!isRouted(Routing::Target::Octave)) {
-            setLowOctaveRange(lowOctaveRange() + value);
-        }
-    }
-
-    void printLowOctaveRange(StringBuilder &str) const {
-        printRouted(str, Routing::Target::LowOctaveRange);
-        str("%+d", lowOctaveRange());
-    }
-
-
-    int highOctaveRange() const { return _highOctaveRange.get(isRouted(Routing::Target::HighOctaveRange)); }
-    void setHighOctaveRange(int octave, bool routed = false) {
-        _highOctaveRange.set(clamp(octave, lowOctaveRange(), 10), routed);
-    }
-
-    void editHighOctaveRange(int value, bool shift) {
-        if (!isRouted(Routing::Target::Octave)) {
-            setHighOctaveRange(highOctaveRange() + value);
-        }
-    }
-
-    void printHighOctaveRange(StringBuilder &str) const {
-        printRouted(str, Routing::Target::HighOctaveRange);
-        str("%+d", highOctaveRange());
-    }
-
-
-
 private:
     void setTrackIndex(int trackIndex) { _trackIndex = trackIndex; }
 
@@ -673,7 +744,12 @@ private:
     Routable<uint8_t> _firstStep;
     Routable<uint8_t> _lastStep;
     Routable<uint8_t> _reseed;
+
     Routable<int8_t> _restProbability;
+    Routable<int8_t> _restProbability2;
+    Routable<int8_t> _restProbability4;
+    Routable<int8_t> _restProbability8;
+
     Routable<uint8_t> _sequenceLastStep;
     Routable<uint8_t> _sequenceFirstStep;
 

@@ -118,6 +118,8 @@ public:
     void setMonitorStep(int index);
 
     int getNextWeightedPitch(std::vector<StochasticStep> distr, bool reseed = false, int notesPerOctave = 12);
+    int evalRestProbability(StochasticSequence sequence);
+
 
 private:
     void triggerStep(uint32_t tick, uint32_t divisor, bool nextStep);

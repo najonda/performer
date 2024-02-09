@@ -16,6 +16,9 @@ public:
         Scale,
         RootNote,
         RestProbability,
+        RestProbability2,
+        RestProbability4,
+        RestProbability8,
         SequenceFirstStep,
         SequenceLastStep,
         LowOctaveRange,
@@ -87,6 +90,12 @@ public:
             return Routing::Target::RootNote;
         case RestProbability:
             return Routing::Target::RestProbability;
+        case RestProbability2:
+            return Routing::Target::RestProbability2;
+        case RestProbability4:
+            return Routing::Target::RestProbability4;
+        case RestProbability8:
+            return Routing::Target::RestProbability8;
         case SequenceFirstStep:
             return Routing::Target::SequenceFirstStep;
         case SequenceLastStep:
@@ -115,7 +124,10 @@ private:
         case ResetMeasure:      return "Reset Measure";
         case Scale:             return "Scale";
         case RootNote:          return "Root Note";
-        case RestProbability:   return "Rest Prob.";
+        case RestProbability:   return "Rest Prob. 1";
+        case RestProbability2:  return "Rest Prob. 2";
+        case RestProbability4:  return "Rest Prob. 4";
+        case RestProbability8:  return "Rest Prob. 8";
         case SequenceFirstStep: return "Seq First Step";
         case SequenceLastStep:  return "Seq Last Step";
         case LowOctaveRange:    return "L Oct Range";
@@ -156,6 +168,15 @@ private:
             break;
         case RestProbability:
             _sequence->printRestProbability(str);
+            break;
+        case RestProbability2:
+            _sequence->printRestProbability2(str);
+            break;
+        case RestProbability4:
+            _sequence->printRestProbability4(str);
+            break;
+         case RestProbability8:
+            _sequence->printRestProbability8(str);
             break;
         case SequenceFirstStep:
             _sequence->printSequenceFirstStep(str);
@@ -200,6 +221,15 @@ private:
         case RestProbability:
             _sequence->editRestProbability(value, shift);
             break;
+        case RestProbability2:
+            _sequence->editRestProbability2(value, shift);
+            break;
+        case RestProbability4:
+            _sequence->editRestProbability4(value, shift);
+            break;
+        case RestProbability8:
+            _sequence->editRestProbability8(value, shift);
+            break;
         case SequenceFirstStep:
             _sequence->editSequenceFirstStep(value, shift);
             break;
@@ -232,6 +262,9 @@ private:
         case RootNote:
             return 12 + 1;
         case RestProbability:
+        case RestProbability2:
+        case RestProbability4:
+        case RestProbability8:
         case LowOctaveRange:
         case HighOctaveRange:
             return 0;
@@ -255,6 +288,12 @@ private:
             return _sequence->indexedRootNote();
         case RestProbability:
             return _sequence->restProbability();
+        case RestProbability2:
+            return _sequence->restProbability2();
+        case RestProbability4:
+            return _sequence->restProbability4();
+        case RestProbability8:
+            return _sequence->restProbability8();
         case SequenceFirstStep:
             return _sequence->sequenceFirstStep();
         case SequenceLastStep:
@@ -283,6 +322,12 @@ private:
             return _sequence->setIndexedRootNote(index);
         case RestProbability:
             return _sequence->setRestProbability(index);
+        case RestProbability2:
+            return _sequence->setRestProbability2(index);
+        case RestProbability4:
+            return _sequence->setRestProbability4(index);
+        case RestProbability8:
+            return _sequence->setRestProbability8(index);
         case SequenceFirstStep:
             return _sequence->setSequenceFirstStep(index);
         case SequenceLastStep:

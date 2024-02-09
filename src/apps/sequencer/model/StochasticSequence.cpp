@@ -241,6 +241,15 @@ void StochasticSequence::writeRouted(Routing::Target target, int intValue, float
     case Routing::Target::RestProbability:
         setRestProbability(intValue, true);
         break;
+    case Routing::Target::RestProbability2:
+        setRestProbability2(intValue, true);
+        break;
+    case Routing::Target::RestProbability4:
+        setRestProbability4(intValue, true);
+        break;
+    case Routing::Target::RestProbability8:
+        setRestProbability8(intValue, true);
+        break;
     case Routing::Target::SequenceFirstStep:
         setSequenceFirstStep(intValue, true);
         break;

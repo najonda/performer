@@ -22,6 +22,10 @@
 
 static Random rng;
 
+bool sortTaskByProbRev(const StochasticStep& lhs, const StochasticStep& rhs) {
+    return lhs.probability() > rhs.probability();
+}
+
 // evaluate if step gate is active
 static bool evalStepGate(const StochasticSequence::Step &step, int probabilityBias) {
     int probability = clamp(step.gateProbability() + probabilityBias, -1, StochasticSequence::GateProbability::Max);
@@ -29,11 +33,59 @@ static bool evalStepGate(const StochasticSequence::Step &step, int probabilityBi
 }
 
 // evaluate if step gate is active
-static bool evalRestProbability(int restProbability) {
-    if (restProbability == 0) {
-        return false;
+ int StochasticEngine::evalRestProbability(StochasticSequence sequence) {
+    int sum = 0;
+    std::vector<StochasticStep> probability;
+    for (int i = 0; i < 5; i++) {
+
+        switch (i) {
+            case 0: {
+                int prob = 100 - sequence.restProbability() - sequence.restProbability2();
+                if (prob < 0) {
+                    prob = 0;
+                }
+                probability.insert(probability.end(), StochasticStep(i, clamp(prob, -1, StochasticSequence::NoteVariationProbability::Max)));
+
+            }
+                break;
+            case 1: {
+                probability.insert(probability.end(), StochasticStep(i, clamp(sequence.restProbability(), 0, StochasticSequence::NoteVariationProbability::Max)));
+                break;
+            }
+            case 2: {
+                probability.insert(probability.end(), StochasticStep(i, clamp(sequence.restProbability2(), 0, StochasticSequence::NoteVariationProbability::Max)));
+                break;
+            }
+            case 3: {
+                probability.insert(probability.end(), StochasticStep(i, clamp(sequence.restProbability4(), 0, StochasticSequence::NoteVariationProbability::Max)));
+                break;
+            }
+            case 4: {
+                probability.insert(probability.end(), StochasticStep(i, clamp(sequence.restProbability8(), 0, StochasticSequence::NoteVariationProbability::Max)));
+                break;
+            }
+            default:
+                break;
+        }
+
+        sum = sum + probability.at(i).probability();
     }
-    return int(rng.nextRange(8)) <= restProbability;
+    if (sum==0) { return -1;}
+    std::sort (std::begin(probability), std::end(probability), sortTaskByProbRev);
+    int stepIndex = getNextWeightedPitch(probability, 0, probability.size());
+    switch (stepIndex) {
+        case 0:
+            return -1;
+        case 1:
+            return 1;
+        case 2:
+            return 2;
+        case 3:
+            return 4;
+        case 4:
+            return 8;
+    }
+    return -1;
 }
 
 // evaluate step condition
@@ -321,14 +373,12 @@ void StochasticEngine::setMonitorStep(int index) {
 }
 
 
-bool sortTaskByProbRev(const StochasticStep& lhs, const StochasticStep& rhs) {
-    return lhs.probability() > rhs.probability();
-}
-
 std::vector<StochasticLoopStep> inMemSteps;
 std::vector<StochasticLoopStep> lockedSteps;
 
 bool start = 0;
+
+int skips = 0;
 
 void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextStep) {
     int octave = _stochasticTrack.octave();
@@ -367,9 +417,19 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
     // fill in memory step when sequence is running or when the in memory loop is not full filled
     if (!sequence.useLoop() || (sequence.useLoop() && int(inMemSteps.size()) < sequence.bufferLoopLength())) { 
-        if (evalRestProbability(sequence.restProbability())) {
+        /*if (evalRestProbability(sequence.restProbability())) {
             inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(-1, false, step, 0, 0, 0));
             return;
+        }*/
+
+        if (skips != 0) {
+            skips--;
+            return;
+        }
+        int rest = evalRestProbability(sequence);
+        if (rest != -1) {
+            inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(-1, false, step, 0, 0, 0));
+            skips = rest;
         }
 
         std::vector<StochasticStep> probability;
@@ -525,7 +585,9 @@ int StochasticEngine::getNextWeightedPitch(std::vector<StochasticStep> distr, bo
         }
 
 
-        srand((unsigned int)time(NULL));
+        if (reseed) { 
+            srand((unsigned int)time(NULL));
+        }
         int rnd = 1 + ( std::rand() % ( (total_weights) - 1 + 1 ) );
 
         for(int i = 0; i < notesPerOctave; i++) {
