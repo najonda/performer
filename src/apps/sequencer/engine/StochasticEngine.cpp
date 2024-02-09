@@ -356,6 +356,15 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     uint32_t stepLength = 0;
     int stepRetrigger = 0;
 
+    if (sequence.reseed()) {
+
+        srand((unsigned int)time(NULL));
+        int rnd = -StochasticSequence::NoteVariationProbability::Range + ( std::rand() % ( (StochasticSequence::NoteVariationProbability::Range) - (-StochasticSequence::NoteVariationProbability::Range)) + 1 );
+
+        _stochasticTrack.setNoteProbabilityBias(rnd);
+        sequence.setReseed(false);
+    }
+
     // fill in memory step when sequence is running or when the in memory loop is not full filled
     if (!sequence.useLoop() || (sequence.useLoop() && int(inMemSteps.size()) < sequence.bufferLoopLength())) { 
         if (evalRestProbability(sequence.restProbability())) {
@@ -515,10 +524,8 @@ int StochasticEngine::getNextWeightedPitch(std::vector<StochasticStep> distr, bo
             total_weights += distr.at(i % notesPerOctave).probability();
         }
 
-        if (reseed) {
-            srand((unsigned int)time(NULL));
-            _sequence->setReseed(0, false);
-        }
+
+        srand((unsigned int)time(NULL));
         int rnd = 1 + ( std::rand() % ( (total_weights) - 1 + 1 ) );
 
         for(int i = 0; i < notesPerOctave; i++) {
