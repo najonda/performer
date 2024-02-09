@@ -1016,8 +1016,6 @@ void LaunchpadController::sequenceDrawStochasticSequence() {
         drawStochasticSequenceBits(sequence, layer, currentStep);
         break;
     case StochasticSequence::Layer::NoteVariationProbability:
-            _sequence.navigation.col = 0;
-            _sequence.navigation.row = 3;
         drawStochasticSequenceNotes(sequence, layer, currentStep);
         break;
     case StochasticSequence::Layer::Condition:
