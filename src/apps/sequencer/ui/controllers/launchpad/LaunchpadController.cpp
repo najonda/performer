@@ -746,17 +746,37 @@ void LaunchpadController::sequenceSetRunMode(int mode) {
 }
 
 void LaunchpadController::sequenceSetRests(Button button) {
-    if (button.row == 2 || button.row == 3) {
-        _project.selectedStochasticSequence().setRestProbability2(button.gridIndex()%16);
-    }
-    if (button.row == 4 || button.row == 5) {
-        _project.selectedStochasticSequence().setRestProbability4(button.gridIndex()%32);
-    }
-    if (button.row == 6 || button.row == 7) {
-        _project.selectedStochasticSequence().setRestProbability8(button.gridIndex()%48);
-    }
-    
 
+    int val = 0;
+
+    if (button.row % 2 == 0) {
+        if (button.col == 0) {
+            val = 0;
+        } else {
+            val = (button.col /2)+1;
+        }
+    } else {
+        val = (button.col/2) + 5;
+    }
+
+    if (button.row == 2) {
+        _project.selectedStochasticSequence().setRestProbability2(val);
+    }
+    if (button.row == 3) {
+        _project.selectedStochasticSequence().setRestProbability2(val);
+    }
+    if (button.row == 4) {
+        _project.selectedStochasticSequence().setRestProbability4(val);
+    }
+    if (button.row == 5) {
+        _project.selectedStochasticSequence().setRestProbability4(val);
+    }
+    if (button.row == 6) {
+        _project.selectedStochasticSequence().setRestProbability8(val);
+    }
+    if (button.row == 7) {
+        _project.selectedStochasticSequence().setRestProbability8(val);
+    }
 }
 
 void LaunchpadController::sequenceSetFollowMode(int col) {
@@ -934,13 +954,13 @@ void LaunchpadController::sequenceDrawStepRange(int highlight) {
 void LaunchpadController::stochasticDrawRestProbability() {
     const auto &sequence = _project.selectedStochasticSequence();
 
-    drawBar(0, sequence.restProbability());
+    drawBar(0, (sequence.restProbability()*2)-1);
 
-    drawBar(2, sequence.restProbability2());
+    drawBar(2, (sequence.restProbability2()*2)-1);
 
-    drawBar(4, sequence.restProbability4());
+    drawBar(4, (sequence.restProbability4()*2-1));
     
-    drawBar(6, sequence.restProbability8());
+    drawBar(6, (sequence.restProbability8()*2)-1);
 
 }
 
