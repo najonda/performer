@@ -500,6 +500,25 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         int rootNote = evalSequence.selectedRootNote(_model.project().rootNote());
         noteValue = evalStepNote(step, _stochasticTrack.noteProbabilityBias(), scale, rootNote, octave, transpose, sequence);
         stepLength = (divisor * evalStepLength(step, _stochasticTrack.lengthBias())) / StochasticSequence::Length::Range;
+
+        int rnd = 0;
+        if (sequence.lengthModifier()!= 0) {
+            srand((unsigned int)time(NULL));
+            int bound = 0;
+            if (sequence.lengthModifier()>0) {
+                bound = StochasticSequence::NoteVariationProbability::Range;
+
+                rnd = sequence.lengthModifier() +  std::rand() % ( (bound) - sequence.lengthModifier() + 1 );
+            } else {
+                bound = -StochasticSequence::NoteVariationProbability::Range;
+
+                rnd = bound +  std::rand() % ( (sequence.lengthModifier()) - bound + 1 );
+            }
+            
+        }
+
+
+        stepLength = stepLength + rnd;
         stepRetrigger = evalStepRetrigger(step, _stochasticTrack.retriggerProbabilityBias());
         if (int(inMemSteps.size()) < sequence.bufferLoopLength()) {
             inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(stepIndex, stepGate, step, noteValue, stepLength, stepRetrigger));
@@ -545,8 +564,8 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     if (stepGate) {
         sequence.setStepBounds(stepIndex);
         
-        stepLength = (divisor * evalStepLength(step, _stochasticTrack.lengthBias())) / StochasticSequence::Length::Range;
-        stepRetrigger = evalStepRetrigger(step, _stochasticTrack.retriggerProbabilityBias());
+        //stepLength = (divisor * evalStepLength(step, _stochasticTrack.lengthBias())) / StochasticSequence::Length::Range;
+        //stepRetrigger = evalStepRetrigger(step, _stochasticTrack.retriggerProbabilityBias());
         if (stepRetrigger > 1) {
             uint32_t retriggerLength = divisor / stepRetrigger;
             uint32_t retriggerOffset = 0;

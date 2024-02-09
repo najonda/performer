@@ -22,6 +22,7 @@ public:
         SequenceLastStep,
         LowOctaveRange,
         HighOctaveRange,
+        LengthModifier,
         Last
     };
 
@@ -101,6 +102,8 @@ public:
             return Routing::Target::LowOctaveRange;
         case HighOctaveRange:
             return Routing::Target::HighOctaveRange;
+        case LengthModifier:
+            return Routing::Target::LengthModifier;
         default:
             return Routing::Target::None;
         }
@@ -128,6 +131,7 @@ private:
         case SequenceLastStep:  return "Seq Last Step";
         case LowOctaveRange:    return "L Oct Range";
         case HighOctaveRange:   return "H Oct Range";
+        case LengthModifier:    return "Length Mod";
         case Last:              break;
         }
         return nullptr;
@@ -183,6 +187,9 @@ private:
         case HighOctaveRange:
             _sequence->printHighOctaveRange(str);
             break;
+        case LengthModifier:
+            _sequence->printLengthModifier(str);
+            break;
         case Last:
             break;
         }
@@ -232,6 +239,9 @@ private:
         case HighOctaveRange:
             _sequence->editHighOctaveRange(value, shift);
             break;
+        case LengthModifier:
+            _sequence->editLengthModifier(value, shift);
+            break;
         case Last:
             break;
         }
@@ -256,6 +266,7 @@ private:
         case RestProbability8:
         case LowOctaveRange:
         case HighOctaveRange:
+        case LengthModifier:
             return 0;
         case Last:
             break;
@@ -289,6 +300,8 @@ private:
             return _sequence->lowOctaveRange();
         case HighOctaveRange:
             return _sequence->highOctaveRange();
+        case LengthModifier:
+            return _sequence->lengthModifier();
         case Last:
             break;
         }
@@ -321,6 +334,8 @@ private:
             return _sequence->setLowOctaveRange(index);
         case HighOctaveRange:
             return _sequence->setHighOctaveRange(index);
+        case LengthModifier:
+            return _sequence->setLengthModifier(index);
         case Last:
             break;
         }

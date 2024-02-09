@@ -318,13 +318,14 @@ static const TargetInfo targetInfos[int(Routing::Target::Last)] = {
     [int(Routing::Target::RootNote)]                        = { 0,      11,     0,      11,     1       },
     [int(Routing::Target::Reseed)]                          = { 0,      1,      0,      1,      1       },
     [int(Routing::Target::RestProbability)]                 = { -8,     8,      -8,     8,      8       },
-    [int(Routing::Target::RestProbability2)]                 = { -8,     8,      -8,     8,      8      },
-    [int(Routing::Target::RestProbability4)]                 = { -8,     8,      -8,     8,      8      },
-    [int(Routing::Target::RestProbability8)]                 = { -8,     8,      -8,     8,      8      },
+    [int(Routing::Target::RestProbability2)]                = { -8,     8,      -8,     8,      8       },
+    [int(Routing::Target::RestProbability4)]                = { -8,     8,      -8,     8,      8       },
+    [int(Routing::Target::RestProbability8)]                = { -8,     8,      -8,     8,      8       },
     [int(Routing::Target::SequenceFirstStep)]               = { 0,      63,     1,      63,     16      },
     [int(Routing::Target::SequenceLastStep)]                = { 0,      63,     0,      63,     16      },
     [int(Routing::Target::LowOctaveRange)]                  = {-10,     10,     -1,     1,      1       },
-    [int(Routing::Target::HighOctaveRange)]                  = {-10,     10,     -1,     1,      1      },
+    [int(Routing::Target::HighOctaveRange)]                 = {-10,     10,     -1,     1,      1       },
+    [int(Routing::Target::LengthModifier)]                  = { -8,     8,      -8,     8,      8       },
 };
 
 float Routing::normalizeTargetValue(Routing::Target target, float value) {
@@ -383,6 +384,7 @@ void Routing::printTargetValue(Routing::Target target, float normalized, StringB
     case Target::RestProbability8:
     case Target::SequenceFirstStep:
     case Target::SequenceLastStep:
+    case Target::LengthModifier:
         str("%+.1f%%", value * 12.5f);
         break;
     case Target::Divisor:

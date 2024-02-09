@@ -81,7 +81,8 @@ public:
         SequenceLastStep,
         LowOctaveRange,
         HighOctaveRange,
-        SequenceLast = HighOctaveRange,
+        LengthModifier,
+        SequenceLast = LengthModifier,
 
         Last,
     };
@@ -132,6 +133,8 @@ public:
         case Target::LowOctaveRange:            return "L Oct Range";
         case Target::HighOctaveRange:           return "H Oct Range";
 
+        case Target::LengthModifier:            return "Length Mod";
+
         case Target::Last:                      break;
         }
         return nullptr;
@@ -179,10 +182,10 @@ public:
         case Target::SequenceLastStep:          return 31;
         case Target::LowOctaveRange:            return 32;
         case Target::HighOctaveRange:           return 33;
-        case Target::RestProbability2:           return 34;
-        case Target::RestProbability4:           return 35;
-        case Target::RestProbability8:           return 36;
-        
+        case Target::RestProbability2:          return 34;
+        case Target::RestProbability4:          return 35;
+        case Target::RestProbability8:          return 36;
+        case Target::LengthModifier:            return 37;        
 
         case Target::Last:                      break;
         }

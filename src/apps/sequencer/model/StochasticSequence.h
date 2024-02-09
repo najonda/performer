@@ -540,7 +540,7 @@ public:
 
     // reseed
 
-    int reseed() const {
+    bool reseed() const {
         return _reseed.get(isRouted(Routing::Target::Reseed));
     }
 
@@ -679,6 +679,24 @@ public:
         str("%+d", highOctaveRange());
     }
 
+    // length modifier
+
+    int lengthModifier() const { return _lengthModifier.get(isRouted(Routing::Target::LengthModifier)); }
+    void setLengthModifier(int length, bool routed = false) {
+        _lengthModifier.set(clamp(length, -StochasticSequence::NoteVariationProbability::Range, StochasticSequence::NoteVariationProbability::Range), routed);
+    }
+
+    void editLengthModifier(int value, bool shift) {
+        if (!isRouted(Routing::Target::LengthModifier)) {
+            setLengthModifier(lengthModifier() + value);
+        }
+    }
+
+    void printLengthModifier(StringBuilder &str) const {
+        printRouted(str, Routing::Target::LengthModifier);
+        str("%+.1f%%", lengthModifier() * 12.5f);
+    }
+
     // steps
 
     const StepArray &steps() const { return _steps; }
@@ -749,7 +767,7 @@ private:
     Routable<Types::RunMode> _runMode;
     Routable<uint8_t> _firstStep;
     Routable<uint8_t> _lastStep;
-    Routable<uint8_t> _reseed;
+    Routable<bool> _reseed;
 
     Routable<int8_t> _restProbability;
     Routable<int8_t> _restProbability2;
@@ -762,12 +780,12 @@ private:
     Routable<int8_t> _lowOctaveRange;
     Routable<int8_t> _highOctaveRange;
 
-    int _bufferLoopLength = 16;
-    
+    Routable<int8_t> _lengthModifier;
+
+    uint8_t _bufferLoopLength = 16;
     
     StepArray _steps;
 
-    uint8_t _edited;
     bool _useLoop = false;
     bool _clearLoop = false;
 

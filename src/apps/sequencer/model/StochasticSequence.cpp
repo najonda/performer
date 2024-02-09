@@ -262,6 +262,9 @@ void StochasticSequence::writeRouted(Routing::Target target, int intValue, float
     case Routing::Target::HighOctaveRange:
         setHighOctaveRange(intValue, true);
         break;
+    case Routing::Target::LengthModifier:
+        setLengthModifier(intValue, true);
+        break;
     default:
         break;
     }
@@ -278,6 +281,10 @@ void StochasticSequence::clear() {
     setRestProbability(0);
     setSequenceFirstStep(0);
     setSequenceLastStep(15);
+    setLengthModifier(0);
+    setRestProbability2(0);
+    setRestProbability4(0);
+    setRestProbability8(0);
 
     clearSteps();
 }
@@ -347,6 +354,7 @@ void StochasticSequence::write(VersionedSerializedWriter &writer) const {
     writer.write(_restProbability2);  
     writer.write(_restProbability4);
     writer.write(_restProbability8);
+    writer.write(_lengthModifier);
 
     writeArray(writer, _steps);
 }
@@ -367,6 +375,7 @@ void StochasticSequence::read(VersionedSerializedReader &reader) {
     reader.read(_restProbability2, ProjectVersion::Version36);  
     reader.read(_restProbability4, ProjectVersion::Version36);
     reader.read(_restProbability8, ProjectVersion::Version36);
+    reader.read(_lengthModifier, ProjectVersion::Version36);
 
 
     readArray(reader, _steps);
