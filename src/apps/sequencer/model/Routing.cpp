@@ -317,7 +317,6 @@ static const TargetInfo targetInfos[int(Routing::Target::Last)] = {
     [int(Routing::Target::Scale)]                           = { 0,      23,     0,      23,     1       },
     [int(Routing::Target::RootNote)]                        = { 0,      11,     0,      11,     1       },
     [int(Routing::Target::Reseed)]                          = { 0,      1,      0,      1,      1       },
-    [int(Routing::Target::RestProbability)]                 = { -8,     8,      -8,     8,      8       },
     [int(Routing::Target::RestProbability2)]                = { -8,     8,      -8,     8,      8       },
     [int(Routing::Target::RestProbability4)]                = { -8,     8,      -8,     8,      8       },
     [int(Routing::Target::RestProbability8)]                = { -8,     8,      -8,     8,      8       },
@@ -378,7 +377,6 @@ void Routing::printTargetValue(Routing::Target target, float normalized, StringB
     case Target::LengthBias:
     case Target::NoteProbabilityBias:
     case Target::ShapeProbabilityBias:
-    case Target::RestProbability:
     case Target::RestProbability2:
     case Target::RestProbability4:
     case Target::RestProbability8:

@@ -73,7 +73,6 @@ public:
         Scale,
         RootNote,
         Reseed,
-        RestProbability,
         RestProbability2,
         RestProbability4,
         RestProbability8,
@@ -123,7 +122,6 @@ public:
         case Target::Scale:                     return "Scale";
         case Target::RootNote:                  return "Root Note";
         case Target::Reseed:                    return "Reseed";
-        case Target::RestProbability:           return "Rest Prob. 1";
         case Target::RestProbability2:          return "Rest Prob. 2";
         case Target::RestProbability4:          return "Rest Prob. 4";
         case Target::RestProbability8:          return "Rest Prob. 8";
@@ -177,7 +175,6 @@ public:
         case Target::PlayToggle:                return 26;
         case Target::RecordToggle:              return 27;
         case Target::Reseed:                    return 28;
-        case Target::RestProbability:           return 29;
         case Target::SequenceFirstStep:         return 30;
         case Target::SequenceLastStep:          return 31;
         case Target::LowOctaveRange:            return 32;

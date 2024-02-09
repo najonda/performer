@@ -238,9 +238,6 @@ void StochasticSequence::writeRouted(Routing::Target target, int intValue, float
     case Routing::Target::Reseed:
         setReseed(intValue, true);
         break;
-    case Routing::Target::RestProbability:
-        setRestProbability(intValue, true);
-        break;
     case Routing::Target::RestProbability2:
         setRestProbability2(intValue, true);
         break;
@@ -350,7 +347,6 @@ void StochasticSequence::write(VersionedSerializedWriter &writer) const {
     writer.write(_runMode.base);
     writer.write(_firstStep.base);
     writer.write(_lastStep.base);
-    writer.write(_restProbability);
     writer.write(_restProbability2);  
     writer.write(_restProbability4);
     writer.write(_restProbability8);
@@ -371,7 +367,6 @@ void StochasticSequence::read(VersionedSerializedReader &reader) {
     reader.read(_runMode.base);
     reader.read(_firstStep.base);
     reader.read(_lastStep.base);
-    reader.read(_restProbability, ProjectVersion::Version36);
     reader.read(_restProbability2, ProjectVersion::Version36);  
     reader.read(_restProbability4, ProjectVersion::Version36);
     reader.read(_restProbability8, ProjectVersion::Version36);

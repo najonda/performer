@@ -510,11 +510,8 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
             std::normal_distribution<> normal_dist(mean, 2);
 
             rnd = std::round(normal_dist(e2));
-            std::cerr << rnd << "\n";
             
         }
-
-
         stepLength = stepLength + rnd;
         stepRetrigger = evalStepRetrigger(step, _stochasticTrack.retriggerProbabilityBias());
         if (int(inMemSteps.size()) < sequence.bufferLoopLength()) {

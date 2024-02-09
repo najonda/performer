@@ -469,18 +469,15 @@ public:
         }
         return prob;
     }
-    void setRestProbability(int restProbability, bool routed = false) {
-        _restProbability.set(clamp(restProbability, 0, 8), routed);
+    void setRestProbability(int restProbability) {
+        _restProbability = clamp(restProbability, 0, 8);
     }
 
     void editRestProbability(int value, bool shift) {
-        if (!isRouted(Routing::Target::RestProbability)) {
-            setRestProbability(restProbability() + value);
-        }
+        setRestProbability(restProbability() + value);
     }
 
     void printRestProbability(StringBuilder &str) const {
-        printRouted(str, Routing::Target::RestProbability);
         str("%+.1f%%", restProbability() * 12.5f);
     }
 
@@ -492,7 +489,7 @@ public:
     }
 
     void editRestProbability2(int value, bool shift) {
-        if (!isRouted(Routing::Target::RestProbability)) {
+        if (!isRouted(Routing::Target::RestProbability2)) {
             setRestProbability2(restProbability2() + value);
         }
     }
@@ -510,7 +507,7 @@ public:
     }
 
     void editRestProbability4(int value, bool shift) {
-        if (!isRouted(Routing::Target::RestProbability)) {
+        if (!isRouted(Routing::Target::RestProbability4)) {
             setRestProbability4(restProbability4() + value);
         }
     }
@@ -528,7 +525,7 @@ public:
     }
 
     void editRestProbability8(int value, bool shift) {
-        if (!isRouted(Routing::Target::RestProbability)) {
+        if (!isRouted(Routing::Target::RestProbability8)) {
             setRestProbability8(restProbability8() + value);
         }
     }
@@ -769,7 +766,7 @@ private:
     Routable<uint8_t> _lastStep;
     Routable<bool> _reseed;
 
-    Routable<int8_t> _restProbability;
+    int8_t _restProbability;
     Routable<int8_t> _restProbability2;
     Routable<int8_t> _restProbability4;
     Routable<int8_t> _restProbability8;
