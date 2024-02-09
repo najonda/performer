@@ -49,19 +49,19 @@ static bool evalStepGate(const StochasticSequence::Step &step, int probabilityBi
             }
                 break;
             case 1: {
-                probability.insert(probability.end(), StochasticStep(i, clamp(sequence.restProbability(), 0, StochasticSequence::NoteVariationProbability::Max)));
+                probability.insert(probability.end(), StochasticStep(i, clamp(sequence.restProbability(), -1, StochasticSequence::NoteVariationProbability::Max)));
                 break;
             }
             case 2: {
-                probability.insert(probability.end(), StochasticStep(i, clamp(sequence.restProbability2(), 0, StochasticSequence::NoteVariationProbability::Max)));
+                probability.insert(probability.end(), StochasticStep(i, clamp(sequence.restProbability2(), -1, StochasticSequence::NoteVariationProbability::Max)));
                 break;
             }
             case 3: {
-                probability.insert(probability.end(), StochasticStep(i, clamp(sequence.restProbability4(), 0, StochasticSequence::NoteVariationProbability::Max)));
+                probability.insert(probability.end(), StochasticStep(i, clamp(sequence.restProbability4(), -1, StochasticSequence::NoteVariationProbability::Max)));
                 break;
             }
             case 4: {
-                probability.insert(probability.end(), StochasticStep(i, clamp(sequence.restProbability8(), 0, StochasticSequence::NoteVariationProbability::Max)));
+                probability.insert(probability.end(), StochasticStep(i, clamp(sequence.restProbability8(), -1, StochasticSequence::NoteVariationProbability::Max)));
                 break;
             }
             default:
@@ -428,7 +428,9 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         }
         int rest = evalRestProbability(sequence);
         if (rest != -1) {
-            inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(-1, false, step, 0, 0, 0));
+            for (int i = 0; i< rest; ++i) {
+                inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(-1, false, step, 0, 0, 0));
+            }
             skips = rest;
         }
 
