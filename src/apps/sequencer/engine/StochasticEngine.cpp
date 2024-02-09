@@ -407,11 +407,9 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
     // fill in memory step when sequence is running or when the in memory loop is not full filled
     if (!sequence.useLoop() || (sequence.useLoop() && int(inMemSteps.size()) < sequence.bufferLoopLength())) { 
-        /*if (evalRestProbability(sequence.restProbability())) {
-            inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(-1, false, step, 0, 0, 0));
-            return;
-        }*/
 
+
+        
         if (skips != 0) {
             skips--;
             return;

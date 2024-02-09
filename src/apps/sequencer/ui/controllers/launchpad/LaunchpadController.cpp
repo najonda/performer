@@ -752,9 +752,9 @@ void LaunchpadController::sequenceSetRests(Button button) {
 
     int i = button.gridIndex();
 
-    if (button.row == 0) {
-        _project.selectedStochasticSequence().setRestProbability(button.gridIndex());
-    }
+    //if (button.row == 1) {
+    //    _project.selectedStochasticSequence().setRestProbability(button.gridIndex());
+    //}
     if (button.row == 1) {
         _project.selectedStochasticSequence().setRestProbability2(button.gridIndex()%8);
     }
