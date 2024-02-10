@@ -648,7 +648,7 @@ public:
     }
 
     void editLowOctaveRange(int value, bool shift) {
-        if (!isRouted(Routing::Target::Octave)) {
+        if (!isRouted(Routing::Target::LowOctaveRange)) {
             setLowOctaveRange(lowOctaveRange() + value);
         }
     }
@@ -666,7 +666,7 @@ public:
     }
 
     void editHighOctaveRange(int value, bool shift) {
-        if (!isRouted(Routing::Target::Octave)) {
+        if (!isRouted(Routing::Target::HighOctaveRange)) {
             setHighOctaveRange(highOctaveRange() + value);
         }
     }

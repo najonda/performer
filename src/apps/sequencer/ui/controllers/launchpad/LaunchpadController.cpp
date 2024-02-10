@@ -595,8 +595,8 @@ void LaunchpadController::manageStochasticCircuitKeyboard(const Button &button) 
                 break;
             } else if (button.row >= 0 && button.row <= 2) {
                 auto &sequence = _project.selectedStochasticSequence();
-                int ofs = _sequence.navigation.col * 16;
-                int linearIndex = button.col + ofs + (button.row*8);
+                //int ofs = _sequence.navigation.col * 16;
+                int linearIndex = button.col  + (button.row*8);
 
                 sequence.step(fullSelectedNote).setNoteVariationProbability(linearIndex);
 
@@ -1458,7 +1458,9 @@ void LaunchpadController::navigationButtonDown(Navigation &navigation, const But
             switch (_project.selectedTrack().trackMode()) {
                 case Track::TrackMode::Note: {
                     auto &sequence = _project.selectedNoteSequence();
-                    sequence.setSecion(col);
+                    if (_project.selectedNoteSequenceLayer()==NoteSequence::Layer::Note) {
+                        sequence.setSecion(col);
+                    }
                 }
                 break;
                 default:
