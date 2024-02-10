@@ -12,7 +12,7 @@
 - Launchpad Performance Mode (8+3 -> press two grid buttons to set first step and last step until release them)
 - Submenu shortcuts (double click F[1-5] to enter project, layout, routing, midi out, user scale)
 - Page buttons on launchpad circuit note edit
-- Extend gate Lenght to 4bits @glibersat
+- Extend gate Lenght to 4bits [@glibersat](https://github.com/glibersat)
 - Multi Curve CV Recording (cv curve inoput has been moved in track page)
 - quick change octave shortuct (step+F[1-5]) 1-5V
 - quick gate accent launchpad control on gate page and circuit page (7+grid)
@@ -36,7 +36,7 @@
 # v0.1.4.47 (24 January 2024)
 - launchpad circuit mode improvements
 - random generator: random seed just on init method
-- patter follow @glibersat
+- patter follow [@glibersat](https://github.com/glibersat)
 - pattern chain quick shortcut from pattern page
 - scale edit: scales are changed only if the encoder is pressed
 - on scale change the sequence notes are changed according to the previous scale. if a note in the previous scale is also present in the new scale the value is preeserved. if it is not present the nearest note in the new scale will be selected
@@ -44,7 +44,7 @@
 
 ## v0.1.46 (4 January 2024)
 
-- UI note edit page reaggment @aclangor
+- UI note edit page reaggment [@aclangor](https://github.com/aclangor)
 - song sync with clock
 - fix reverse shape feature
 - add new shapes
