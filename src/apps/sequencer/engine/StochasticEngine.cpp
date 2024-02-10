@@ -481,7 +481,7 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
                             stepGate = stepGate && _currentStageRepeat == step.stageRepeats()+1;
                             break;
                         case 3:
-                            stepGate = stepGate && _currentStageRepeat % ((step.stageRepeats()+1)/2)+1 == 0;
+                            stepGate = stepGate && _currentStageRepeat % (((step.stageRepeats()+1)/2)+1) == 0;
                             break;
                         case 4:
                             stepGate = stepGate && _currentStageRepeat % 2 != 0;

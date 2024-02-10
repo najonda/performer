@@ -24,7 +24,7 @@ void StochasticTrack::writeRouted(Routing::Target target, int intValue, float fl
 }
 
 void StochasticTrack::clear() {
-    setPlayMode(Types::PlayMode::Aligned);
+    setPlayMode(Types::PlayMode::Free);
     setSlideTime(50);
     setOctave(0);
     setTranspose(0);
