@@ -173,6 +173,8 @@ private:
     bool _slideActive;
     unsigned int _currentStageRepeat;
 
+    int _skips = 0;
+
     struct Gate {
         uint32_t tick;
         bool gate;

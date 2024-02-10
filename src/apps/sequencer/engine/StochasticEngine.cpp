@@ -164,12 +164,16 @@ void StochasticEngine::reset() {
     _recordHistory.clear();
 
     changePattern();
+    auto &sequence = *_sequence;
+
+    _skips = evalRestProbability(sequence);
 }
 
 void StochasticEngine::restart() {
     _freeRelativeTick = 0;
     _sequenceState.reset();
     _currentStep = -1;
+    
 }
 
 TrackEngine::TickResult StochasticEngine::tick(uint32_t tick) {
@@ -367,10 +371,6 @@ void StochasticEngine::setMonitorStep(int index) {
 std::vector<StochasticLoopStep> inMemSteps;
 std::vector<StochasticLoopStep> lockedSteps;
 
-bool start = 0;
-
-int skips = 0;
-
 void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextStep) {
     int octave = _stochasticTrack.octave();
     int transpose = _stochasticTrack.transpose();
@@ -411,15 +411,15 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
 
         
-        if (skips != 0) {
-            skips--;
+        if (_skips != 0) {
+            _skips--;
             inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(-1, false, step, 0, 0, 0));
             return;
         }
-        if (index % 2 == 0) {
+        if (index == 0 || index % 2 == 0) {
             int rest = evalRestProbability(sequence);
             if (rest != -1) {
-                skips = rest;
+                _skips = rest;
             }
         }
 
