@@ -386,6 +386,43 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
         return;
     }
 
+
+    if (key.isFunction()) {
+        int v = 0;
+        switch (key.code()) {
+            case Key::F0:
+                v=1;
+                break;
+            case Key::F1:
+                v=2;
+                break;
+            case Key::F2:
+                v=3;
+                break;
+            case Key::F3:
+                v=4;
+                break;
+            case Key::F4:
+                v=5;
+                break;
+        }
+        for (int i=0; i<16; ++i) {
+           if (key.state(i)) {
+                const auto &scale = sequence.selectedScale(_project.scale());
+                int stepIndex = 0;
+                if (i>=8) {
+                    stepIndex = i -8;
+                } else {
+                    stepIndex = i+8;
+                }
+                sequence.step(stepIndex).setNote(scale.notesPerOctave()*v);
+                event.consume();
+                return;
+                
+           }
+        }
+        
+    }
     _stepSelection.keyPress(event, stepOffset());
     updateMonitorStep();
 

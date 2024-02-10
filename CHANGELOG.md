@@ -1,12 +1,25 @@
 # Changelog
 
 # v0.2.0 ()
-- Stochastic Track *
+- Stochastic Track
+    - global octave modifier
+    - launchpad control general octave
+    - loop and lock loop
+    - reseed
+    - rest probability 2,4,8 steps
+    - global gate length modifier  
 - Load/Save Sequence
 - Launchpad Performance Mode
 - Submenu shortcuts
 - Page buttons on launchpad circuit note edit
 - Extend gate Lenght to 4bits @glibersat
+- Multi Curve CV Recording
+- quick change octave shortuct (step+F[1-5]) 1-5V
+- quick gate accent launchpad control on gate page and circuit page (7+grid)
+
+> **testers** :
+>  
+> mebitek, Guillaume Libersat, Nick Ansell, XponentOne, dblu2000, hales2488
 
 # v0.1.4.48 (30 January 2024)
 - Moving steps in a sequence
@@ -23,7 +36,7 @@
 # v0.1.4.47 (24 January 2024)
 - launchpad circuit mode improvements
 - random generator: random seed just on init method
-- patter follow
+- patter follow @glibersat
 - pattern chain quick shortcut from pattern page
 - scale edit: scales are changed only if the encoder is pressed
 - on scale change the sequence notes are changed according to the previous scale. if a note in the previous scale is also present in the new scale the value is preeserved. if it is not present the nearest note in the new scale will be selected
@@ -31,7 +44,7 @@
 
 ## v0.1.46 (4 January 2024)
 
-- UI note edit page reaggment
+- UI note edit page reaggment @aclangor
 - song sync with clock
 - fix reverse shape feature
 - add new shapes

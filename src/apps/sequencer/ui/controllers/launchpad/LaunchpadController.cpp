@@ -258,6 +258,30 @@ bool LaunchpadController::globalButton(const Button &button, ButtonAction action
             }
             return true;
         }
+        if (buttonState<Play>() && button.isGrid()) {
+            if (_project.selectedTrack().trackMode() == Track::TrackMode::Note) {
+
+                auto &sequence = _project.selectedNoteSequence();
+                const auto &scale = Scale::get(0);
+                switch (_project.selectedNoteSequenceLayer()) {
+                    case NoteSequence::Layer::Gate:
+                        sequence.step(button.gridIndex()).setNote(scale.notesPerOctave()*5);
+                        break; 
+                    case NoteSequence::Layer::Note: {
+                            if (_noteStyle == 1) {
+                                if (button.gridIndex()>15) {
+                                    return true;
+                                }
+                                int stepIndex = button.gridIndex()+(sequence.section()*16);
+                                sequence.step(stepIndex).setNote(scale.notesPerOctave()*5);
+                            }
+                        }
+                        break;
+                    default:
+                        break;
+                }   
+            }
+        } 
     }
     return false;
 }
@@ -1496,6 +1520,8 @@ LaunchpadController::Color LaunchpadController::stepColor(bool active, bool curr
 }
 
 void LaunchpadController::drawNoteSequenceBits(const NoteSequence &sequence, NoteSequence::Layer layer, int currentStep) {
+    const auto &scale = Scale::get(0);
+
     for (int row = 0; row < 8; ++row) {
         for (int col = 0; col < 8; ++col) {
             int stepIndex = row * 8 + col;
@@ -1506,6 +1532,9 @@ void LaunchpadController::drawNoteSequenceBits(const NoteSequence &sequence, Not
                 color = colorYellow();
             }
             if (step.layerValue(layer) != 0) {
+                color = colorGreen(2);
+            }
+            if (step.gate() && step.note()== (scale.notesPerOctave()*5)) {
                 color = colorGreen();
             }
             if (stepIndex == currentStep) {
@@ -1566,7 +1595,10 @@ void LaunchpadController::drawNoteSequenceNotes(const NoteSequence &sequence, No
                 const auto &step = sequence.step(stepIndex);   
                 Color color = colorOff();
                 if (step.gate()) {
-                    color = colorGreen();
+                    color = colorGreen(2);
+                }
+                if (step.gate() && step.note()==(bypassScale.notesPerOctave()*5)) {
+                    color = colorGreen(3);
                 }
                 if (stepIndex == currentStep) {
                     color = colorRed();
