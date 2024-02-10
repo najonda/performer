@@ -503,14 +503,15 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
         int rnd = 0;
         if (sequence.lengthModifier()!= 0) {
-            //std::random_device r;
-
-            Random r = Random((unsigned int)time(NULL));
+            srand((unsigned int)time(NULL));
+            int m = -StochasticSequence::NoteVariationProbability::Range + ( std::rand() % ( StochasticSequence::NoteVariationProbability::Range - -StochasticSequence::NoteVariationProbability::Range + 1 ) );
             int mean = sequence.lengthModifier();
-            std::seed_seq seed2{r.next()};
-            std::mt19937 e2(seed2);
+            //std::seed_seq seed2{m};
+            std::mt19937 e2(m);
             std::normal_distribution<float> normal_dist(mean, 2);
             rnd = std::round(normal_dist(e2));
+
+            //std::cerr << rnd << "\n";
         }
         stepLength = stepLength + rnd;
         stepRetrigger = evalStepRetrigger(step, _stochasticTrack.retriggerProbabilityBias());
