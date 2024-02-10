@@ -8,12 +8,12 @@
     - reseed
     - rest probability 2,4,8 steps
     - global gate length modifier  
-- Load/Save Sequence
-- Launchpad Performance Mode
-- Submenu shortcuts
+- Load/Save Sequence to use a sequence library (fast switch on loading)
+- Launchpad Performance Mode (8+3 -> press two grid buttons to set first step and last step until release them)
+- Submenu shortcuts (double click F[1-5] to enter project, layout, routing, midi out, user scale)
 - Page buttons on launchpad circuit note edit
 - Extend gate Lenght to 4bits @glibersat
-- Multi Curve CV Recording
+- Multi Curve CV Recording (cv curve inoput has been moved in track page)
 - quick change octave shortuct (step+F[1-5]) 1-5V
 - quick gate accent launchpad control on gate page and circuit page (7+grid)
 
