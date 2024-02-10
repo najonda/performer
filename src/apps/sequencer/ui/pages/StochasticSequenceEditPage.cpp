@@ -592,16 +592,23 @@ void StochasticSequenceEditPage::midi(MidiEvent &event) {
 }
 
 void StochasticSequenceEditPage::switchLayer(int functionKey, bool shift) {
+
+    auto engine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
     if (shift) {
         switch (Function(functionKey)) {
         case Function::Gate:
             setLayer(Layer::GateProbability);
             break;
         case Function::Retrigger:
-            setLayer(Layer::StageRepeats);
-            break;
+            if (engine.playMode() == Types::PlayMode::Free) {
+                setLayer(Layer::StageRepeats);
+                break;
+            }
+            
         case Function::Length:
-            setLayer(Layer::StageRepeatsMode);
+            if (engine.playMode() == Types::PlayMode::Free) {
+                setLayer(Layer::StageRepeatsMode);
+            }
             break;
         case Function::Note:
             setLayer(Layer::NoteVariationProbability);
@@ -633,11 +640,16 @@ void StochasticSequenceEditPage::switchLayer(int functionKey, bool shift) {
             setLayer(Layer::RetriggerProbability);
             break;
         case Layer::RetriggerProbability:
-            setLayer(Layer::StageRepeats);
-            break;
+            if (engine.playMode() == Types::PlayMode::Free) {
+                setLayer(Layer::StageRepeats);
+                break;
+            }
+            
         case Layer::StageRepeats:
-            setLayer(Layer::StageRepeatsMode);
-            break;
+            if (engine.playMode() == Types::PlayMode::Free) {
+                setLayer(Layer::StageRepeatsMode);
+                break;
+            }
         default:
             setLayer(Layer::Retrigger);
             break;

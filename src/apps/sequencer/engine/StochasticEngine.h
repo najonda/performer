@@ -116,6 +116,8 @@ public:
     int currentRecordStep() const { return _stepRecorder.stepIndex(); }
 
     void setMonitorStep(int index);
+    Types::PlayMode playMode() const { return _stochasticTrack.playMode(); }
+
 
     int getNextWeightedPitch(std::vector<StochasticStep> distr, bool reseed = false, int notesPerOctave = 12);
     int evalRestProbability(StochasticSequence &sequence);

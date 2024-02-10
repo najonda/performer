@@ -9,6 +9,7 @@
 class SequenceState {
 public:
     int step() const { return _step; }
+    void setStep(int8_t step) { _step = step; }
     int prevStep() const { return _prevStep; }
     int nextStep() const { return _nextStep; }
     int direction() { return _direction; }

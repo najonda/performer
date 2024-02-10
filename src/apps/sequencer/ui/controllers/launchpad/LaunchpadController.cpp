@@ -324,13 +324,13 @@ void LaunchpadController::sequenceDraw() {
         mirrorButton<LastStep>(_style);
         sequenceDrawStepRange(1);
     } else if (buttonState<RunMode>()) {
+        mirrorButton<RunMode>(_style);
+        sequenceDrawRunMode();
+    } else if (buttonState<FollowMode>()) {
         if (_project.selectedTrack().trackMode() == Track::TrackMode::Stochastic) {
             stochasticDrawRestProbability();
             return;
         }
-        mirrorButton<RunMode>(_style);
-        sequenceDrawRunMode();
-    } else if (buttonState<FollowMode>()) {
         mirrorButton<FollowMode>(_style);
         sequenceDrawFollowMode();
     } else {
@@ -364,10 +364,14 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
             }
         } else if (buttonState<RunMode>()) {
             if (button.isGrid()) {
-                sequenceSetRests(button);
+                sequenceSetRunMode(button.gridIndex());
             }
         } else if (buttonState<FollowMode>()) {
             if (button.isGrid()) {
+                if (_project.selectedTrack().trackMode() == Track::TrackMode::Stochastic) {
+                    sequenceSetRests(button);
+                    return;
+                }
                 sequenceSetFollowMode(button.col);
             } else if (button.isScene()) {
                 _project.playState().toggleSoloTrack(button.scene());
@@ -595,7 +599,6 @@ void LaunchpadController::manageStochasticCircuitKeyboard(const Button &button) 
                 break;
             } else if (button.row >= 0 && button.row <= 2) {
                 auto &sequence = _project.selectedStochasticSequence();
-                //int ofs = _sequence.navigation.col * 16;
                 int linearIndex = button.col  + (button.row*8);
 
                 sequence.step(fullSelectedNote).setNoteVariationProbability(linearIndex);
@@ -763,6 +766,9 @@ void LaunchpadController::sequenceSetRunMode(int mode) {
         break;
     case Track::TrackMode::Curve:
         _project.selectedCurveSequence().setRunMode(Types::RunMode(mode));
+        break;
+    case Track::TrackMode::Stochastic:
+         _project.selectedStochasticSequence().setRunMode(Types::RunMode(mode));
         break;
     default:
         break;
@@ -945,6 +951,10 @@ void LaunchpadController::sequenceDrawLayer() {
         for (int i = 0; i < stochasticSequenceLayerMapSize; ++i) {
             const auto &item = stochasticSequenceLayerMap[i];
             bool selected = i == int(_project.selectedStochasticSequenceLayer());
+            auto playMode = _engine.selectedTrackEngine().as<StochasticEngine>().playMode();
+            if (playMode == Types::PlayMode::Aligned && (i == 5 || i == 6)) {
+                continue;
+            } 
             setGridLed(item.row, item.col, selected ? colorYellow() : colorGreen());
         }
         break;
@@ -977,13 +987,9 @@ void LaunchpadController::sequenceDrawStepRange(int highlight) {
 
 void LaunchpadController::stochasticDrawRestProbability() {
     const auto &sequence = _project.selectedStochasticSequence();
-
     drawBar(0, (sequence.restProbability()*2)-1);
-
     drawBar(2, (sequence.restProbability2()*2)-1);
-
     drawBar(4, (sequence.restProbability4()*2-1));
-    
     drawBar(6, (sequence.restProbability8()*2)-1);
 
 }
@@ -996,6 +1002,10 @@ void LaunchpadController::sequenceDrawRunMode() {
     }
     case Track::TrackMode::Curve: {
         drawEnum(_project.selectedCurveSequence().runMode());
+        break;
+    }
+    case Track::TrackMode::Stochastic: {
+        drawEnum(_project.selectedStochasticSequence().runMode());
         break;
     }
     default:
@@ -1248,13 +1258,13 @@ void LaunchpadController::performerEnter() {
     for (int i = 0; i<8; ++i) {
         switch (_project.track(i).trackMode()) {
             case Track::TrackMode::Note: {
-                    _startingFirstStep[i] = _project.track(i).noteTrack().sequence(0).firstStep();
-                    _startingLastStep[i] = _project.track(i).noteTrack().sequence(0).lastStep();
+                    _startingFirstStep[i] = _project.track(i).noteTrack().sequence(_project.selectedPatternIndex()).firstStep();
+                    _startingLastStep[i] = _project.track(i).noteTrack().sequence(_project.selectedPatternIndex()).lastStep();
                 }
                 break;
             case Track::TrackMode::Curve: {
-                    _startingFirstStep[i] = _project.track(i).curveTrack().sequence(0).firstStep();
-                    _startingLastStep[i] = _project.track(i).curveTrack().sequence(0).lastStep();
+                    _startingFirstStep[i] = _project.track(i).curveTrack().sequence(_project.selectedPatternIndex()).firstStep();
+                    _startingLastStep[i] = _project.track(i).curveTrack().sequence(_project.selectedPatternIndex()).lastStep();
                 }
                 break;
             default:
@@ -1301,7 +1311,6 @@ void LaunchpadController::performerDraw() {
         sequenceDrawFollowMode();
     } else {
         mirrorButton<Fill>(_style);
-        //sequenceDrawSequence();
     }
 
 
@@ -1369,11 +1378,11 @@ void LaunchpadController::performerButton(const Button &button, ButtonAction act
 
             for (int i = 0; i < 8; ++i)  {
                 if (_project.track(i).trackMode() == Track::TrackMode::Note) {
-                    _project.track(i).noteTrack().sequence(0).setFirstStep(fs);    
-                    _project.track(i).noteTrack().sequence(0).setLastStep(ls);
+                    _project.track(i).noteTrack().sequence(_project.selectedPatternIndex()).setFirstStep(fs);    
+                    _project.track(i).noteTrack().sequence(_project.selectedPatternIndex()).setLastStep(ls);
                 } else if (_project.track(i).trackMode() == Track::TrackMode::Curve) {
-                    _project.track(i).curveTrack().sequence(0).setFirstStep(fs);    
-                    _project.track(i).curveTrack().sequence(0).setLastStep(ls);
+                    _project.track(i).curveTrack().sequence(_project.selectedPatternIndex()).setFirstStep(fs);    
+                    _project.track(i).curveTrack().sequence(_project.selectedPatternIndex()).setLastStep(ls);
                 }
             }
         }
@@ -1389,11 +1398,11 @@ void LaunchpadController::performerButton(const Button &button, ButtonAction act
             for (int i = 0; i < 8; ++i)  {
                 if (_performButton.firstStepButton.row == -1 && _performButton.lastStepButton.row == -1) {
                     if (_project.track(i).trackMode() == Track::TrackMode::Note) {
-                        _project.track(i).noteTrack().sequence(0).setFirstStep(_startingFirstStep[i]);    
-                        _project.track(i).noteTrack().sequence(0).setLastStep(_startingLastStep[i]);
+                        _project.track(i).noteTrack().sequence(_project.selectedPatternIndex()).setFirstStep(_startingFirstStep[i]);    
+                        _project.track(i).noteTrack().sequence(_project.selectedPatternIndex()).setLastStep(_startingLastStep[i]);
                     } else if (_project.track(i).trackMode() == Track::TrackMode::Curve) {
-                        _project.track(i).curveTrack().sequence(0).setFirstStep(_startingFirstStep[i]);    
-                        _project.track(i).curveTrack().sequence(0).setLastStep(_startingLastStep[i]);
+                        _project.track(i).curveTrack().sequence(_project.selectedPatternIndex()).setFirstStep(_startingFirstStep[i]);    
+                        _project.track(i).curveTrack().sequence(_project.selectedPatternIndex()).setLastStep(_startingLastStep[i]);
                     }
 
                 }
