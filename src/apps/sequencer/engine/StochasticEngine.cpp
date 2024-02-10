@@ -503,7 +503,7 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
         int rnd = 0;
         if (sequence.lengthModifier()!= 0) {
-            srand((unsigned int)time(NULL));
+            //srand((unsigned int)time(NULL));
             int m = -StochasticSequence::NoteVariationProbability::Range + ( std::rand() % ( StochasticSequence::NoteVariationProbability::Range - -StochasticSequence::NoteVariationProbability::Range + 1 ) );
             int mean = sequence.lengthModifier();
             //std::seed_seq seed2{m};
