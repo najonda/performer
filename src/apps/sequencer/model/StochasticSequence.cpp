@@ -184,7 +184,7 @@ void StochasticSequence::Step::clear() {
     setLengthVariationProbability(LengthVariationProbability::Max);
     setNote(0);
     setNoteOctave(0);
-    setNoteOctaveProbability(NoteOctaveProbability::Min);
+    setNoteOctaveProbability(NoteOctaveProbability::Max);
     setNoteVariationProbability(NoteVariationProbability::Max);
     setCondition(Types::Condition::Off);
     setStageRepeats(0);
