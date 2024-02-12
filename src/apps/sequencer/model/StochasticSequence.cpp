@@ -374,7 +374,7 @@ void StochasticSequence::read(VersionedSerializedReader &reader) {
     reader.read(_restProbability8, ProjectVersion::Version36);
     reader.read(_lengthModifier, ProjectVersion::Version36);
     reader.read(_lowOctaveRange, ProjectVersion::Version36);
-    reader.read(_highOctaveRange, ProjectVersion::Version36)
+    reader.read(_highOctaveRange, ProjectVersion::Version36);
     
 
 
