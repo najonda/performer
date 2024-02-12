@@ -173,23 +173,34 @@ TrackEngine::TickResult NoteTrackEngine::tick(uint32_t tick) {
                 _freeRelativeTick = 0;
             }
             if (relativeTick == 0) {
-
                 if (_currentStageRepeat == 1) {
                      _sequenceState.advanceFree(sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
+                     _sequenceState.calculateNextStepFree(
+                        sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
                 }
 
                 recordStep(tick, divisor);
                 const auto &step = sequence.step(_sequenceState.step());
-                bool isLastStageStep = ((int) (step.stageRepeats()+1) - (int) _currentStageRepeat) <= 0;
+                bool isLastStageStep = ((int) step.stageRepeats() - (int) _currentStageRepeat) <= 0;
+            
+                if (step.gateOffset() >= 0) {
+                    triggerStep(tick, divisor);
+                }
 
-                triggerStep(tick+divisor, divisor);
+                if (!isLastStageStep && step.gateOffset() < 0) {
+                    triggerStep(tick + divisor, divisor, false);
+                }
 
+                if (isLastStageStep 
+                        && sequence.step(_sequenceState.nextStep()).gateOffset() < 0) {
+                    triggerStep(tick + divisor, divisor, true);
+                }
+               
                 if (isLastStageStep) {
-                   _currentStageRepeat = 1;
+                   _currentStageRepeat = 1; 
                 } else {
                     _currentStageRepeat++;
                 }
-
             }
             break;
         case Types::PlayMode::Last:
