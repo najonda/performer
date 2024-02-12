@@ -405,7 +405,7 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     }
 
     // fill in memory step when sequence is running or when the in memory loop is not full filled
-    if (!sequence.useLoop() || (sequence.useLoop() && int(inMemSteps.size()) < sequence.bufferLoopLength())) { 
+    if (!sequence.useLoop() || (sequence.useLoop() && int(inMemSteps.size()) <= sequence.bufferLoopLength())) { 
         if (_skips != 0) {
             _skips--;
             inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(-1, false, step, 0, 0, 0));
@@ -457,7 +457,7 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         }
         stepLength = stepLength + rnd;
         stepRetrigger = evalStepRetrigger(step, _stochasticTrack.retriggerProbabilityBias());
-        if (int(inMemSteps.size()) < sequence.bufferLoopLength()) {
+        if (int(inMemSteps.size()) <= sequence.bufferLoopLength()) {
             inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(stepIndex, stepGate, step, noteValue, stepLength, stepRetrigger));
         }
     }
