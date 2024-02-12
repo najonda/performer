@@ -210,15 +210,21 @@ TrackEngine::TickResult StochasticEngine::tick(uint32_t tick) {
         switch (_stochasticTrack.playMode()) {
         case Types::PlayMode::Aligned:
             if (relativeTick % divisor == 0) {
-                triggerStep(tick, divisor);
-                //if (sequence.useLoop()) {
-                    _sequenceState.calculateNextStepAligned(
+                if (sequence.useLoop()) {
+                     _sequenceState.calculateNextStepAligned(
                         (relativeTick + divisor) / divisor,
                         sequence.runMode(),
                         sequence.sequenceFirstStep(),
                         sequence.sequenceLastStep(),
                         rng
                     );
+                        triggerStep(tick + divisor, divisor, true);
+                    } else {
+                        triggerStep(tick + divisor, divisor, false);
+                    }
+                //if (sequence.useLoop()) {
+                   
+                    
                 //}
                 //triggerStep(tick + divisor, divisor, true);
             }
@@ -411,10 +417,12 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     }
 
         // clear the locked memory sequence and reset it to the in memory sequence
-    if (sequence.clearLoop() && index == 0) {
+    if (sequence.clearLoop()) {
         lockedSteps = inMemSteps;
-        sequence.setClearLoop(false);
-        sequence.setUseLoop(true);
+        if (index == 0) {
+            sequence.setClearLoop(false);
+            sequence.setUseLoop(true);
+        }
     }
 
     // fill in memory step when sequence is running or when the in memory loop is not full filled
@@ -489,13 +497,8 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
             index = _sequenceState.nextStep();
         }
         if (int(lockedSteps.size()) != int(inMemSteps.size())) {
-            if (lockedSteps.size()< inMemSteps.size()) {
-                for (int i = lockedSteps.size(); i < inMemSteps.size(); i++) {
-                    lockedSteps.insert(lockedSteps.end(), inMemSteps.at(i));
-                }
-            } else {
-                lockedSteps = inMemSteps;
-            }
+            lockedSteps = inMemSteps;
+
         }
 
         auto subArray = slicing(lockedSteps, sequence.sequenceFirstStep(), sequence.sequenceLastStep());
