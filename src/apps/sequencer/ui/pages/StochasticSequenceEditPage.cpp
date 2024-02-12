@@ -403,6 +403,10 @@ void StochasticSequenceEditPage::keyPress(KeyPressEvent &event) {
         return;
     }
 
+    if (key.is(Key::Step15) || key.is(Key::Step14)|| key.is(Key::Step13) ) {
+        return;
+    }
+
     _stepSelection.keyPress(event, stepOffset());
     updateMonitorStep();
 
