@@ -206,16 +206,16 @@ TrackEngine::TickResult StochasticEngine::tick(uint32_t tick) {
         switch (_stochasticTrack.playMode()) {
         case Types::PlayMode::Aligned:
             if (relativeTick % divisor == 0) {
-                triggerStep(tick, divisor);
-
-                _sequenceState.calculateNextStepAligned(
+                if (sequence.useLoop()) {
+                    _sequenceState.calculateNextStepAligned(
                         (relativeTick + divisor) / divisor,
                         sequence.runMode(),
                         sequence.sequenceFirstStep(),
                         sequence.sequenceLastStep(),
                         rng
                     );
-                triggerStep(tick + divisor, divisor, true);
+                }
+                triggerStep(tick + divisor, divisor);
             }
             break;
         case Types::PlayMode::Free:
@@ -477,7 +477,7 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     // use the locked loop to retrieve steps data
     if (sequence.useLoop() && int(inMemSteps.size()) >= sequence.bufferLoopLength()) {
         
-        if (forNextStep) {
+        //if (forNextStep) {
             if (sequence.runMode() == Types::RunMode::RandomWalk) {
                 if (rng.nextRange(2) == 0) {
                     _sequenceState.setStep(-1);
@@ -486,7 +486,7 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
                 }
             }
             index = _sequenceState.nextStep();
-        }
+        //}
         if (int(lockedSteps.size()) != int(inMemSteps.size())) {
             lockedSteps = inMemSteps;
         }
