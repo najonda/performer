@@ -234,9 +234,16 @@ TrackEngine::TickResult StochasticEngine::tick(uint32_t tick) {
             }
             if (relativeTick == 0) {
                 if (_currentStageRepeat == 1) {
-                     _sequenceState.advanceFree(sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
-                     _sequenceState.calculateNextStepFree(
-                        sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
+                    if (sequence.useLoop()) {
+                        _sequenceState.advanceFree(sequence.runMode(), sequence.sequenceFirstStep(), sequence.sequenceLastStep(), rng);
+                        _sequenceState.calculateNextStepFree(
+                            sequence.runMode(), sequence.sequenceFirstStep(), sequence.sequenceLastStep(), rng);
+                    } else {
+                        _sequenceState.advanceFree(sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
+                        _sequenceState.calculateNextStepFree(
+                            sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
+                    }
+                    
                 }
 
                 recordStep(tick, divisor);
