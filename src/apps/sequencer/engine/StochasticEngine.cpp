@@ -210,23 +210,21 @@ TrackEngine::TickResult StochasticEngine::tick(uint32_t tick) {
         switch (_stochasticTrack.playMode()) {
         case Types::PlayMode::Aligned:
             if (relativeTick % divisor == 0) {
+               
                 if (sequence.useLoop()) {
-                     _sequenceState.calculateNextStepAligned(
-                        (relativeTick + divisor) / divisor,
-                        sequence.runMode(),
-                        sequence.sequenceFirstStep(),
-                        sequence.sequenceLastStep(),
-                        rng
+                     triggerStep(tick, divisor);
+                    _sequenceState.calculateNextStepAligned(
+                            (relativeTick + divisor) / divisor,
+                            sequence.runMode(),
+                            sequence.sequenceFirstStep(),
+                            sequence.sequenceLastStep(),
+                            rng
                     );
-                        triggerStep(tick + divisor, divisor, true);
-                    } else {
-                        triggerStep(tick + divisor, divisor, false);
-                    }
-                //if (sequence.useLoop()) {
-                   
-                    
-                //}
-                //triggerStep(tick + divisor, divisor, true);
+                    triggerStep(tick + divisor, divisor, true);
+                } else {
+                    _sequenceState.advanceAligned(relativeTick / divisor, sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
+                     triggerStep(tick, divisor);
+                }
             }
             break;
         case Types::PlayMode::Free: 
@@ -429,8 +427,11 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
         // clear the locked memory sequence and reset it to the in memory sequence
     if (sequence.clearLoop()) {
-        lockedSteps = inMemSteps;
+        
         if (index == 0) {
+            lockedSteps.clear();
+            inMemSteps.clear();
+            lockedSteps = inMemSteps;
             sequence.setClearLoop(false);
             sequence.setUseLoop(true);
         }
@@ -508,11 +509,17 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
             index = _sequenceState.nextStep();
         }
         if (int(lockedSteps.size()) != int(inMemSteps.size())) {
+            if (lockedSteps.size()< inMemSteps.size()) {
+                for (int i = lockedSteps.size(); i< int(inMemSteps.size()); ++i) {
+                    lockedSteps.insert(lockedSteps.end(), inMemSteps.at(i));
+                } 
+            }
             lockedSteps = inMemSteps;
 
         }
 
         auto subArray = slicing(lockedSteps, sequence.sequenceFirstStep(), sequence.sequenceLastStep());
+        index = index%sequence.sequenceLength();
         stepIndex = subArray.at(index).index();
         if (stepIndex == -1) {
             return;
