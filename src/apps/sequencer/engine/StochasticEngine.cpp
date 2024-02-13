@@ -237,7 +237,7 @@ TrackEngine::TickResult StochasticEngine::tick(uint32_t tick) {
                     if (sequence.useLoop()) {
                         _sequenceState.advanceFree(sequence.runMode(), sequence.sequenceFirstStep(), sequence.sequenceLastStep(), rng);
                         _sequenceState.calculateNextStepFree(
-                            sequence.runMode(), sequence.sequenceFirstStep(), sequence.sequenceLastStep(), rng);
+                            sequence.runMode(), sequence.sequenceFirstStep(), sequence.lastStep(), rng);
                     } else {
                         _sequenceState.advanceFree(sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
                         _sequenceState.calculateNextStepFree(
@@ -246,7 +246,6 @@ TrackEngine::TickResult StochasticEngine::tick(uint32_t tick) {
                     
                 }
 
-                recordStep(tick, divisor);
                 const auto &step = sequence.step(_sequenceState.step());
                 bool isLastStageStep = ((int) step.stageRepeats() - (int) _currentStageRepeat) <= 0;
             
