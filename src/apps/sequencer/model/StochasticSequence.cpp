@@ -274,7 +274,7 @@ void StochasticSequence::clear() {
     setResetMeasure(0);
     setRunMode(Types::RunMode::Forward);
     setFirstStep(0);
-    setLastStep(11);
+    setLastStep(0);
     setRestProbability(0);
     setSequenceFirstStep(0);
     setSequenceLastStep(15);

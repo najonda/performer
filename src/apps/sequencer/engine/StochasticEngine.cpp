@@ -409,7 +409,7 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
     uint32_t resetDivisor = sequence.resetMeasure() * _engine.measureDivisor();
     uint32_t relativeTick = resetDivisor == 0 ? tick : tick % resetDivisor;
-    auto abstoluteStep = ((relativeTick + divisor) / divisor) -1;
+    auto abstoluteStep = relativeTick / divisor;
     
     auto index = abstoluteStep % sequence.sequenceLength();
 
@@ -494,7 +494,7 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
             std::normal_distribution<float> normal_dist(mean, 2);
             rnd = std::round(normal_dist(e2));
         }
-        stepLength = stepLength + (rnd*4);
+        stepLength = stepLength + (rnd*2);
         stepRetrigger = evalStepRetrigger(step, _stochasticTrack.retriggerProbabilityBias());
         if (int(inMemSteps.size()) < sequence.bufferLoopLength()) {
             inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(stepIndex, stepGate, step, noteValue, stepLength, stepRetrigger));
