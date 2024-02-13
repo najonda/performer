@@ -232,14 +232,15 @@ void CurveTrackEngine::updateOutput(uint32_t relativeTick, uint32_t divisor) {
 bool CurveTrackEngine::isRecording() const {
     return
         _engine.state().recording() &&
-        _model.project().curveCvInput() != Types::CurveCvInput::Off &&
-        _model.project().selectedTrackIndex() == _track.trackIndex();
+        _curveTrack.curveCvInput() != Types::CurveCvInput::Off;
+        //&&
+        //_model.project().selectedTrackIndex() == _track.trackIndex();
 }
 
 void CurveTrackEngine::updateRecordValue() {
     auto &sequence = *_sequence;
     const auto &range = Types::voltageRangeInfo(sequence.range());
-    auto curveCvInput = _model.project().curveCvInput();
+    auto curveCvInput = _curveTrack.curveCvInput();
 
     switch (curveCvInput) {
     case Types::CurveCvInput::Cv1:

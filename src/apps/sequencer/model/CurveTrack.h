@@ -198,6 +198,21 @@ public:
         str("%+.1f%%", gateProbabilityBias() * 12.5f);
     }
 
+    // curveCvInput
+
+    Types::CurveCvInput curveCvInput() const { return _curveCvInput; }
+    void setCurveCvInput(Types::CurveCvInput curveCvInput) {
+        _curveCvInput = ModelUtils::clampedEnum(curveCvInput);
+    }
+
+    void editCurveCvInput(int value, bool shift) {
+        _curveCvInput = ModelUtils::adjustedEnum(_curveCvInput, value);
+    }
+
+    void printCurveCvInput(StringBuilder &str) const {
+        str(Types::curveCvInput(_curveCvInput));
+    }
+
     // sequences
 
     const CurveSequenceArray &sequences() const { return _sequences; }
@@ -246,6 +261,8 @@ private:
     Routable<int8_t> _rotate;
     Routable<int8_t> _shapeProbabilityBias;
     Routable<int8_t> _gateProbabilityBias;
+
+     Types::CurveCvInput _curveCvInput;
 
     CurveSequenceArray _sequences;
 

@@ -366,6 +366,7 @@ void register_project(py::module &m) {
         .def_property("rotate", &CurveTrack::rotate, &CurveTrack::setRotate)
         .def_property("shapeProbabilityBias", &CurveTrack::shapeProbabilityBias, &CurveTrack::setShapeProbabilityBias)
         .def_property("gateProbabilityBias", &CurveTrack::gateProbabilityBias, &CurveTrack::setGateProbabilityBias)
+        .def_property("curveCvInput", &CurveTrack::curveCvInput, &CurveTrack::setCurveCvInput)
         .def_property_readonly("sequences", [] (CurveTrack &curveTrack) {
             py::list result;
             for (int i = 0; i < CONFIG_PATTERN_COUNT; ++i) {
