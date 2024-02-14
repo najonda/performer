@@ -387,16 +387,19 @@ void StochasticSequenceEditPage::keyPress(KeyPressEvent &event) {
     if (key.pageModifier()) {
 
         if (key.is(Key::Step4)) {
+            showMessage("Reseed");
             sequence.setReseed(1, false);
             event.consume();
         }
 
         if (key.is(Key::Step5)) {
+            showMessage("Loop clearewd");
             sequence.setClearLoop(true);
             event.consume();
         }
 
         if (key.is(Key::Step6)) {
+            showMessage("Loop Engaged");
             sequence.setUseLoop();
             event.consume();
         }
