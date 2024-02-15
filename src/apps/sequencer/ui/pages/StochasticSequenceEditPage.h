@@ -57,6 +57,8 @@ private:
 
     void setSectionTracking(bool track);
 
+    void displayMessage(StochasticSequence &sequence);
+
     StochasticSequence::Layer layer() const { return _project.selectedStochasticSequenceLayer(); };
     void setLayer(StochasticSequence::Layer layer) { _project.setSelectedStochasticSequenceLayer(layer); }
 

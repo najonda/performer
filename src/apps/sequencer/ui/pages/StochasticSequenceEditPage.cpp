@@ -78,6 +78,8 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
     /* Prepare flags shown before mode name (top right header) */
     auto &sequence = _project.selectedStochasticSequence();
 
+    displayMessage(sequence);
+
     const char *mode_flags = NULL;
     if (sequence.useLoop()) {
         const char *st_flag = "L";
@@ -1007,4 +1009,29 @@ void StochasticSequenceEditPage::setSelectedStepsGate(bool gate) {
             sequence.step(stepIndex).setGate(gate);
         }
     }
+}
+
+void StochasticSequenceEditPage::displayMessage(StochasticSequence &sequence) {
+    FixedStringBuilder<16> str;
+    if (sequence.message() != StochasticSequence::Message::None) {
+
+        switch (sequence.message()) {
+            case StochasticSequence::Message::LoopOn:
+                str("Loop On");
+                break;
+            case StochasticSequence::Message::LoopOff:
+                str("Loop Off");
+                break;
+            case StochasticSequence::Message::Cleared:
+                str("Loop cleared");
+                break;
+            case StochasticSequence::Message::ReSeed:
+                str("Reseed");
+                break;
+            default:
+                break;  
+        }
+        showMessage(str);
+        sequence.setMessage(StochasticSequence::Message::None);
+    } 
 }

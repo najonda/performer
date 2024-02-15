@@ -96,6 +96,14 @@ public:
 
     };
 
+    enum Message {
+        None,
+        LoopOn,
+        LoopOff,
+        Cleared,
+        ReSeed,
+    };
+
     class Step {
 
     public:
@@ -546,7 +554,11 @@ public:
     }
 
     void toggleReseed() {
+
         _reseed.set(!reseed(), isRouted(Routing::Target::Reseed));
+        if (reseed()) {
+            setMessage(Message::ReSeed);
+        }
     }
 
     // sequence loop last step
@@ -604,18 +616,22 @@ public:
     // buffer loop length
 
     int bufferLoopLength() {
+        int bufferLoopLength = 16;
         if (_sequenceLastStep.base > 16) {
-            _bufferLoopLength = _sequenceLastStep.base+1;
-        } else {
-            _bufferLoopLength = 16;
-        }
-        return _bufferLoopLength;
+            bufferLoopLength = _sequenceLastStep.base+1;
+        } 
+        return bufferLoopLength;
     }
 
     // use loop
 
     void setUseLoop() {
         _useLoop = !_useLoop;
+        if (_useLoop) {
+            setMessage(Message::LoopOn);
+        } else {
+            setMessage(Message::LoopOff);
+        }
     }
 
     void setUseLoop(bool value) {
@@ -632,6 +648,9 @@ public:
 
     void setClearLoop(bool clearLoop) {
         _clearLoop = clearLoop;
+        if (_clearLoop) {
+            setMessage(Message::Cleared);
+        }
     }
 
     bool clearLoop() {
@@ -693,6 +712,16 @@ public:
         printRouted(str, Routing::Target::LengthModifier);
         str("%+.1f%%", lengthModifier() * 12.5f);
     }
+
+
+    Message message() {
+        return _message;
+    }
+
+    void setMessage(Message message) {
+        _message = message;
+    }
+
 
     // steps
 
@@ -778,13 +807,13 @@ private:
     Routable<int8_t> _highOctaveRange;
 
     Routable<int8_t> _lengthModifier;
-
-    uint8_t _bufferLoopLength = 16;
     
     StepArray _steps;
 
     bool _useLoop = false;
     bool _clearLoop = false;
+
+    Message _message;
 
     friend class StochasticTrack;
 };
