@@ -31,6 +31,8 @@ struct FileTypeInfo {
 FileTypeInfo fileTypeInfos[] = {
     { "PROJECTS", "PRO" },
     { "SCALES", "SCA" },
+    {"SEQS", "NSQ"},
+    {"SEQS", "CSQ"}
 };
 
 static void slotPath(StringBuilder &str, FileType type, int slot) {
