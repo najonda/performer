@@ -393,13 +393,17 @@ void StochasticSequenceEditPage::keyPress(KeyPressEvent &event) {
         }
 
         if (key.is(Key::Step5)) {
-            showMessage("Loop clearewd");
+            showMessage("Loop cleared");
             sequence.setClearLoop(true);
             event.consume();
         }
 
         if (key.is(Key::Step6)) {
-            showMessage("Loop Engaged");
+            if (sequence.useLoop()) {
+                showMessage("Loop off");
+            } else  {
+                showMessage("Loop on");
+            }
             sequence.setUseLoop();
             event.consume();
         }
