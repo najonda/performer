@@ -1873,8 +1873,19 @@ void LaunchpadController::drawStochasticSequenceNotes(const StochasticSequence &
                         Color color = (selectedNote - (scale.notesPerOctave()*selectedOctave))== n && !fullNoteSelected ? colorYellow() : alternate;
                         setGridLed(row, col, color);
                     } else {
+                        int stepIndex = -1;
+                        if (row == 3) {
+                            stepIndex = getMapValue(semitones, col);
+                        } else if (row == 4) {
+                            stepIndex = getMapValue(tones, col);
+                        }
+                        const auto &step = sequence.step(stepIndex);
+                        Color alternate = colorGreen(1);
+                        if (step.gate()) {
+                            alternate = colorYellow(1);
+                        }
                         n = bypassScale.getNoteIndex(n);
-                        Color color = (fullSelectedNote - (bypassScale.notesPerOctave()*selectedOctave))== n && fullNoteSelected ? colorYellow() : colorGreen(1);
+                        Color color = (fullSelectedNote - (bypassScale.notesPerOctave()*selectedOctave))== n && fullNoteSelected ? colorYellow() : alternate;
                         setGridLed(row, col, color);
                         
                     }
