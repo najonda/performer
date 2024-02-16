@@ -453,7 +453,7 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
             _inMemSteps[_track.trackIndex()].insert(_inMemSteps[_track.trackIndex()].end(), StochasticLoopStep(-1, false, step, 0, 0, 0));
             return;
         }
-        if (index == 0 || relativeTick % divisor == 0) {
+        if (index == 0 || index % 2 == 0) {
             int rest = evalRestProbability(sequence);
             if (rest != -1) {
                 _skips[_track.trackIndex()] = rest;
