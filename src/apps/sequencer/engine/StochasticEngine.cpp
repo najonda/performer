@@ -471,7 +471,7 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         std::sort (std::begin(probability), std::end(probability), sortTaskByProbRev);
         stepIndex = getNextWeightedPitch(probability, sequence.reseed(), probability.size());
 
-        step = sequence.step(stepIndex); 
+        step = evalSequence.step(stepIndex); 
         _currentStep = stepIndex;   
         
         int gateOffset = ((int) divisor * step.gateOffset()) / (StochasticSequence::GateOffset::Max + 1);
