@@ -133,7 +133,7 @@ private:
         return false;
     }
 
-    std::vector<StochasticLoopStep> slicing(std::vector<StochasticLoopStep>& arr, int X, int Y)
+    std::vector<StochasticLoopStep> slicing(std::vector<StochasticLoopStep> &arr, int X, int Y)
     {
     
         // Starting and Ending iterators
@@ -175,7 +175,10 @@ private:
     bool _slideActive;
     unsigned int _currentStageRepeat;
 
-    int _skips = 0;
+    int _skips[8];
+
+    std::vector<StochasticLoopStep> _inMemSteps[8];
+    std::vector<StochasticLoopStep> _lockedSteps[8];
 
     struct Gate {
         uint32_t tick;

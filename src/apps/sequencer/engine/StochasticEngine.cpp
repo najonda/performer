@@ -42,19 +42,19 @@ static bool evalStepGate(const StochasticSequence::Step &step, int probabilityBi
 
         switch (i) {
             case 0: {
-                probability.insert(probability.end(), StochasticStep(i, clamp(sequence.restProbability(), -1, StochasticSequence::NoteVariationProbability::Max)));
+                probability.insert(probability.end(), StochasticStep(i, sequence.restProbability()));
             }
                 break;
             case 1: {
-                probability.insert(probability.end(), StochasticStep(i, clamp(sequence.restProbability2(), -1, StochasticSequence::NoteVariationProbability::Max)));
+                probability.insert(probability.end(), StochasticStep(i, sequence.restProbability2()));
                 break;
             }
             case 2: {
-                probability.insert(probability.end(), StochasticStep(i, clamp(sequence.restProbability4(), -1, StochasticSequence::NoteVariationProbability::Max)));
+                probability.insert(probability.end(), StochasticStep(i, sequence.restProbability4()));
                 break;
             }
             case 3: {
-                probability.insert(probability.end(), StochasticStep(i, clamp(sequence.restProbability8(), -1, StochasticSequence::NoteVariationProbability::Max)));
+                probability.insert(probability.end(), StochasticStep(i, sequence.restProbability8()));
                 break;
             }
             default:
@@ -151,8 +151,7 @@ static float evalStepNote(const StochasticSequence::Step &step, int probabilityB
     return scale.noteToVolts(note) + (scale.isChromatic() ? rootNote : 0) * (1.f / 12.f);
 }
 
-std::vector<StochasticLoopStep> inMemSteps;
-std::vector<StochasticLoopStep> lockedSteps;
+
 
 void StochasticEngine::reset() {
     _freeRelativeTick = 0;
@@ -165,13 +164,13 @@ void StochasticEngine::reset() {
     _gateQueue.clear();
     _cvQueue.clear();
     _recordHistory.clear();
-    inMemSteps.clear();
+    _inMemSteps[_track.trackIndex()].clear();
     changePattern();
     srand((unsigned int)time(NULL));
     
     auto &sequence = *_sequence;
 
-    _skips = evalRestProbability(sequence);
+    _skips[_track.trackIndex()] = evalRestProbability(sequence);
 }
 
 void StochasticEngine::restart() {
@@ -207,8 +206,9 @@ TrackEngine::TickResult StochasticEngine::tick(uint32_t tick) {
         const auto &sequence = *_sequence;
 
         // advance sequence
+        
         switch (_stochasticTrack.playMode()) {
-        case Types::PlayMode::Aligned:
+        case Types::PlayMode::Aligned: {
             if (relativeTick % divisor == 0) {
                
                 if (sequence.useLoop()) {
@@ -226,9 +226,11 @@ TrackEngine::TickResult StochasticEngine::tick(uint32_t tick) {
                      triggerStep(tick, divisor);
                 }
             }
+        }
             break;
         case Types::PlayMode::Free: 
-            relativeTick = _freeRelativeTick;
+            std::cerr << "FREE"<<"\n";
+;            relativeTick = _freeRelativeTick;
             if (++_freeRelativeTick >= divisor) {
                 _freeRelativeTick = 0;
             }
@@ -412,6 +414,7 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     auto abstoluteStep = relativeTick / divisor;
     
     auto index = abstoluteStep % sequence.sequenceLength();
+    std::cerr << index << "\n";
 
     StochasticSequence::Step step;
     uint32_t stepTick = 0;
@@ -421,8 +424,8 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     int stepRetrigger = 0;
 
     // clear the in memory sequence when reaches the max size
-    if (!sequence.useLoop() && int(inMemSteps.size()) >= sequence.bufferLoopLength()) {
-        inMemSteps.clear();
+    if (!sequence.useLoop() && int(_inMemSteps[_track.trackIndex()].size()) >= sequence.bufferLoopLength() && index == 0) {
+        _inMemSteps[_track.trackIndex()].clear();
     }
 
     if (sequence.reseed()) {
@@ -435,25 +438,25 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     if (sequence.clearLoop()) {
         
         if (index == 0) {
-            lockedSteps.clear();
-            inMemSteps.clear();
-            lockedSteps = inMemSteps;
+            _lockedSteps[_track.trackIndex()].clear();
+            _inMemSteps[_track.trackIndex()].clear();
+            _lockedSteps[_track.trackIndex()] = _inMemSteps[_track.trackIndex()];
             sequence.setClearLoop(false);
             sequence.setUseLoop(true);
         }
     }
 
     // fill in memory step when sequence is running or when the in memory loop is not full filled
-    if (!sequence.useLoop() || (sequence.useLoop() && int(inMemSteps.size()) < sequence.bufferLoopLength())) { 
-        if (_skips != 0 && index > 0) {
-            _skips--;
-            inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(-1, false, step, 0, 0, 0));
+    if (!sequence.useLoop() || (sequence.useLoop() && int(_inMemSteps[_track.trackIndex()].size()) < sequence.bufferLoopLength())) { 
+        if (_skips[_track.trackIndex()] != 0 && index > 0) {
+            --_skips[_track.trackIndex()];
+            _inMemSteps[_track.trackIndex()].insert(_inMemSteps[_track.trackIndex()].end(), StochasticLoopStep(-1, false, step, 0, 0, 0));
             return;
         }
-        if (index == 0 || index % 2 == 0) {
+        if (index == 0 || relativeTick % divisor == 0) {
             int rest = evalRestProbability(sequence);
             if (rest != -1) {
-                _skips = rest;
+                _skips[_track.trackIndex()] = rest;
             }
         }
 
@@ -496,13 +499,13 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         }
         stepLength = stepLength + (rnd*2);
         stepRetrigger = evalStepRetrigger(step, _stochasticTrack.retriggerProbabilityBias());
-        if (int(inMemSteps.size()) < sequence.bufferLoopLength()) {
-            inMemSteps.insert(inMemSteps.end(), StochasticLoopStep(stepIndex, stepGate, step, noteValue, stepLength, stepRetrigger));
+        if (int(_inMemSteps[_track.trackIndex()].size()) <= sequence.bufferLoopLength()) {
+            _inMemSteps[_track.trackIndex()].insert(_inMemSteps[_track.trackIndex()].end(), StochasticLoopStep(stepIndex, stepGate, step, noteValue, stepLength, stepRetrigger));
         }
     }
 
     // use the locked loop to retrieve steps data
-    if (sequence.useLoop() && int(inMemSteps.size()) >= sequence.bufferLoopLength()) {
+    if (sequence.useLoop() && int(_inMemSteps[_track.trackIndex()].size()) >= sequence.bufferLoopLength()) {
         
         if (forNextStep) {
             if (sequence.runMode() == Types::RunMode::RandomWalk) {
@@ -514,17 +517,17 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
             }
             index = _sequenceState.nextStep();
         }
-        if (int(lockedSteps.size()) != int(inMemSteps.size())) {
-            if (lockedSteps.size()< inMemSteps.size()) {
-                for (int i = lockedSteps.size(); i< int(inMemSteps.size()); ++i) {
-                    lockedSteps.insert(lockedSteps.end(), inMemSteps.at(i));
+        if (int(_lockedSteps[_track.trackIndex()].size()) != int(_inMemSteps[_track.trackIndex()].size())) {
+            if (_lockedSteps[_track.trackIndex()].size()< _inMemSteps[_track.trackIndex()].size()) {
+                for (int i = _lockedSteps[_track.trackIndex()].size(); i< int(_inMemSteps[_track.trackIndex()].size()); ++i) {
+                    _lockedSteps[_track.trackIndex()].insert(_lockedSteps[_track.trackIndex()].end(), _inMemSteps[_track.trackIndex()].at(i));
                 } 
             }
-            lockedSteps = inMemSteps;
+            _lockedSteps[_track.trackIndex()] = _inMemSteps[_track.trackIndex()];
 
         }
 
-        auto subArray = slicing(lockedSteps, sequence.sequenceFirstStep(), sequence.sequenceLastStep());
+        auto subArray = slicing(_lockedSteps[_track.trackIndex()], sequence.sequenceFirstStep(), sequence.sequenceLastStep());
         index = index%sequence.sequenceLength();
         stepIndex = subArray.at(index).index();
         if (stepIndex == -1) {
@@ -589,7 +592,7 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         stepTick = (int) tick + gateOffset;
         noteValue = subArray.at(index).noteValue();
         stepLength = subArray.at(index).stepLength();
-        stepRetrigger = lockedSteps.at(index).stepRetrigger();
+        stepRetrigger = _lockedSteps[_track.trackIndex()].at(index).stepRetrigger();
     
     }
 
