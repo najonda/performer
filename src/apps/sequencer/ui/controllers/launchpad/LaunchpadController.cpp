@@ -265,7 +265,11 @@ bool LaunchpadController::globalButton(const Button &button, ButtonAction action
                 const auto &scale = Scale::get(0);
                 switch (_project.selectedNoteSequenceLayer()) {
                     case NoteSequence::Layer::Gate:
-                        sequence.step(button.gridIndex()).setNote(scale.notesPerOctave()*5);
+                        if (sequence.step(button.gridIndex()).note()==(scale.notesPerOctave()*5)) {
+                            sequence.step(button.gridIndex()).setNote(0);
+                        } else {
+                            sequence.step(button.gridIndex()).setNote(scale.notesPerOctave()*5);
+                        }
                         break; 
                     case NoteSequence::Layer::Note: {
                             if (_noteStyle == 1) {
@@ -273,7 +277,11 @@ bool LaunchpadController::globalButton(const Button &button, ButtonAction action
                                     return true;
                                 }
                                 int stepIndex = button.gridIndex()+(sequence.section()*16);
-                                sequence.step(stepIndex).setNote(scale.notesPerOctave()*5);
+                                if (sequence.step(stepIndex).note()==(scale.notesPerOctave()*5)) {
+                                    sequence.step(stepIndex).setNote(0);
+                                } else {
+                                    sequence.step(stepIndex).setNote(scale.notesPerOctave()*5);
+                                }
                             }
                         }
                         break;
