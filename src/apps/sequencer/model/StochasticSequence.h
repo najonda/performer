@@ -802,7 +802,7 @@ private:
     bool _useLoop = false;
     bool _clearLoop = false;
 
-    Message _message;
+    Message _message = Message::None;
 
     friend class StochasticTrack;
 };
