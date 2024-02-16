@@ -275,7 +275,7 @@ void StochasticSequence::clear() {
     setRunMode(Types::RunMode::Forward);
     setFirstStep(0);
     setLastStep(0);
-    setRestProbability(0);
+    //setRestProbability(0);
     setSequenceFirstStep(0);
     setSequenceLastStep(15);
     setLengthModifier(0);
@@ -347,8 +347,8 @@ void StochasticSequence::write(VersionedSerializedWriter &writer) const {
     writer.write(_divisor.base);
     writer.write(_resetMeasure);
     writer.write(_runMode.base);
-    writer.write(_firstStep.base);
-    writer.write(_lastStep.base);
+    writer.write(_firstStep);
+    writer.write(_lastStep);
     writer.write(_restProbability2);  
     writer.write(_restProbability4);
     writer.write(_restProbability8);
@@ -369,8 +369,8 @@ void StochasticSequence::read(VersionedSerializedReader &reader) {
     }
     reader.read(_resetMeasure);
     reader.read(_runMode.base);
-    reader.read(_firstStep.base);
-    reader.read(_lastStep.base);
+    reader.read(_firstStep);
+    reader.read(_lastStep);
     reader.read(_restProbability2, ProjectVersion::Version36);  
     reader.read(_restProbability4, ProjectVersion::Version36);
     reader.read(_restProbability8, ProjectVersion::Version36);

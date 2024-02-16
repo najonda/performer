@@ -419,23 +419,22 @@ public:
     // firstStep
 
     int firstStep() const {
-        return _firstStep.get(isRouted(Routing::Target::FirstStep));
+        return _firstStep;
     }
 
     void setFirstStep(int firstStep, bool routed = false) {
-        _firstStep.set(clamp(firstStep, 0, lastStep()), routed);
+        _firstStep= clamp(firstStep, 0, lastStep());
     }
 
     void editFirstStep(int value, bool shift) {
         if (shift) {
             offsetFirstAndLastStep(value);
-        } else if (!isRouted(Routing::Target::FirstStep)) {
+        } else  {
             setFirstStep(firstStep() + value);
         }
     }
 
     void printFirstStep(StringBuilder &str) const {
-        printRouted(str, Routing::Target::FirstStep);
         str("%d", firstStep() + 1);
     }
 
@@ -443,30 +442,28 @@ public:
 
     int lastStep() const {
         // make sure last step is always >= first step even if stored value is invalid (due to routing changes)
-        return std::max(firstStep(), int(_lastStep.get(isRouted(Routing::Target::LastStep))));
+        return std::max(firstStep(), int(_lastStep));
     }
 
     void setLastStep(int lastStep, bool routed = false) {
-        _lastStep.set(clamp(lastStep, firstStep(), CONFIG_STEP_COUNT - 1), routed);
+        _lastStep = clamp(lastStep, firstStep(), CONFIG_STEP_COUNT - 1);
     }
 
     void editLastStep(int value, bool shift) {
         if (shift) {
             offsetFirstAndLastStep(value);
-        } else if (!isRouted(Routing::Target::LastStep)) {
+        } else {
             setLastStep(lastStep() + value);
         }
     }
 
     void printLastStep(StringBuilder &str) const {
-        printRouted(str, Routing::Target::LastStep);
         str("%d", lastStep() + 1);
     }
 
     void setStepBounds(int index) {
-        _firstStep.set(index, false);
-        _lastStep.set(index, false);
-    }
+        _firstStep = index;
+        _lastStep = index;    }
 
     // rest probability 1 step
 
@@ -476,13 +473,6 @@ public:
             prob = 0;
         }
         return prob;
-    }
-    void setRestProbability(int restProbability) {
-        _restProbability = clamp(restProbability, 0, 8);
-    }
-
-    void editRestProbability(int value, bool shift) {
-        setRestProbability(restProbability() + value);
     }
 
     void printRestProbability(StringBuilder &str) const {
@@ -791,11 +781,10 @@ private:
     Routable<uint16_t> _divisor;
     uint8_t _resetMeasure;
     Routable<Types::RunMode> _runMode;
-    Routable<uint8_t> _firstStep;
-    Routable<uint8_t> _lastStep;
+    uint8_t _firstStep;
+    uint8_t _lastStep;
     Routable<bool> _reseed;
 
-    int8_t _restProbability;
     Routable<int8_t> _restProbability2;
     Routable<int8_t> _restProbability4;
     Routable<int8_t> _restProbability8;
