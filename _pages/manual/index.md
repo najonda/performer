@@ -245,11 +245,11 @@ In Stochastic Mode, a track acts a stochastic CV generator based on notes probab
 
 It offers basically all the Note track layer features:
 
-he _Gate_ layer defines what steps of the sequence create a gate signal. To introduce some random variation, the _Gate Probability_ layer is used to control how often an active gate is actually generated.
+The _Gate_ layer defines what steps of the sequence create a gate signal. To introduce some random variation, the _Gate Probability_ layer is used to control how often an active gate is actually generated.
 
 The _Gate Offset_ layer is used to offset gate signals into the future, adding a positive or a negative delay before triggering a note.
 
-The _Length_ layer controls the duration of the gate signal and allows to tie notes together if set to the maximum. Again, to introduce some random variation, the _Length Variation Range_ and _Length Variation Probability_ layers control a maximum random deviation of the gate length and the probability of actually randomizing the gate length.
+The _Length_ layer controls the duration of the gate signal and allows to tie notes together if set to the maximum. Again, to introduce some random variation, the _Length Variation Range_ and _Length Variation Probability_ layers control a maximum random deviation of the gate length and the probability of actually randomizing the gate length. In addition a Stochastic Length Modifier parameter is available on the Stochastic Sequence Page. 
 
 The _Retrigger_ layer allows each gate signal to be retriggered multiple times withinSlide the duration of the step, allowing for faster gates and ratcheting effects. Retriggered notes are only output within the current _Length_ of the step. This allows to output a burst of notes only at the beginning of the step. Retriggering can also be randomized using the _Retrigger Probability_ layer.
 
