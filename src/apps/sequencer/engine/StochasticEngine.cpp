@@ -229,8 +229,7 @@ TrackEngine::TickResult StochasticEngine::tick(uint32_t tick) {
         }
             break;
         case Types::PlayMode::Free: 
-            std::cerr << "FREE"<<"\n";
-;            relativeTick = _freeRelativeTick;
+            relativeTick = _freeRelativeTick;
             if (++_freeRelativeTick >= divisor) {
                 _freeRelativeTick = 0;
             }
@@ -414,7 +413,6 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     auto abstoluteStep = relativeTick / divisor;
     
     auto index = abstoluteStep % sequence.sequenceLength();
-    std::cerr << index << "\n";
 
     StochasticSequence::Step step;
     uint32_t stepTick = 0;
@@ -439,10 +437,10 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         
         if (index == 0) {
             _lockedSteps[_track.trackIndex()].clear();
-            _inMemSteps[_track.trackIndex()].clear();
+            //_inMemSteps[_track.trackIndex()].clear();
             _lockedSteps[_track.trackIndex()] = _inMemSteps[_track.trackIndex()];
             sequence.setClearLoop(false);
-            sequence.setUseLoop(true);
+            sequence.setUseLoop(false);
         }
     }
 
@@ -523,7 +521,7 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
                     _lockedSteps[_track.trackIndex()].insert(_lockedSteps[_track.trackIndex()].end(), _inMemSteps[_track.trackIndex()].at(i));
                 } 
             }
-            _lockedSteps[_track.trackIndex()] = _inMemSteps[_track.trackIndex()];
+            //_lockedSteps[_track.trackIndex()] = _inMemSteps[_track.trackIndex()];
 
         }
 

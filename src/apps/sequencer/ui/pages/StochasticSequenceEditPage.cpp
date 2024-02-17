@@ -63,6 +63,8 @@ StochasticSequenceEditPage::StochasticSequenceEditPage(PageManager &manager, Pag
 
 void StochasticSequenceEditPage::enter() {
     updateMonitorStep();
+    auto &sequence = _project.selectedStochasticSequence();
+    sequence.setMessage(StochasticSequence::Message::None);
 
     _showDetail = false;
     _section = 0;
