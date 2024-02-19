@@ -1849,6 +1849,20 @@ void LaunchpadController::drawStochasticSequenceNotes(const StochasticSequence &
             drawBarH(0, step.noteVariationProbability(), true, false);
         }
 
+
+        auto stochasticEngine = _engine.selectedTrackEngine().as<StochasticEngine>();
+        for (int col = 0; col < 8; ++col) {
+            if (col == stochasticEngine.currentIndex(_project.selectedTrackIndex())%8) {
+                if (stochasticEngine.currentIndex(_project.selectedTrackIndex())<=8) {
+                    setCustomGridLed(2, col, Color(1,3));
+                } else {
+                    setCustomGridLed(2, col, Color(2,0));
+                }
+            } else {
+                setGridLed(2, col, colorOff());
+            }
+        }
+
         int rootNote = sequence.selectedRootNote(_model.project().rootNote());
 
         // draw keyboard

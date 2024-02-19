@@ -115,6 +115,8 @@ public:
     int currentStep() const { return _currentStep; }
     int currentRecordStep() const { return _stepRecorder.stepIndex(); }
 
+    int currentIndex(int track) const { return _index[track]; }
+
     void setMonitorStep(int index);
     Types::PlayMode playMode() const { return _stochasticTrack.playMode(); }
 
@@ -160,6 +162,7 @@ private:
     uint32_t _freeRelativeTick;
     SequenceState _sequenceState;
     int _currentStep;
+    int _index[8];
     bool _prevCondition;
 
     int _monitorStepIndex = -1;
