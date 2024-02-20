@@ -386,6 +386,24 @@ public:
     const MidiOutput &midiOutput() const { return _midiOutput; }
           MidiOutput &midiOutput()       { return _midiOutput; }
 
+    const int stepsToStop() const { return _stepsToStop;}
+          int stepsToStop()       { return _stepsToStop; }
+
+    void setStepsToStop(int steps) {
+        _stepsToStop = clamp(steps, 0 , CONFIG_STEP_COUNT);
+    }
+
+    void editStepsToStop(int steps) {
+        setStepsToStop(steps + stepsToStop());
+    }
+
+    void printStepsToStop(StringBuilder &str) const {
+        if (_stepsToStop == 0) {
+            str("Off");
+        } else {
+            str("%d", stepsToStop());
+        }
+    }
     // selectedTrackIndex
 
     int selectedTrackIndex() const { return _selectedTrackIndex; }
@@ -557,6 +575,8 @@ private:
     PlayState _playState;
     Routing _routing;
     MidiOutput _midiOutput;
+
+    uint8_t _stepsToStop;
 
     int _selectedTrackIndex = 0;
     int _selectedPatternIndex = 0;
