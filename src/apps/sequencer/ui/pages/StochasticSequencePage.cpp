@@ -118,7 +118,7 @@ bool StochasticSequencePage::contextActionEnabled(int index) const {
 }
 
 void StochasticSequencePage::initSequence() {
-    _project.selectedNoteSequence().clear();
+    _project.selectedStochasticSequence().clear();
     showMessage("SEQUENCE INITIALIZED");
 }
 

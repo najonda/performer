@@ -115,7 +115,7 @@ public:
     int currentStep() const { return _currentStep; }
     int currentRecordStep() const { return _stepRecorder.stepIndex(); }
 
-    int currentIndex(int track) const { return _index[track]; }
+    int currentIndex() const { return _index; }
 
     void setMonitorStep(int index);
     Types::PlayMode playMode() const { return _stochasticTrack.playMode(); }
@@ -162,7 +162,7 @@ private:
     uint32_t _freeRelativeTick;
     SequenceState _sequenceState;
     int _currentStep;
-    int _index[8];
+    int _index;
     bool _prevCondition;
 
     int _monitorStepIndex = -1;
@@ -178,10 +178,10 @@ private:
     bool _slideActive;
     unsigned int _currentStageRepeat;
 
-    int _skips[8];
+    int _skips;
 
-    std::vector<StochasticLoopStep> _inMemSteps[8];
-    std::vector<StochasticLoopStep> _lockedSteps[8];
+    std::vector<StochasticLoopStep> _inMemSteps;
+    std::vector<StochasticLoopStep> _lockedSteps;
 
     struct Gate {
         uint32_t tick;

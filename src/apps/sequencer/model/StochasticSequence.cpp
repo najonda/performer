@@ -3,6 +3,7 @@
 
 #include "ModelUtils.h"
 #include "Routing.h"
+#include <iostream>
 
 Types::LayerRange StochasticSequence::layerRange(Layer layer) {
     #define CASE(_layer_) \
@@ -185,7 +186,7 @@ void StochasticSequence::Step::clear() {
     setNote(0);
     setNoteOctave(0);
     setNoteOctaveProbability(NoteOctaveProbability::Max);
-    setNoteVariationProbability(NoteVariationProbability::Max);
+    setNoteVariationProbability(0);
     setCondition(Types::Condition::Off);
     setStageRepeats(0);
     setStageRepeatsMode(StageRepeatMode::Each);
@@ -284,6 +285,8 @@ void StochasticSequence::clear() {
     setRestProbability8(0);
     setLowOctaveRange(0);
     setHighOctaveRange(0);
+    setUseLoop(false);
+    setReseed(false);
 
     clearSteps();
 }
@@ -293,16 +296,18 @@ void StochasticSequence::clearSteps() {
         step.clear();
     }
     
-    for (int i = 0; i < 64; ++i) {
-        _steps[i].setGate(false);
-        _steps[i].setNoteVariationProbability(0);
+    for (int i = 0; i < 12; ++i) {
         _steps[i].setNote(i);
     }
 }
 
 bool StochasticSequence::isEdited() const {
     auto clearStep = Step();
-    for (const auto &step : _steps) {
+
+    for (int i = 0; i < 12; ++i) {
+       auto step =  _steps[i];
+        clearStep.setNote(i);
+
         if (step != clearStep) {
             return true;
         }

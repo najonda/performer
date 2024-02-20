@@ -1183,6 +1183,10 @@ void LaunchpadController::patternDraw() {
                         setGridLed(row, trackIndex, colorRed(1));
                     }
                     break;
+                case Track::TrackMode::Stochastic:
+                    if (track.stochasticTrack().sequence(patternIndex).isEdited()) {
+                        setGridLed(row, trackIndex, colorRed(2));
+                    }
                 default:
                     break;
                 }
@@ -1852,8 +1856,8 @@ void LaunchpadController::drawStochasticSequenceNotes(const StochasticSequence &
 
         auto stochasticEngine = _engine.selectedTrackEngine().as<StochasticEngine>();
         for (int col = 0; col < 8; ++col) {
-            if (col == stochasticEngine.currentIndex(_project.selectedTrackIndex())%8) {
-                if (stochasticEngine.currentIndex(_project.selectedTrackIndex())<=8) {
+            if (col == stochasticEngine.currentIndex()%8) {
+                if (stochasticEngine.currentIndex()<=8) {
                     setCustomGridLed(2, col, Color(1,3));
                 } else {
                     setCustomGridLed(2, col, Color(2,0));
