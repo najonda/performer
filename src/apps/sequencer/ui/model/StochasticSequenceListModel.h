@@ -40,6 +40,10 @@ public:
 
     void setSequence(StochasticSequence *sequence) {
         _sequence = sequence;
+        if (sequence != nullptr) {
+            int trackIndex = _sequence->trackIndex();
+            _selectedScale[trackIndex] = sequence->scale()+1;
+        }
     }
 
     virtual int rows() const override {
