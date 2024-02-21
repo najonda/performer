@@ -1279,6 +1279,11 @@ void LaunchpadController::performerEnter() {
                     _startingLastStep[i] = _project.track(i).curveTrack().sequence(_project.selectedPatternIndex()).lastStep();
                 }
                 break;
+            case Track::TrackMode::Stochastic: {
+                    _startingFirstStep[i] = _project.track(i).stochasticTrack().sequence(_project.selectedPatternIndex()).sequenceFirstStep();
+                    _startingLastStep[i] = _project.track(i).stochasticTrack().sequence(_project.selectedPatternIndex()).sequenceLastStep();
+                break;
+            }
             default:
                 break;
         }
@@ -1395,6 +1400,9 @@ void LaunchpadController::performerButton(const Button &button, ButtonAction act
                 } else if (_project.track(i).trackMode() == Track::TrackMode::Curve) {
                     _project.track(i).curveTrack().sequence(_project.selectedPatternIndex()).setFirstStep(fs);    
                     _project.track(i).curveTrack().sequence(_project.selectedPatternIndex()).setLastStep(ls);
+                } else if (_project.track(i).trackMode() == Track::TrackMode::Stochastic) {
+                    _project.track(i).stochasticTrack().sequence(_project.selectedPatternIndex()).setSequenceFirstStep(fs);
+                    _project.track(i).stochasticTrack().sequence(_project.selectedPatternIndex()).setSequenceLastStep(ls);
                 }
             }
         }
@@ -1415,6 +1423,9 @@ void LaunchpadController::performerButton(const Button &button, ButtonAction act
                     } else if (_project.track(i).trackMode() == Track::TrackMode::Curve) {
                         _project.track(i).curveTrack().sequence(_project.selectedPatternIndex()).setFirstStep(_startingFirstStep[i]);    
                         _project.track(i).curveTrack().sequence(_project.selectedPatternIndex()).setLastStep(_startingLastStep[i]);
+                    } else if (_project.track(i).trackMode() == Track::TrackMode::Stochastic) {
+                        _project.track(i).stochasticTrack().sequence(_project.selectedPatternIndex()).setSequenceFirstStep(_startingFirstStep[i]);
+                        _project.track(i).stochasticTrack().sequence(_project.selectedPatternIndex()).setSequenceLastStep(_startingLastStep[i]);
                     }
 
                 }
