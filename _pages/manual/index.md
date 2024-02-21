@@ -543,6 +543,7 @@ The following parameters are available:
 | MIDI Input     | Off, All, MIDI, USB | Select MIDI input for monitoring and recording.                                                                                                                                         |
 | MIDI Pgm Chgn  | Off, On | Allow send and receive program change messages                                                                                                                                          |
 | CV/Gate Input  | Off, CV1/CV2, CV3/CV4 | Enable CV/Gate input on CV inputs for monitoring and recording (emulating a MIDI keyboard).                                                                                             |
+| Steps to Stop | off, 1 - 64 | number of steps after the sequencer automatically stops - useful to record |                                                                                                             | 
 
 > Note: _Tempo_ and _Swing_ are routable parameters.
 
