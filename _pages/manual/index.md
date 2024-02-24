@@ -11,7 +11,7 @@ nav: 20
 > The user manual is also available as a PDF [here](./manual.pdf).
 <!-- pdf-exclude-end -->
 
-> This document is written for firmware version 0.1.47
+> This document is written for firmware version 0.2.0
 
 <!-- TOC -->
 
@@ -29,6 +29,7 @@ nav: 20
   - [Note Track](#concepts-note-track)
   - [Curve Track](#concepts-curve-track)
   - [MIDI/CV Track](#concepts-midi-cv-track)
+  - [Stochastic Track](#concepts-stochastic-track)
   - [Pattern](#concepts-pattern)
   - [Snapshot](#concepts-snapshot)
   - [Fills](#concepts-fills)
@@ -77,6 +78,7 @@ nav: 20
   - [MIDI Program Change](#appendix-midi-program-change)
   - [Launchpad](#appendix-launchpad)
   - [Circuit Note Editor](#appendix-circuit)
+  - [Stochastic Note Editor](#appendix-stochastic-circuit)
   - [USB MIDI Devices](#appendix-usb-midi-devices)
   - [Calibration Procedure](#appendix-calibration-procedure)
   - [Firmware Update](#appendix-firmware-update)
@@ -171,8 +173,9 @@ Each of the 8 tracks can be configured to one of the following modes:
 - Note
 - Curve
 - MIDI/CV
+- Stochastic
 
-In _Note_ mode, the default mode, a track uses advanced step sequencing to generate rhythms and melodies. _Curve_ mode also uses step sequencing, but each step is defined as a curve shape, making this mode very versatile for generating modulation signals. In MIDI/CV mode, a track acts as a MIDI to CV converter, which can be useful when attaching a MIDI keyboard to play some voices live or sequence them from an external MIDI sequencer.
+In _Note_ mode, the default mode, a track uses advanced step sequencing to generate rhythms and melodies. _Curve_ mode also uses step sequencing, but each step is defined as a curve shape, making this mode very versatile for generating modulation signals. In MIDI/CV mode, a track acts as a MIDI to CV converter, which can be useful when attaching a MIDI keyboard to play some voices live or sequence them from an external MIDI sequencer. In Stochastic mode the track act as a stochastic cv generator based on notes probabilities
 
 <h4>Track Routing</h4>
 
@@ -200,9 +203,9 @@ The _Length_ layer controls the duration of the gate signal and allows to tie no
 
 The _Retrigger_ layer allows each gate signal to be retriggered multiple times withinSlide the duration of the step, allowing for faster gates and ratcheting effects. Retriggered notes are only output within the current _Length_ of the step. This allows to output a burst of notes only at the beginning of the step. Retriggering can also be randomized using the _Retrigger Probability_ layer.
 
-Inside the _Retrigger_ layer a metropolix style mode can be activated wwhen the track is in _free_mode. 
+Inside the _Retrigger_ layer a metropolix style mode can be activated when the track is in _free_mode. 
 
-The generated CV signal is controlled by the _Note_ layer, which basically defines the voltage to be output for each step. Each note is stored as an index to an entry in a [Scale](#concepts-scale), allowing the generated CV signals to be used both for controlling note pitch as well as other arbitrary modulation signals. Using the _Note Variation Range_ and _Note Variation Probability_ layers some random variation can be applied to the CV signal. The _Slide_ layer controls if the generate CV signal is changed immediately on the start of a gate or smoothly slides to the new voltage. Activating a step in the _Bypass Scale_ layer will allow to bypass the selected scale and enter one of 12 chromatic notes available. 
+The generated CV signal is controlled by the _Note_ layer, which basically defines the voltage to be output for each step. Each note is stored as an index to an entry in a [Scale](#concepts-scale), allowing the generated CV signals to be used both for controlling note pitch as well as other arbitrary modulation signals. Using the _Note Variation Range_ and _Note Variation Probability_ layers some random variation can be applied to the CV signal. The _Slide_ layer controls if the generate CV signal is changed immediately on the start of a gate or smoothly slides to the new voltage. Activating a step in the _Bypass Scale_ layer will allow to bypass the selected scale and enter one of 12 chromatic notes available.
 
 Finally, the _Condition_ layer is used to conditionally trigger steps based on certain rules. This allows to create relatively short sequences that feel more complex, for example by only playing steps every few iterations. See [Step Conditions](#appendix-step-conditions) for additional information.
 
@@ -233,6 +236,26 @@ The playback of the sequence is controlled by the same set of parameters as in t
 In MIDI/CV mode, a track acts as a MIDI to CV converter, taking MIDI note data from either the MIDI or USBMIDI input and converting it to voltages at the CV/gate outputs. This allows for playing voices live from a keyboard or use an external MIDI sequencer to control them. MIDI/CV mode also provides a powerful arpeggiator to further help playing live.
 
 > Note: MIDI/CV mode allows for using the **PER\|FORMER** module as a pure MIDI/CV converter with up to 8 CV/Gate outputs.
+
+<!-- Stochastic Track -->
+
+<h3 id="concepts-stochastic-track">Stochastic Track</h3>
+
+In Stochastic Mode, a track acts a stochastic CV generator based on notes probabilities. The sequence is fixed at 12 steps (representing the 12 chromatic semitones).
+
+It offers basically all the Note track layer features:
+
+The _Gate_ layer defines what steps of the sequence create a gate signal. To introduce some random variation, the _Gate Probability_ layer is used to control how often an active gate is actually generated.
+
+The _Gate Offset_ layer is used to offset gate signals into the future, adding a positive or a negative delay before triggering a note.
+
+The _Length_ layer controls the duration of the gate signal and allows to tie notes together if set to the maximum. Again, to introduce some random variation, the _Length Variation Range_ and _Length Variation Probability_ layers control a maximum random deviation of the gate length and the probability of actually randomizing the gate length. In addition a Stochastic Length Modifier parameter is available on the Stochastic Sequence Page. 
+
+The _Retrigger_ layer allows each gate signal to be retriggered multiple times withinSlide the duration of the step, allowing for faster gates and ratcheting effects. Retriggered notes are only output within the current _Length_ of the step. This allows to output a burst of notes only at the beginning of the step. Retriggering can also be randomized using the _Retrigger Probability_ layer.
+
+Inside the _Retrigger_ layer a metropolix style mode can be activated when the track is in _free_mode.
+
+The generated CV signal is controlled by the _Note Probability_ defining the probability that the stochastic generator will pick the selected note. The _Slide_ layer controls if the generate CV signal is changed immediately on the start of a gate or smoothly slides to the new voltage. The _Bypass Scale_ is already been activated for each step and cannot be disabled. The _Octave_ define the octave of each step and the _Octave Probability_ defines the probability that the step changes octave.
 
 <!-- Pattern -->
 
@@ -306,19 +329,22 @@ See [Launchpad](#appendix-launchpad) for more details.
 
 <h3 id="concepts-file-management">File Management</h3>
 
-The SD card can be used to store various resources such as projects, user scales and system settings. Resources are stored into slots, with each type having a total of 128 slots available. The actual content on the SD card looks as follows:
+The SD card can be used to store various resources such as projects, sequences, user scales and system settings. Resources are stored into slots, with each type having a total of 128 slots available. The actual content on the SD card looks as follows:
 
 - **PROJECTS/**
   - **001.PRO**
   - **002.PRO**
   - **...**
+- **SEQS/**
+  - **001.NSQ**
+  - **001.CSQ**
 - **SCALES/**
   - **001.SCA**
   - **002.SCA**
   - **...**
 - **SETTINGS.DAT**
 
-where **001.PRO** is the first project slot, **002.SCA** is the second user scale slot and **SETTINGS.DAT** is the backup of the system settings (also stored in on-chip flash memory).
+where **001.PRO** is the first project slot, **001.NSQ** is the first note sequence slot, **001.CSQ** is the first curve sequence slor, **002.SCA** is the second user scale slot and **SETTINGS.DAT** is the backup of the system settings (also stored in on-chip flash memory).
 
 The reason for using a slot system rather than traditional filenames is in order to allow for a smooth user experience while preserving the limited resources on the system.
 
@@ -435,6 +461,13 @@ The currently selected track is shown as track name. The currently playing patte
 
 The currently active page is shown in the top-right corner and optionally a sub-page or mode is shown to its left.
 
+In follow pattern mode an indicator of the current mode will be displayed in the top right corner.
+
+- **F** Follow mode
+- **F:LP** launchpad follow mode
+- **F:D+LP** Follow mode on display and launchpad
+
+In the stochastic track an "L" will be displayed in the top right corner when the loop is engaged. 
 <h4>Body</h4>
 
 The _body_ is used to display the main content for the active page.
@@ -510,9 +543,11 @@ The following parameters are available:
 | MIDI Input     | Off, All, MIDI, USB | Select MIDI input for monitoring and recording.                                                                                                                                         |
 | MIDI Pgm Chgn  | Off, On | Allow send and receive program change messages                                                                                                                                          |
 | CV/Gate Input  | Off, CV1/CV2, CV3/CV4 | Enable CV/Gate input on CV inputs for monitoring and recording (emulating a MIDI keyboard).                                                                                             |
-| Curve CV Input | Off, CV1, CV2, CV3, CV4 | Select CV input for curve recording.                                                                                                                                                    |
+| Steps to Stop | off, 1 - 64 | number of steps after the sequencer automatically stops - useful to record |                                                                                                             | 
 
 > Note: _Tempo_ and _Swing_ are routable parameters.
+
+Double click `F[1-5]` activate a shortcut to enter project, layout, routing, midi out and u.scale pages  
 
 <h4>Context Menu</h4>
 
@@ -631,6 +666,7 @@ If a track is in _Curve_, the following parameters are available:
 | Shape P. Bias | -100% - +100% | Shape probability bias that is added to the sequence.                                                                                                                                                                                                                                               |
 | Gate P. Bias | -100% - +100% | Gate probability bias that is added to the sequence.                                                                                                                                                                                                                                                |
 | Pattern Follow | Off, Display, Launchpad, Display+LP  | Enable pattern follow. Use `PAGE`+`S16` tio cycle between modes                                                                                                                                                                                                                                     |
+| Curve CV Input | Off, CV1, CV2, CV3, CV4 | Select CV input for curve recording.                                                                                                                                                    |
 
 > Note: _Slide Time_, _Offset_, _Rotate_, _Shape P. Bias_ and _Gate P. Bias_ are routable parameters.
 
@@ -665,6 +701,26 @@ If a track is in MIDI/CV mode, the following parameters are available:
 
 > Note: _Low Note_ and _High Note_ can be used to setup key ranges such that multiple MIDI/CV tracks can be played in split keyboard mode.
 
+<h4>Stochastic Track</h4>
+
+![](images/page-stochastic-track.png)
+
+If a track is in Stochastic mode, the following parameters are available:
+
+| Parameter | Range                                | Description                                                                                                                                                                                                                                                                                                                            |
+| :--- |:-------------------------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Track Name | -                                    | Press `ENCODER` to enter text editor for changing the project name.                                                                                                                                                                                                                                                                    |
+| Play Mode | [Play Modes](#appendix-play-modes)   | Mode used for playing sequences in this track.                                                                                                                                                                                                                                                                                         |
+| CV Update Mode | Gate, Always                         | Mode used for updating the CV output of this track. _Gate_ only updates the CV output if the step gate is active, _Always_ always updates the CV output independent of the step gate.                                                                                                                                                                                 |
+| Slide Time | 0% - 100%                            | Duration of pitch slides for steps that have _Slide_ enabled.                                                                                                                                                                                                                                                                          |
+| Octave | -10 - +10                            | Number of octaves to transpose the sequence up or down.                                                                                                                                                                                                                                                                                |
+| Transpose | -100 - +100                          | Number of notes to transpose the sequence up or down. Note that this depends on the current [Scale](#appendix-scales) of the sequence.                                                                                                                                                                                                 
+| Rotate | [Rotation](#appendix-rotation)       | Amount of rotation applied to the sequence.                                                                                                                                                                                                                                                                                            |
+| Gate P. Bias | -100% - +100%                        | Gate probability bias that is added to the sequence.                                                                                                                                                                                                                                                                                   |
+| Retrig P. Bias | -100% - +100%                        | Retrigger probability bias that is added to the sequence.                                                                                                                                                                                                                                                                              |
+| Length Bias | -100% - +100%                        | Length bias bias that is added to the sequence.                                                                                                                                                                                                                                                                                        |
+| Note P. Bias | -100% - +100%                        | Note variation probability bias that is added to the sequence.                                                                                                                                                                                                                                                                         |
+
 <!-- Sequence -->
 
 <h3 id="pages-sequence">Sequence</h3>
@@ -687,6 +743,15 @@ Hold `SHIFT` + `PAGE` or double click `PAGE` (context menu will least for 2 seco
 | `F2` | Copy | Copy the selected sequence and all its content to the clipboard. |
 | `F3` | Paste | Paste the clipboard to the selected sequence. |
 | `F4` | Duplicate | Copy the selected sequence to the next sequence on the selected track. For example copy of the first sequence to the second sequence. |
+
+On _Note_ or _Curve_ track double click `SHIFT` will enter the save/load context menu:
+
+| Button | Function | Description                                                                     |
+|:-------| :--- |:--------------------------------------------------------------------------------|
+| `F1`   | Load | Load a sequence from the SD card.                                               |
+| `F2`   | Save | Save the sequence to the SD card and automatically overwrite the previous slot. |
+| `F3`   | Save As | Save the sequence to a new slot on the SD card.                                 |
+
 
 <h4>Note Track</h4>
 
@@ -723,6 +788,29 @@ If a track is in _Curve_ mode, the following parameters are available:
 
 > Note: _First Step_, _Last Step_, _Run Mode_ and _Divisor_ are routable parameters.
 
+<h4>Stochastic Track</h4>
+
+![](images/page-stochastic-sequence.png)
+
+If a track is in _Stochastic_ mode, the following parameters are available:
+
+| Parameter      | Range                               | Description                                                                                                                                                                                                                                                                                                                                                            |  
+|:---------------|:------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Run Mode       | [Run Modes](#appendix-run-modes)    | Mode in which to play the sequence.                                                                                                                                                                                                                                                                                                                                    |
+| Divisor        | [Divisors](#appendix-divisors)      | Time divisor for this sequence.                                                                                                                                                                                                                                                                                                                                        |
+| Reset Measure  | off, 1 - 128 bars                   | Number of measures/bars at which to reset the sequence.                                                                                                                                                                                                                                                                                                                |
+| Scale          | [Scales](#appendix-scales)          | Scale to use for this sequence. If set to _Default_, uses the default scale set on the [Project](#pages-project) page. The scale will change on encoder press and new notes will be calculated based on the previous scale: if a note of the previous scale is present in the new scale it will be preserved. If a note is not present the nearest one will be picked. |
+| Root Note      | C, C#, D, D#, E, F, F#, G, G#, A, B | Root note to use for this sequence. If set to _Default_, uses the default root note set on the [Project](#pages-project) page.                                                                                                                                                                                                                                         |
+| Rest Prob. 2   | 0-100%                              | The probability that the sequence will rest every 2 steps                                                                                                                                                                                                                                                                                                              |
+| Rest Prob. 4   | 0-100%                              | The probability that the sequence will rest every 3 steps                                                                                                                                                                                                                                                                                                              |
+| Rest Prob. 8   | 0-100%                              | The probability that the sequence will rest every 8 steps                                                                                                                                                                                                                                                                                                              |
+| Seq First Step | 1 - 64                              | First step of the locked loop to play                                                                                                                                                                                                                                                                                                                                  |
+| Seq Last Step | 1 - 64 | Last step of the kicjed loop to play                                                                                                                                                                                                                                                                                                                                   |                                                                                                                                                                                                                                                                                                                                                                   
+| L Oct. Range | -10 - 10 | Lower octave bound used to generate random pitches for each stochastic step                                                                                                                                                                                                                                                                                            |
+| H Oct. Range | -10 - 10 | Upper octave bound ised to generate random pitches for each stochastic step                                                                                                                                                                                                                                                                                            |
+| Length Mod | -200 - 200 % | Stochastic length modifier added to the step length |
+
+
 <!-- Steps -->
 
 <h3 id="pages-steps">Steps</h3>
@@ -731,6 +819,7 @@ The _Steps_ page is entered using `PAGE` + `STEPS`.
 
 ![](images/page-note-steps.png)
 ![](images/page-curve-steps.png)
+![](images/page-stochastic-steps.png)
 
 This page allows editing the currently selected sequence on the currently selected track. Depending on the track mode of the selected track, this page shows a different graphical representation of the sequence. If track mode is set to _MIDI/CV_, the page is not available and selecting it will jump to the [Track](#pages-track) page.
 
@@ -740,13 +829,13 @@ Sequence data is organized in layers (see [Note Track](#concepts-note-track) and
 
 The following layers are available in _Note_ mode:
 
-| Button | Layers                                                        |
-| :--- |:--------------------------------------------------------------|
-| `F1` | Gate, Gate Probability, Gate Offset                           |
-| `F2` | Retrigger, Retrigger Probability, Repeat, Repeat Mode         |
-| `F3` | Length, Length Variation Range, Length Variation Probability  |
-| `F4` | Note, Note Variation Range, Note Variation Probability, Slide |
-| `F5` | Condition                                                     |
+| Button | Layers                                                                      |
+| :--- |:----------------------------------------------------------------------------|
+| `F1` | Gate, Gate Probability, Gate Offset                                         |
+| `F2` | Retrigger, Retrigger Probability, Repeat, Repeat Mode                       |
+| `F3` | Length, Length Variation Range, Length Variation Probability                |
+| `F4` | Note, Note Variation Range, Note Variation Probability, Slide, Bypass scale |
+| `F5` | Condition                                                                   |
 
 > Note: See [Step Conditions](#appendix-step-conditions) for a description of the different step conditions.
 
@@ -760,6 +849,17 @@ The following layers are available in _Curve_ mode:
 | `F2` | Minimum |
 | `F3` | Maximum |
 | `F4` | Gate, Gate Probability |
+
+The following layers are available in _Stochastic_ mode:
+
+
+| Button | Layers                                                       |
+| :--- |:-------------------------------------------------------------|
+| `F1` | Gate, Gate Probability, Gate Offset                          |
+| `F2` | Retrigger, Retrigger Probability, Repeat, Repeat Mode        |
+| `F3` | Length, Length Variation Range, Length Variation Probability |
+| `F4` | Note Probability, Octave, Octave Probability, Slide          |
+| `F5` | Condition                                                    |
 
 <h4>Section Selection</h4>
 
@@ -779,10 +879,14 @@ To adjust the values of the currently selected layer, hold `S[1-16]` and rotate 
 - When editing the _Min_ or _Max_ layer on a sequence of a _Curve_ track, pressing `SHIFT` or `ENCODER` and rotating the `ENCODER` will adjust the value in smaller steps.
 - When editing the _Min_ or _Max_ layer on a sequence of a _Curve_ track while holding `F2` or `F3`, the curve shape is offset up and down (adjusting min/max at the same time).
 - When editing a _Curve_ track select multiple steps `SHIFT` + `S[1-16]` then hold `SHIFT` and turn the `ENCODER` to select a shape. The shape will be spread across the selected steps.
-- When editing a _Curve_ track elect multiple steps `SHIFT` + `S[1-16]` and press the `SHIFT` + `ENCODER` will reverse the shapes
+- When editing a _Curve_ track select multiple steps `SHIFT` + `S[1-16]` and press the `SHIFT` + `ENCODER` will reverse the shapes
 - When editing a _Note_ track select any steps you want and pressing `SHIFT` + `next|prev` will move the selected step by 1 step
 - When editing a _Note_ or a _Curve_ track selecting any steps and using the _INIT_ context menu function will init just the selected steps.
 - when editing a _Note_ or a _Curve_ track pressing `PAGE` + `S7` will undo the last change.
+- When editing a _Note_ track holding a step and pressing `F1`-`F5` will set the note octave respectively to 1V, 2V, 3V, 4V, 5V. Can be used to fastly create accents
+- When editing a _Stochastic_ track pressing `PAGE`+`S7` will loop the sequence (length is calculated by Sequence First Step and Sequence Last Step parameters)
+- When editing a _Stochastic_ track pressing `PAGE`+`S6` will clear the loop and enter a new one
+- When editing a _Stochastic_ track pressing `PAGE`+`S5` will reseed the stochastic generator and pick a random value for the Note Probability BIAS parameter
 
 <h4>Advanced Step Selection</h4>
 
@@ -1724,35 +1828,44 @@ The following arpeggiator modes are available. The example note order is based o
 
 The following routing targets are available.
 
-| Target | Scope | Notes |
-| :-- | :-- | :-- |
-| Play | Global | |
-| Play Toggle | Global | Toggle playing. Allows simultaneous use of the `PLAY` button. |
-| Record | Global | |
-| Record Toggle | Global | Toggle recording. Allows simultaneous use of the `SHIFT` + `PLAY` button combination. |
-| Tap Tempo | Global | |
-| Tempo | Global | |
-| Swing | Global | |
-| Mute | Track | |
-| Fill | Track | |
-| Fill Amount | Track | |
-| Pattern | Track | |
-| Slide Time | Track | |
-| Octave | Track | |
-| Transpose | Track | |
-| Offset | Track | |
-| Rotate | Track | |
-| Gate P. Bias | Track | |
-| Retrig P. Bias | Track | |
-| Length Bias | Track | |
-| Note P. Bias | Track | |
-| Shape P. Bias | Track | |
-| First Step | Sequence | |
-| Last Step | Sequence | |
-| Run Mode | Sequence | |
-| Divisor | Sequence | |
-| Scale | Sequence | |
-| Root Note | Sequence | |
+| Target         | Scope               | Notes |
+|:---------------|:--------------------| :- |
+| Play           | Global              | |
+| Play Toggle    | Global              | Toggle playing. Allows simultaneous use of the `PLAY` button. |
+| Record         | Global              | |
+| Record Toggle  | Global              | Toggle recording. Allows simultaneous use of the `SHIFT` + `PLAY` button combination. |
+| Tap Tempo      | Global              | |
+| Tempo          | Global              | |
+| Swing          | Global              | |
+| Mute           | Track               | |
+| Fill           | Track               | |
+| Fill Amount    | Track               | |
+| Pattern        | Track               | |
+| Slide Time     | Track               | |
+| Octave         | Track               | |
+| Transpose      | Track               | |
+| Offset         | Track               | |
+| Rotate         | Track               | |
+| Gate P. Bias   | Track               | |
+| Retrig P. Bias | Track               | |
+| Length Bias    | Track               | |
+| Note P. Bias   | Track               | |
+| Shape P. Bias  | Track               | |
+| First Step     | Sequence            | |
+| Last Step      | Sequence            | |
+| Run Mode       | Sequence            | |
+| Divisor        | Sequence            | |
+| Scale          | Sequence            | |
+| Root Note      | Sequence            | |
+| Reseed         | Stochastic Sequence | |
+| Rest Prob 2    | Stochastic Sequence | |
+| Rest Prob 4    | Stochastic Sequence | |
+| Rest Poob 8    | Stochastic Sequence | | 
+| Seq First Step | Stochastic Sequence | |
+| Seq Last Step | Stochastic Sequence | |
+| L Oct. Range | Stochastic Sequence | |
+| H Oct. Range | Stochastic Sequence | |
+| Length Mod | Stochastic Sequence | | 
 
 <!-- midi program change -->
 
@@ -1790,6 +1903,7 @@ The `8` button acts as a _shift_ button and can be pressed in combination with o
 | `8` + `7` | Start and stop the sequencer |
 | `8` + `1` | Switch to sequence mode |
 | `8` + `2` | Switch to pattern mode |
+| `8` + `3` | Switch to performance mode | 
 
 Because the 8x8 grid of the Launchpad can only represent part of the data to be edited, the grid only acts as a window into a larger virtual 64x64 grid. Hold `1` to enter navigation mode, where the position of the window can be selected:
 
@@ -1805,24 +1919,25 @@ Because the 8x8 grid of the Launchpad can only represent part of the data to be 
 
 Both modes also allow controlling track mutes and fills:
 
-| Buttons | Description |
-| :--- | :--- |
-| `7` + `A` - `H` | Fill track |
-| `8` + `A` - `H` | Mute/unmute track |
-| `6` + `A` - `H` | Solo/unsolo track |
+| Buttons | Description                |
+| :--- |:---------------------------|
+| `2` + `GRID` | toggle selected note to 5V |
+| `7` + `A` - `H` | Fill track                 |
+| `8` + `A` - `H` | Mute/unmute track          |
+| `6` + `A` - `H` | Solo/unsolo track          |
 
 <h4>Sequence Mode</h4>
 
 Sequence mode allows for comprehensive editing of the patterns on all tracks. The grid allows for editing individual step values on the active track and layer. The following functions are available:
 
-| Buttons      | Description |
-|:-------------| :--- |
-| `A` - `H`    | Select active track |
-| `2` + `GRID` | Select active layer |
-| `3` + `GRID` | Select first step |
-| `4` + `GRID` | Select last step |
-| `5` + `GRID` | Select run mode |
-| `6` + `GRID`  | select follow mode for the selected track |
+| Buttons      | Description                                                                            |
+|:-------------|:---------------------------------------------------------------------------------------|
+| `A` - `H`    | Select active track                                                                    |
+| `2` + `GRID` | Select active layer                                                                    |
+| `3` + `GRID` | Select first step                                                                      |
+| `4` + `GRID` | Select last step                                                                       |
+| `5` + `GRID` | Select run mode                                                                        |
+| `6` + `GRID`  | select follow mode for the selected track or in Stochastic mode set rest probabilities |
 
 The visualization on the grid depends on the selected layer. Binary layers (e.g. _Gate_ and _Slide_) can be visualized directly on the 8x8 grid without the need for navigation. This is useful for programming drum sequences for example. Other layers use navigation to various degree in order to allow programming the steps. When editing the _Note_ layer, the base note (first note per octave) is visualized to help orientation. When editing a note sequence, double pressing a button can be used to toggle the step gate no matter what layer is edited (other than _Gate_ or _Slide_ layer).
 
@@ -1834,6 +1949,11 @@ In addition, holding `2` while selecting patterns and scenes, allows to use latc
 
 Requested patterns due to latching or syncing are shown in dim green.
 
+<h4>Performance Mode </h4>
+
+Performance mode allow user to perform some quick live edits.
+Holding a step and then pressing another one will set first step and last step of the sequence resulting in looping the current slice of the sequence until you will release the grid buttons.
+
 <h4 id="appendix-circuit">Circuit note editor</h4>
 
 The visualization on the grid follows this schema:
@@ -1841,6 +1961,14 @@ The visualization on the grid follows this schema:
 * row 4 represents the semitones of a chromatic scale, selected note is highlighted, available notes in the scale are highlighted
 * row 5 represents the tones of a chromatic scale, selected note is highlighted, available notes in the scale are highlighted
 * row 7 represents the octave switcher from -4 to 3 octave, selected octave is highlighted
+* raw 8 is a quick page change shortcut
+  
+<h4 id="appendix-stochastic-circuit">Stochastic Circuit note editor</h4>
+* First 2 rows represent the probability of the selected note
+* row 4 represents the semitones of a chromatic scale, selected note is highlighted, available notes in the scale are highlighted
+* row 5 represents the tones of a chromatic scale, selected note is highlighted, available notes in the scale are highlighted
+* row 7 is a quick shortcut for stochastic options: Engage loop, Clear Loop, Reseed 
+
 
 - if you press a button in the gates representation you will toggle the gate
 - if you hold an available key (`GRID[4|5|,[0-7]`) and press a gate you will enter a gate with the selected note value plus the selected octave. if the gate is already present you will set the selected note plus the selected octave of the selected gate
