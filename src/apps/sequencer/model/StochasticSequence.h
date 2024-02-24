@@ -540,12 +540,9 @@ public:
     }
 
     void setReseed(int r, bool routed = false) {
-        _reseed.set(r, routed);
-    }
-
-    void toggleReseed() {
-
-        _reseed.set(!reseed(), isRouted(Routing::Target::Reseed));
+        if (!isRouted(Routing::Target::Reseed)) {
+            _reseed.set(r, routed);
+        }
         if (reseed()) {
             setMessage(Message::ReSeed);
         }
@@ -710,6 +707,16 @@ public:
 
     void setMessage(Message message) {
         _message = message;
+    }
+
+    const bool isEmpty() const {
+        for (int i = 0; i < 12; ++i) {
+            auto s = step(i);
+            if (s.gate()) {
+                return false;
+            }
+        }
+        return true;
     }
 
 

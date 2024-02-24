@@ -121,7 +121,7 @@ public:
     Types::PlayMode playMode() const { return _stochasticTrack.playMode(); }
 
 
-    int getNextWeightedPitch(std::vector<StochasticStep> distr, bool reseed = false, int notesPerOctave = 12);
+    int getNextWeightedPitch(std::vector<StochasticStep> distr, int notesPerOctave = 12);
     int evalRestProbability(StochasticSequence &sequence);
 
 

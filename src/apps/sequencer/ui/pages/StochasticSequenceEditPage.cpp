@@ -390,7 +390,7 @@ void StochasticSequenceEditPage::keyPress(KeyPressEvent &event) {
 
     if (key.pageModifier()) {
 
-        if (key.is(Key::Step4) && !sequence.useLoop()) {
+        if (key.is(Key::Step4) && !sequence.useLoop() && !sequence.isEmpty()) {
             showMessage("Reseed");
             sequence.setReseed(1, false);
             event.consume();

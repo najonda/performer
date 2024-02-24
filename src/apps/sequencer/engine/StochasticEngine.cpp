@@ -68,7 +68,7 @@ static bool evalStepGate(const StochasticSequence::Step &step, int probabilityBi
     }
     if (sum==0) { return -1;}
     std::sort (std::begin(probability), std::end(probability), sortTaskByProbRev);
-    int stepIndex = getNextWeightedPitch(probability, 0, probability.size());
+    int stepIndex = getNextWeightedPitch(probability, probability.size());
     switch (stepIndex) {
         case 0:
             return 0;
@@ -437,10 +437,11 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         _inMemSteps.clear();
     }
 
-    if (!sequence.useLoop() && sequence.reseed()) {
-        srand((unsigned int)time(NULL));
+    if (!sequence.useLoop() && sequence.reseed() && !sequence.isEmpty()) {
         int rnd = -StochasticSequence::NoteVariationProbability::Range/2 + ( std::rand() % ( (StochasticSequence::NoteVariationProbability::Range/2) - (-StochasticSequence::NoteVariationProbability::Range/2)) + 1 );
+        std::cerr << rnd << "\n";
         _stochasticTrack.setNoteProbabilityBias(rnd);
+        sequence.setReseed(0, false);
     }
 
         // clear the locked memory sequence and reset it to the in memory sequence
@@ -490,7 +491,7 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         }
         if (sum==0) { return;}
         std::sort (std::begin(probability), std::end(probability), sortTaskByProbRev);
-        stepIndex = getNextWeightedPitch(probability, sequence.reseed(), probability.size());
+        stepIndex = getNextWeightedPitch(probability, probability.size());
 
         step = sequence.step(stepIndex); 
         _currentStep = stepIndex;   
@@ -660,18 +661,13 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 }
 
 
-int StochasticEngine::getNextWeightedPitch(std::vector<StochasticStep> distr, bool reseed, int notesPerOctave) {
+int StochasticEngine::getNextWeightedPitch(std::vector<StochasticStep> distr, int notesPerOctave) {
         int total_weights = 0;
 
         for(int i = 0; i < notesPerOctave; i++) {
             total_weights += distr.at(i % notesPerOctave).probability();
         }
 
-        if (reseed) { 
-            srand((unsigned int)time(NULL));
-            auto &sequence = *_sequence;
-            sequence.setReseed(false);
-        }
         int rnd = 1 + ( std::rand() % ( (total_weights) - 1 + 1 ) );
 
         for(int i = 0; i < notesPerOctave; i++) {
