@@ -2021,7 +2021,7 @@ void LaunchpadController::drawStochasticSequenceNotes(const StochasticSequence &
         // draw options
         setGridLed(6, 0, sequence.useLoop() ? colorYellow(): colorYellow(1));
         setGridLed(6, 1, sequence.clearLoop() ? colorYellow(): colorYellow(1));
-        setGridLed(6,2, sequence.reseed() == 1 ? colorYellow(): colorYellow(1));
+        setGridLed(6,2, !sequence.useLoop() && sequence.reseed() == 1 ? colorYellow(): colorYellow(1));
 }
 
 void LaunchpadController::followModeAction(int currentStep, int lastStep) {
