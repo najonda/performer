@@ -1394,6 +1394,9 @@ void LaunchpadController::performerButton(const Button &button, ButtonAction act
             } 
             int fs = (_performButton.firstStepButton.row * 8) + _performButton.firstStepButton.col;
             int ls = (_performButton.lastStepButton.row * 8) + _performButton.lastStepButton.col;
+            if (ls <0) {
+                ls = fs;
+            }
 
             for (int i = 0; i < 8; ++i)  {
                 if (_project.track(i).trackMode() == Track::TrackMode::Note) {

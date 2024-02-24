@@ -432,9 +432,9 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
     // clear the in memory sequence when reaches the max size
     if (int(_inMemSteps.size()) >= (sequence.bufferLoopLength())) {
-        /*if (!sequence.useLoop()) {
+        if (sequence.clearLoop()) {
             _lockedSteps = _inMemSteps;
-        }*/
+        }
         _inMemSteps.clear();
     }
 
@@ -564,7 +564,9 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
             _index = _sequenceState.nextStep();
         }
 
-        if (int(_lockedSteps.size()) != sequence.bufferLoopLength()) {
+        if (int(_lockedSteps.size()) >= sequence.bufferLoopLength()) {
+            _lockedSteps = slicing(_lockedSteps, 0, sequence.bufferLoopLength());
+        } else {
             _lockedSteps = slicing(_inMemSteps, _inMemSteps.size() - sequence.bufferLoopLength(), _inMemSteps.size()-1);
         }
 
