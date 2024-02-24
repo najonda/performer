@@ -20,7 +20,7 @@
 
 > **testers** :
 >  
-> mebitek, Guillaume Libersat, Nick Ansell, XponentOne, dblu2000, hales2488, XQSTKRPS, KittenVillage
+> mebitek, Guillaume Libersat, Nick Ansell, XponentOne, dblu2000, hales2488, XQSTKRPS, KittenVillage, Andreas Hieninger
 
 # v0.1.4.48 (30 January 2024)
 - Moving steps in a sequence
