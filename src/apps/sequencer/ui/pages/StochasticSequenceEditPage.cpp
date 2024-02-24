@@ -390,7 +390,7 @@ void StochasticSequenceEditPage::keyPress(KeyPressEvent &event) {
 
     if (key.pageModifier()) {
 
-        if (key.is(Key::Step4)) {
+        if (key.is(Key::Step4) && !sequence.useLoop()) {
             showMessage("Reseed");
             sequence.setReseed(1, false);
             event.consume();
@@ -504,7 +504,7 @@ void StochasticSequenceEditPage::encoder(EncoderEvent &event) {
             setLayer(event.value() > 0 ? Layer::Slide : Layer::NoteOctave);
             break;
         case Layer::Slide:
-            setLayer(event.value() > 0 ? Layer::NoteVariationProbability : Layer::NoteVariationProbability);
+            setLayer(event.value() > 0 ? Layer::NoteVariationProbability : Layer::NoteOctaveProbability);
             break;
         default:
             break;
