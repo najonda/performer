@@ -31,6 +31,9 @@ bool sortTaskByProbRev(const StochasticStep& lhs, const StochasticStep& rhs) {
 // evaluate if step gate is active
 static bool evalStepGate(const StochasticSequence::Step &step, int probabilityBias) {
     int probability = clamp(step.gateProbability() + probabilityBias, -1, StochasticSequence::GateProbability::Max);
+    if (probability==0) {
+        return false;
+    }
     return step.gate() && int(rng.nextRange(StochasticSequence::GateProbability::Range)) <= probability;
 }
 
@@ -434,7 +437,7 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         _inMemSteps.clear();
     }
 
-    if (sequence.reseed()) {
+    if (!sequence.useLoop() && sequence.reseed()) {
         srand((unsigned int)time(NULL));
         int rnd = -StochasticSequence::NoteVariationProbability::Range/2 + ( std::rand() % ( (StochasticSequence::NoteVariationProbability::Range/2) - (-StochasticSequence::NoteVariationProbability::Range/2)) + 1 );
         _stochasticTrack.setNoteProbabilityBias(rnd);
