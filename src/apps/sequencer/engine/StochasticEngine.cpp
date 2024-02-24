@@ -602,7 +602,7 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
                 break;
             case StochasticSequence::StageRepeatMode::Random:
                     srand((unsigned int)time(NULL));
-                    int rndMode = 0 + ( std::rand() % ( 6 - 0 + 1 ) );
+                    int rndMode = rng.nextRange(6);
                     switch (rndMode) {
                         case 0:
                             break;
