@@ -15,6 +15,7 @@
 #include "ui/MatrixMap.h"
 #include <algorithm>
 #include <climits>
+#include <cstddef>
 #include <iostream>
 #include <ctime>
 #include <iterator>
@@ -431,16 +432,16 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
     // clear the in memory sequence when reaches the max size
     if (int(_inMemSteps.size()) >= (sequence.bufferLoopLength())) {
-        if (!sequence.useLoop()) {
+        /*if (!sequence.useLoop()) {
             _lockedSteps = _inMemSteps;
-        }
+        }*/
         _inMemSteps.clear();
     }
 
     if (!sequence.useLoop() && sequence.reseed() && !sequence.isEmpty()) {
         int rnd = -StochasticSequence::NoteVariationProbability::Range/2 + ( std::rand() % ( (StochasticSequence::NoteVariationProbability::Range/2) - (-StochasticSequence::NoteVariationProbability::Range/2)) + 1 );
-        std::cerr << rnd << "\n";
         _stochasticTrack.setNoteProbabilityBias(rnd);
+        rng = Random(time(NULL));
         sequence.setReseed(0, false);
     }
 
@@ -668,7 +669,7 @@ int StochasticEngine::getNextWeightedPitch(std::vector<StochasticStep> distr, in
             total_weights += distr.at(i % notesPerOctave).probability();
         }
 
-        int rnd = 1 + ( std::rand() % ( (total_weights) - 1 + 1 ) );
+        int rnd = rng.nextRange(total_weights);
 
         for(int i = 0; i < notesPerOctave; i++) {
             int weight = distr.at(i % notesPerOctave).probability();
