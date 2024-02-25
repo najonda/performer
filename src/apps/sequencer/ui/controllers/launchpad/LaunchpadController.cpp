@@ -269,15 +269,18 @@ bool LaunchpadController::globalButton(const Button &button, ButtonAction action
                     int stepIndex = (_performNavigation.navigation.col*8)+button.col;
                     switch (track.trackMode()) {
                         case Track::TrackMode::Note: {
-                            auto &sequence = track.noteTrack().sequence(_project.selectedPatternIndex());
-                            if (sequence.step(stepIndex).note()==(scale.notesPerOctave()*5)) {
-                                sequence.step(stepIndex).setNote(0);
-                            } else {
-                                sequence.step(stepIndex).setNote(scale.notesPerOctave()*5);
+                                auto &sequence = track.noteTrack().sequence(_project.selectedPatternIndex());
+                                if (sequence.step(stepIndex).note()==(scale.notesPerOctave()*5)) {
+                                    sequence.step(stepIndex).setNote(0);
+                                } else {
+                                    sequence.step(stepIndex).setNote(scale.notesPerOctave()*5);
+                                }
                             }
-                        }
-                        break;
+                            break;
+                        default:
+                            break;
                     }
+
                     return false;
                 }
 
