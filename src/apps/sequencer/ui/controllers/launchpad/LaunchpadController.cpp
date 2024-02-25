@@ -51,7 +51,8 @@ struct LayerMapItem {
 };
 
 enum class PerforModeLayers {
-        SequenceLength
+        SequenceLength,
+        Overview,
     };
 
 static const LayerMapItem noteSequenceLayerMap[] = {
@@ -89,6 +90,7 @@ static const LayerMapItem curveSequenceLayerMap[] = {
 
 static const LayerMapItem performLayerMap[] = {
     [int(PerforModeLayers::SequenceLength)]                 =  { 0, 0 },
+    [int(PerforModeLayers::Overview)]                       =  { 0, 1 },
 };
 
 static constexpr int performLayerMapSize = sizeof(performLayerMap) / sizeof(performLayerMap[0]);
@@ -1312,33 +1314,84 @@ void LaunchpadController::performerDraw() {
     }
 
     if (buttonState<Navigate>()) {
-        // unused
+        if (_performSelectedLayer==1) {
+            navigationDraw(_performNavigation.navigation);
+        }
     } else if (buttonState<Layer>()) {
         mirrorButton<Layer>(_style);
         performDrawLayer();
     } else if (buttonState<FirstStep>()) {
         mirrorButton<FirstStep>(_style);
-        sequenceDrawStepRange(0);
+        //sequenceDrawStepRange(0);
     } else if (buttonState<LastStep>()) {
         mirrorButton<LastStep>(_style);
-        sequenceDrawStepRange(1);
+        //sequenceDrawStepRange(1);
     } else if (buttonState<RunMode>()) {
         mirrorButton<RunMode>(_style);
-        sequenceDrawRunMode();
+        //sequenceDrawRunMode();
     } else if (buttonState<FollowMode>()) {
         mirrorButton<FollowMode>(_style);
-        sequenceDrawFollowMode();
+        //sequenceDrawFollowMode();
+        setGridLed(0, 0, _performFollowMode == 1 ? colorGreen() : colorYellow());
     } else {
         mirrorButton<Fill>(_style);
-    }
+            if (_performSelectedLayer == 0) {
+                if (_performButton.firstStepButton.row != -1) {
+                    setGridLed(_performButton.firstStepButton.row, _performButton.firstStepButton.col, colorGreen());
+                }
+                if (_performButton.lastStepButton.row != -1) {
+                    setGridLed(_performButton.lastStepButton.row, _performButton.lastStepButton.col, colorGreen());
+                }
+        } else {
+            int currentStep = -1;
+            for (int row = 0; row < 8; ++row) {
+                auto track = _project.track(row);
+                for (int col = 0; col < 8; ++col) {
+                    int stepIndex = (_performNavigation.navigation.col*8)+col;
+                    switch (track.trackMode()) {
+                        case Track::TrackMode::Note: {
+                                const auto &trackEngine = _engine.trackEngine(row).as<NoteTrackEngine>();
+                                if (_performFollowMode) {
+                                    int stepOffset = (std::max(0, trackEngine.currentStep()) / 8) * 8;
+                                    stepIndex = stepOffset + col;
+                                }
+                                auto sequence = track.noteTrack().sequence(_project.selectedPatternIndex());
+                                currentStep = trackEngine.currentStep();
+                                Color color = colorOff();
+                                if (sequence.step(stepIndex).gate()) {
+                                    color = colorGreen();
+                                }
+                                if (currentStep == stepIndex) {
+                                    color = colorRed();
+                                }
+                                setGridLed(row, col, color);
+                            }
+                            break;
+                        case Track::TrackMode::Stochastic: {
+                                const auto &trackEngine = _engine.trackEngine(row).as<StochasticEngine>();
+                                auto sequence = track.stochasticTrack().sequence(_project.selectedPatternIndex());
+                                currentStep = trackEngine.currentStep();
+                                Color color = colorOff();
+                                if (sequence.step(stepIndex).gate()) {
+                                    color = colorGreen();
+                                }
+                                if (currentStep == stepIndex) {
+                                    color = colorRed();
+                                }
+                                setGridLed(row, col, color);
+                            }
+                            break;
+                        default:
+                            break;
+
+                    }                    
+                }
+            }
+        }
+    } 
 
 
-    if (_performButton.firstStepButton.row != -1) {
-        setGridLed(_performButton.firstStepButton.row, _performButton.firstStepButton.col, colorGreen());
-    }
-    if (_performButton.lastStepButton.row != -1) {
-        setGridLed(_performButton.lastStepButton.row, _performButton.lastStepButton.col, colorGreen());
-    }
+
 }
 
 void LaunchpadController::performerButton(const Button &button, ButtonAction action) {
@@ -1350,7 +1403,8 @@ void LaunchpadController::performerButton(const Button &button, ButtonAction act
                 _project.playState().toggleMuteTrack(button.scene());
             }
         } else if (buttonState<Navigate>()) {
-            //
+            performNavigationButtonDown(_performNavigation.navigation, button);
+            
         } else if(buttonState<Layer>()) {
             if (button.isGrid()) {
                 performSetLayer(button.row, button.col);
@@ -1370,7 +1424,10 @@ void LaunchpadController::performerButton(const Button &button, ButtonAction act
             }
         } else if (buttonState<FollowMode>()) {
             if (button.isGrid()) {
-                sequenceSetFollowMode(button.col);
+                //sequenceSetFollowMode(button.col);
+                if (button.col==0 && button.row == 0) {
+                    _performFollowMode = !_performFollowMode;
+                }
             } else if (button.isScene()) {
                 _project.playState().toggleSoloTrack(button.scene());
             }
@@ -1379,38 +1436,62 @@ void LaunchpadController::performerButton(const Button &button, ButtonAction act
                 _project.playState().fillTrack(button.scene(), true);
             }
         } else if (button.isGrid()) {
-            for (int row = 0; row < 8; ++row) {
-                for (int col = 0; col < 8; ++col) {
-                    if (buttonState(row, col)) {
-                        if (_performButton.firstStepButton.row != -1) {
-                            _performButton.lastStepButton  = button;
-                            break;
-                        } else {
-                            _performButton.firstStepButton = button;
-                            break;
+
+            if (_performSelectedLayer == 0) {
+                for (int row = 0; row < 8; ++row) {
+                    for (int col = 0; col < 8; ++col) {
+                        if (buttonState(row, col)) {
+                            if (_performButton.firstStepButton.row != -1) {
+                                _performButton.lastStepButton  = button;
+                                break;
+                            } else {
+                                _performButton.firstStepButton = button;
+                                break;
+                            }
+                        }
+                    }   
+                } 
+                int fs = (_performButton.firstStepButton.row * 8) + _performButton.firstStepButton.col;
+                int ls = (_performButton.lastStepButton.row * 8) + _performButton.lastStepButton.col;
+                if (ls <0) {
+                    ls = fs;
+                }
+
+                for (int i = 0; i < 8; ++i)  {
+                    if (_project.track(i).trackMode() == Track::TrackMode::Note) {
+                        _project.track(i).noteTrack().sequence(_project.selectedPatternIndex()).setFirstStep(fs);    
+                        _project.track(i).noteTrack().sequence(_project.selectedPatternIndex()).setLastStep(ls);
+                    } else if (_project.track(i).trackMode() == Track::TrackMode::Curve) {
+                        _project.track(i).curveTrack().sequence(_project.selectedPatternIndex()).setFirstStep(fs);    
+                        _project.track(i).curveTrack().sequence(_project.selectedPatternIndex()).setLastStep(ls);
+                    } else if (_project.track(i).trackMode() == Track::TrackMode::Stochastic) {
+                        _project.track(i).stochasticTrack().sequence(_project.selectedPatternIndex()).setSequenceFirstStep(fs);
+                        _project.track(i).stochasticTrack().sequence(_project.selectedPatternIndex()).setSequenceLastStep(ls);
+                    }
+                }
+            } else if (_performSelectedLayer == 1) {
+                auto track = _project.track(button.row);
+                int stepIndex = (_performNavigation.navigation.col*8)+button.col;
+                switch (track.trackMode()) {
+                    case Track::TrackMode::Note: {
+                            track.noteTrack().sequence(_project.selectedPatternIndex()).step(stepIndex).toggleGate();
+                        }
+                        break;
+                    case Track::TrackMode::Stochastic: {
+                        if (stepIndex<12) {
+                            track.stochasticTrack().sequence(_project.selectedPatternIndex()).step(stepIndex).toggleGate();
                         }
                     }
-                }   
-            } 
-            int fs = (_performButton.firstStepButton.row * 8) + _performButton.firstStepButton.col;
-            int ls = (_performButton.lastStepButton.row * 8) + _performButton.lastStepButton.col;
-            if (ls <0) {
-                ls = fs;
-            }
-
-            for (int i = 0; i < 8; ++i)  {
-                if (_project.track(i).trackMode() == Track::TrackMode::Note) {
-                    _project.track(i).noteTrack().sequence(_project.selectedPatternIndex()).setFirstStep(fs);    
-                    _project.track(i).noteTrack().sequence(_project.selectedPatternIndex()).setLastStep(ls);
-                } else if (_project.track(i).trackMode() == Track::TrackMode::Curve) {
-                    _project.track(i).curveTrack().sequence(_project.selectedPatternIndex()).setFirstStep(fs);    
-                    _project.track(i).curveTrack().sequence(_project.selectedPatternIndex()).setLastStep(ls);
-                } else if (_project.track(i).trackMode() == Track::TrackMode::Stochastic) {
-                    _project.track(i).stochasticTrack().sequence(_project.selectedPatternIndex()).setSequenceFirstStep(fs);
-                    _project.track(i).stochasticTrack().sequence(_project.selectedPatternIndex()).setSequenceLastStep(ls);
+                    default:
+                        break;
+                
                 }
+
+
+            } 
+        } else if (button.isScene()) {
+                _project.setSelectedTrackIndex(button.scene());
             }
-        }
     } else if (action == ButtonAction::Up) {
         if (button.isGrid() && (!buttonState<FirstStep>() && !buttonState<LastStep>())) {
             if (_performButton.firstStepButton.row != -1 && !buttonState(_performButton.firstStepButton.row, _performButton.firstStepButton.col )) {
@@ -1504,6 +1585,23 @@ void LaunchpadController::navigationButtonDown(Navigation &navigation, const But
                     break;
             }
 
+        }
+    }
+}
+
+void LaunchpadController::performNavigationButtonDown(Navigation &navigation, const Button &button) {
+    int col = button.is<Left>() ? -1 : button.is<Right>() ? 1 : 0;
+    navigation.col = clamp(navigation.col + col, int(navigation.left), int(navigation.right));
+
+    int row = button.is<Down>() ? -1 : button.is<Up>() ? 1 : 0;
+    navigation.row = clamp(navigation.row + row, int(navigation.bottom), int(navigation.top));
+
+    if (button.isGrid()) {
+        int col = button.col;
+        int row = 3 - button.row;
+        if (col >= navigation.left && col <= navigation.right && row >= navigation.bottom && row <= navigation.top) {
+            navigation.col = col;
+            navigation.row = row;
         }
     }
 }

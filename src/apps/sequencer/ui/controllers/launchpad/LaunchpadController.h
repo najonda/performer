@@ -144,6 +144,8 @@ private:
     // Navigation
     void navigationDraw(const Navigation &navigation);
     void navigationButtonDown(Navigation &navigation, const Button &button);
+    void performNavigationButtonDown(Navigation &navigation, const Button &button);
+
 
     // Drawing
     void drawTracksGateAndSelected(const Engine &engine, int selectedTrack);
@@ -257,5 +259,11 @@ private:
         Navigation navigation = { 0, 0, 0, 0, -1, 0 };
     } _pattern;
 
+    struct {
+        Navigation navigation = { 0, 0, 0, 7,0,0};
+    } _performNavigation;
+
     int _performSelectedLayer = 0;
+
+    bool _performFollowMode = false;
 };
