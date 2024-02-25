@@ -261,10 +261,31 @@ bool LaunchpadController::globalButton(const Button &button, ButtonAction action
             return true;
         }
         if (buttonState<Play>() && button.isGrid()) {
+
+            if (_performSelectedLayer == 1) {
+                    const auto &scale = Scale::get(0);
+                    auto track = _project.track(button.row);
+                    
+                    int stepIndex = (_performNavigation.navigation.col*8)+button.col;
+                    switch (track.trackMode()) {
+                        case Track::TrackMode::Note: {
+                            auto &sequence = track.noteTrack().sequence(_project.selectedPatternIndex());
+                            if (sequence.step(stepIndex).note()==(scale.notesPerOctave()*5)) {
+                                sequence.step(stepIndex).setNote(0);
+                            } else {
+                                sequence.step(stepIndex).setNote(scale.notesPerOctave()*5);
+                            }
+                        }
+                        break;
+                    }
+                    return false;
+                }
+
+
             if (_project.selectedTrack().trackMode() == Track::TrackMode::Note) {
+                const auto &scale = Scale::get(0);
 
                 auto &sequence = _project.selectedNoteSequence();
-                const auto &scale = Scale::get(0);
                 switch (_project.selectedNoteSequenceLayer()) {
                     case NoteSequence::Layer::Gate:
                         if (sequence.step(button.gridIndex()).note()==(scale.notesPerOctave()*5)) {
@@ -1270,6 +1291,7 @@ void LaunchpadController::patternButton(const Button &button, ButtonAction actio
 
 void LaunchpadController::performerEnter() {
 
+    _performSelectedLayer = 0;
 
     for (int i = 0; i<8; ++i) {
         switch (_project.track(i).trackMode()) {
@@ -1296,6 +1318,7 @@ void LaunchpadController::performerEnter() {
 }
 
 void LaunchpadController::performerExit() {
+    _performSelectedLayer = -1;
 }
 
 
@@ -1322,17 +1345,17 @@ void LaunchpadController::performerDraw() {
         performDrawLayer();
     } else if (buttonState<FirstStep>()) {
         mirrorButton<FirstStep>(_style);
-        //sequenceDrawStepRange(0);
+        sequenceDrawStepRange(0);
     } else if (buttonState<LastStep>()) {
         mirrorButton<LastStep>(_style);
-        //sequenceDrawStepRange(1);
+        sequenceDrawStepRange(1);
     } else if (buttonState<RunMode>()) {
         mirrorButton<RunMode>(_style);
-        //sequenceDrawRunMode();
+        sequenceDrawRunMode();
     } else if (buttonState<FollowMode>()) {
         mirrorButton<FollowMode>(_style);
-        //sequenceDrawFollowMode();
-        setGridLed(0, 0, _performFollowMode == 1 ? colorGreen() : colorYellow());
+        sequenceDrawFollowMode();
+        setGridLed(2, 0, _performFollowMode == 1 ? colorGreen() : colorYellow());
     } else {
         mirrorButton<Fill>(_style);
             if (_performSelectedLayer == 0) {
@@ -1343,6 +1366,7 @@ void LaunchpadController::performerDraw() {
                     setGridLed(_performButton.lastStepButton.row, _performButton.lastStepButton.col, colorGreen());
                 }
         } else {
+            const auto &scale = Scale::get(0);
             int currentStep = -1;
             for (int row = 0; row < 8; ++row) {
                 auto track = _project.track(row);
@@ -1359,8 +1383,11 @@ void LaunchpadController::performerDraw() {
                                 currentStep = trackEngine.currentStep();
                                 Color color = colorOff();
                                 if (sequence.step(stepIndex).gate()) {
-                                    color = colorGreen();
+                                    color = colorGreen(2);
                                 }
+                                if (sequence.step(stepIndex).gate() && sequence.step(stepIndex).note()== (scale.notesPerOctave()*5)) {
+                                    color = colorGreen();
+                                }                       
                                 if (currentStep == stepIndex) {
                                     color = colorRed();
                                 }
