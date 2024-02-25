@@ -3,6 +3,7 @@
 #include "model/NoteTrack.h"
 
 #include "ui/painters/WindowPainter.h"
+#include "ui/LedPainter.h"
 
 static void drawNoteTrack(Canvas &canvas, int trackIndex, const NoteTrackEngine &trackEngine, const NoteSequence &sequence) {
     canvas.setBlendMode(BlendMode::Set);
@@ -198,6 +199,47 @@ void OverviewPage::draw(Canvas &canvas) {
 }
 
 void OverviewPage::updateLeds(Leds &leds) {
+
+    switch (_project.selectedTrack().trackMode()) {
+
+        case Track::TrackMode::Note: {
+            const auto &trackEngine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
+            auto &sequence = _project.selectedNoteSequence();
+            int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
+
+            for (int i = 0; i < 16; ++i) {
+                int stepIndex = stepOffset() + i;
+                bool red = (stepIndex == currentStep) || _stepSelection[stepIndex];
+                bool green = (stepIndex != currentStep) && (sequence.step(stepIndex).gate() || _stepSelection[stepIndex]);
+                leds.set(MatrixMap::fromStep(i), red, green);
+            }
+
+            LedPainter::drawSelectedSequenceSection(leds, sequence.section());
+            }
+            break;
+        case Track::TrackMode::Stochastic: {
+            const auto &trackEngine = _engine.selectedTrackEngine().as<StochasticEngine>();
+            auto &sequence = _project.selectedStochasticSequence();
+            int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
+
+            for (int i = 0; i < 16; ++i) {
+                int stepIndex = stepOffset() + i;
+                bool red = (stepIndex == currentStep) || _stepSelection[stepIndex];
+                bool green = (stepIndex != currentStep) && (sequence.step(stepIndex).gate() || _stepSelection[stepIndex]);
+                leds.set(MatrixMap::fromStep(i), red, green);
+            }
+
+            LedPainter::drawSelectedSequenceSection(leds, 0);
+            }
+            break;
+        default:
+            break;
+
+    
+    }
+
+
+
 }
 
 void OverviewPage::keyDown(KeyEvent &event) {
@@ -205,6 +247,30 @@ void OverviewPage::keyDown(KeyEvent &event) {
 
     if (key.isGlobal()) {
         return;
+    }
+
+    if (key.isStep()) {
+
+        auto &track = _project.selectedTrack();
+        switch (track.trackMode()) {
+            case Track::TrackMode::Note: {
+                    int stepIndex = stepOffset() + key.step();
+                    auto &sequence = _project.selectedNoteSequence();
+                    sequence.step(stepIndex).toggleGate();
+                    event.consume();
+                }
+                break;
+            case Track::TrackMode::Stochastic: {
+                    int stepIndex = stepOffset() + key.step();
+                    auto &sequence = _project.selectedStochasticSequence();
+                    sequence.step(stepIndex).toggleGate();
+                    event.consume();
+                }
+                break;
+            default:
+                break;
+        }
+        
     }
 
     // event.consume();

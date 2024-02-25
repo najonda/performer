@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BasePage.h"
+#include "ui/StepSelection.h"
 
 class OverviewPage : public BasePage {
 public:
@@ -16,4 +17,15 @@ public:
     virtual void keyUp(KeyEvent &event) override;
     virtual void keyPress(KeyPressEvent &event) override;
     virtual void encoder(EncoderEvent &event) override;
+
+private:
+    static const int StepCount = 16;
+
+    int stepOffset() const { 
+        if (_project.selectedTrack().trackMode() == Track::TrackMode::Stochastic) {
+            return 0;
+        }
+        return _project.selectedNoteSequence().section() * StepCount; 
+    }
+    StepSelection<CONFIG_STEP_COUNT> _stepSelection;
 };
