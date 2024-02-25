@@ -5,10 +5,10 @@
 #include "ui/painters/WindowPainter.h"
 #include "ui/LedPainter.h"
 
-static void drawNoteTrack(Canvas &canvas, int trackIndex, const NoteTrackEngine &trackEngine, const NoteSequence &sequence) {
+static void drawNoteTrack(Canvas &canvas, int trackIndex, const NoteTrackEngine &trackEngine, NoteSequence &sequence, bool running) {
     canvas.setBlendMode(BlendMode::Set);
 
-    int stepOffset = (std::max(0, trackEngine.currentStep()) / 16) * 16;
+    int stepOffset = (std::max(0, trackEngine.currentStep()) / 16) * 16 + (sequence.section()*16);
     int y = trackIndex * 8;
 
     for (int i = 0; i < 16; ++i) {
@@ -23,6 +23,10 @@ static void drawNoteTrack(Canvas &canvas, int trackIndex, const NoteTrackEngine 
         } else {
             canvas.setColor(step.gate() ? Color::Medium : Color::Low);
             canvas.fillRect(x + 1, y + 1, 6, 6);
+        }
+        if (running) {
+            int section_no = int((trackEngine.currentStep()) / 16);
+            sequence.setSecion(section_no);
         }
 
         // if (trackEngine.currentStep() == stepIndex) {
@@ -135,7 +139,7 @@ void OverviewPage::draw(Canvas &canvas) {
     canvas.vline(196 + 2, 0, 68);
 
     for (int trackIndex = 0; trackIndex < 8; trackIndex++) {
-        const auto &track = _project.track(trackIndex);
+        auto &track = _project.track(trackIndex);
         const auto &trackState = _project.playState().trackState(trackIndex);
         const auto &trackEngine = _engine.trackEngine(trackIndex);
 
@@ -182,7 +186,7 @@ void OverviewPage::draw(Canvas &canvas) {
 
         switch (track.trackMode()) {
         case Track::TrackMode::Note:
-            drawNoteTrack(canvas, trackIndex, trackEngine.as<NoteTrackEngine>(), track.noteTrack().sequence(trackState.pattern()));
+            drawNoteTrack(canvas, trackIndex, trackEngine.as<NoteTrackEngine>(), track.noteTrack().sequence(trackState.pattern()), _engine.state().running());
             break;
         case Track::TrackMode::Curve:
             drawCurveTrack(canvas, trackIndex, trackEngine.as<CurveTrackEngine>(), track.curveTrack().sequence(trackState.pattern()));
@@ -244,6 +248,8 @@ void OverviewPage::updateLeds(Leds &leds) {
 
 void OverviewPage::keyDown(KeyEvent &event) {
     const auto &key = event.key();
+    auto &sequence = _project.selectedNoteSequence();
+
 
     if (key.isGlobal()) {
         return;
@@ -271,6 +277,15 @@ void OverviewPage::keyDown(KeyEvent &event) {
                 break;
         }
         
+    }
+
+     if (key.isLeft()) {
+        sequence.setSecion(std::max(0, sequence.section() - 1));
+        event.consume();
+    }
+    if (key.isRight()) {
+        sequence.setSecion(std::min(3, sequence.section() + 1));
+        event.consume();
     }
 
     // event.consume();
