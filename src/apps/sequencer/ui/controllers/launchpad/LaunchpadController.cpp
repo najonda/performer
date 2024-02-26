@@ -7,6 +7,7 @@
 #include <functional>
 #include <iostream>
 #include <map>
+#include <ratio>
 #include <set>
 
 #define CALL_MODE_FUNCTION(_mode_, _function_, ...)                         \
@@ -1361,13 +1362,13 @@ void LaunchpadController::performerDraw() {
         setGridLed(2, 0, _performFollowMode == 1 ? colorGreen() : colorYellow());
     } else {
         mirrorButton<Fill>(_style);
-            if (_performSelectedLayer == 0) {
-                if (_performButton.firstStepButton.row != -1) {
-                    setGridLed(_performButton.firstStepButton.row, _performButton.firstStepButton.col, colorGreen());
-                }
-                if (_performButton.lastStepButton.row != -1) {
-                    setGridLed(_performButton.lastStepButton.row, _performButton.lastStepButton.col, colorGreen());
-                }
+        if (_performSelectedLayer == 0) {
+            if (_performButton.firstStepButton.row != -1) {
+                setGridLed(_performButton.firstStepButton.row, _performButton.firstStepButton.col, colorGreen());
+            }
+            if (_performButton.lastStepButton.row != -1) {
+                setGridLed(_performButton.lastStepButton.row, _performButton.lastStepButton.col, colorGreen());
+            }
         } else {
             const auto &scale = Scale::get(0);
             int currentStep = -1;
@@ -1417,6 +1418,35 @@ void LaunchpadController::performerDraw() {
                     }                    
                 }
             }
+
+            auto selectedTrack = _project.selectedTrack();
+
+            currentStep = 0;
+            switch (selectedTrack.trackMode()) {
+                case Track::TrackMode::Note: {
+                        auto engine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
+                        currentStep = engine.currentStep();
+                    }
+                    break;
+                case Track::TrackMode::Curve: {
+                        auto engine = _engine.selectedTrackEngine().as<CurveTrackEngine>();
+                        currentStep = engine.currentStep();
+                    }
+                    break;
+                case Track::TrackMode::Stochastic: {
+                        auto engine = _engine.selectedTrackEngine().as<StochasticEngine>();
+                        currentStep = engine.currentStep();
+                    }
+                    break;
+                default:
+                    break;
+            
+            }
+            int section = int((currentStep) / 8);
+            std::cerr << section << "\n";
+            for (int i = 0; i < 8; ++i) {
+                setFunctionLed(section, colorYellow());
+            }        
         }
     } 
 
@@ -1454,8 +1484,8 @@ void LaunchpadController::performerButton(const Button &button, ButtonAction act
             }
         } else if (buttonState<FollowMode>()) {
             if (button.isGrid()) {
-                //sequenceSetFollowMode(button.col);
-                if (button.col==0 && button.row == 0) {
+                sequenceSetFollowMode(button.col);
+                if (button.col==0 && button.row == 2) {
                     _performFollowMode = !_performFollowMode;
                 }
             } else if (button.isScene()) {
@@ -1502,13 +1532,19 @@ void LaunchpadController::performerButton(const Button &button, ButtonAction act
             } else if (_performSelectedLayer == 1) {
                 auto track = _project.track(button.row);
                 int stepIndex = (_performNavigation.navigation.col*8)+button.col;
+                
                 switch (track.trackMode()) {
                     case Track::TrackMode::Note: {
+                            const auto &trackEngine = _engine.trackEngine(button.row).as<NoteTrackEngine>();
+                            if (_performFollowMode) {
+                                int stepOffset = (std::max(0, trackEngine.currentStep()) / 8) * 8;
+                                stepIndex = stepOffset + button.col;
+                            }           
                             track.noteTrack().sequence(_project.selectedPatternIndex()).step(stepIndex).toggleGate();
                         }
                         break;
                     case Track::TrackMode::Stochastic: {
-                        if (stepIndex<12) {
+                        if (stepIndex<12) {  
                             track.stochasticTrack().sequence(_project.selectedPatternIndex()).step(stepIndex).toggleGate();
                         }
                     }
