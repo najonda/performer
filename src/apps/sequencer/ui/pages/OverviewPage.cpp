@@ -30,9 +30,6 @@ static void drawNoteTrack(Canvas &canvas, int trackIndex, const NoteTrackEngine 
             canvas.setColor(step.gate() ? Color::Medium : Color::Low);
             canvas.fillRect(x + 1, y + 1, 6, 6);
         }
-        //if (running) {
-            
-        //}
 
         // if (trackEngine.currentStep() == stepIndex) {
         //     canvas.setColor(Color::Bright);
@@ -310,7 +307,8 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
 
     _stepSelection.keyPress(event, stepOffset());
      auto &track = _project.selectedTrack();
-    if (key.isStep()) {
+
+    if (key.isStep() && event.count() == 2) {
         
         switch (track.trackMode()) {
             case Track::TrackMode::Note: {
