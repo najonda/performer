@@ -357,11 +357,19 @@ void StochasticSequenceEditPage::updateLeds(Leds &leds) {
 }
 
 void StochasticSequenceEditPage::keyDown(KeyEvent &event) {
+    const auto &key = event.key();
+    if (key.is(Key::Step15) || key.is(Key::Step14)|| key.is(Key::Step13) || key.is(Key::Step12)) {
+        return;
+    }
     _stepSelection.keyDown(event, stepOffset());
     updateMonitorStep();
 }
 
 void StochasticSequenceEditPage::keyUp(KeyEvent &event) {
+    const auto &key = event.key();
+    if (key.is(Key::Step15) || key.is(Key::Step14)|| key.is(Key::Step13) || key.is(Key::Step12)) {
+        return;
+    }
     _stepSelection.keyUp(event, stepOffset());
     updateMonitorStep();
 }
@@ -414,7 +422,7 @@ void StochasticSequenceEditPage::keyPress(KeyPressEvent &event) {
         return;
     }
 
-    if (key.is(Key::Step15) || key.is(Key::Step14)|| key.is(Key::Step13) ) {
+    if (key.is(Key::Step15) || key.is(Key::Step14)|| key.is(Key::Step13) || key.is(Key::Step12)) {
         return;
     }
 
