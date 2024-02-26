@@ -4,6 +4,7 @@
 
 #include "ui/painters/WindowPainter.h"
 #include "ui/LedPainter.h"
+#include "ui/painters/SequencePainter.h"
 
 static void drawNoteTrack(Canvas &canvas, int trackIndex, const NoteTrackEngine &trackEngine, NoteSequence &sequence, bool running) {
     canvas.setBlendMode(BlendMode::Set);
@@ -185,8 +186,8 @@ void OverviewPage::draw(Canvas &canvas) {
         canvas.drawText(256 - 32, y, FixedStringBuilder<8>("%.2fV", _engine.cvOutput().channel(trackIndex)));
 
         switch (track.trackMode()) {
-        case Track::TrackMode::Note:
-            drawNoteTrack(canvas, trackIndex, trackEngine.as<NoteTrackEngine>(), track.noteTrack().sequence(trackState.pattern()), _engine.state().running());
+        case Track::TrackMode::Note: 
+            drawNoteTrack(canvas, trackIndex, trackEngine.as<NoteTrackEngine>(), track.noteTrack().sequence(trackState.pattern()), _engine.state().running());    
             break;
         case Track::TrackMode::Curve:
             drawCurveTrack(canvas, trackIndex, trackEngine.as<CurveTrackEngine>(), track.curveTrack().sequence(trackState.pattern()));
@@ -200,6 +201,32 @@ void OverviewPage::draw(Canvas &canvas) {
             break;
         }
     }
+
+
+
+    if (!_stepSelection.any() || os::ticks() > _showDetailTicks + os::time::ms(500)) {
+        _showDetail = false;
+    }
+    if (_showDetail) {
+        
+        auto track = _project.selectedTrack();
+        switch (track.trackMode()) {
+            case Track::TrackMode::Note: {
+                    auto &sequence = _project.selectedNoteSequence();
+                    drawDetail(canvas, sequence.step(_stepSelection.first()));
+                }
+                break;
+            case Track::TrackMode::Stochastic: {
+                    auto &sequence = _project.selectedStochasticSequence();
+                    drawStochasticDetail(canvas, sequence.step(_stepSelection.first()));
+                }
+                break;
+            default:
+                break;
+        }
+        
+    }
+
 }
 
 void OverviewPage::updateLeds(Leds &leds) {
@@ -238,26 +265,34 @@ void OverviewPage::updateLeds(Leds &leds) {
             break;
         default:
             break;
-
-    
     }
-
-
-
 }
 
 void OverviewPage::keyDown(KeyEvent &event) {
-    const auto &key = event.key();
-    auto &sequence = _project.selectedNoteSequence();
+    _stepSelection.keyDown(event, stepOffset());
+}
 
+void OverviewPage::keyUp(KeyEvent &event) {
+    _stepSelection.keyUp(event, stepOffset());
+}
+
+void OverviewPage::keyPress(KeyPressEvent &event) {
+    const auto &key = event.key();
+    
 
     if (key.isGlobal()) {
         return;
     }
 
-    if (key.isStep()) {
 
-        auto &track = _project.selectedTrack();
+    if (key.pageModifier()) {
+        return;
+    }
+
+    _stepSelection.keyPress(event, stepOffset());
+     auto &track = _project.selectedTrack();
+    if (key.isStep()) {
+        
         switch (track.trackMode()) {
             case Track::TrackMode::Note: {
                     int stepIndex = stepOffset() + key.step();
@@ -280,37 +315,143 @@ void OverviewPage::keyDown(KeyEvent &event) {
     }
 
      if (key.isLeft()) {
-        sequence.setSecion(std::max(0, sequence.section() - 1));
+        switch (track.trackMode()) {
+            case Track::TrackMode::Note: {
+                auto &sequence = _project.selectedNoteSequence();
+                sequence.setSecion(std::max(0, sequence.section() - 1));
+                break;
+            }
+            default:
+                break;        
+        }
+
         event.consume();
     }
     if (key.isRight()) {
-        sequence.setSecion(std::min(3, sequence.section() + 1));
+        switch (track.trackMode()) {
+            case Track::TrackMode::Note: {
+                auto &sequence = _project.selectedNoteSequence();
+                sequence.setSecion(std::min(3, sequence.section() + 1));
+                break;
+            }
+            default:
+                break;        
+        }
+        
         event.consume();
     }
-
-    // event.consume();
-}
-
-void OverviewPage::keyUp(KeyEvent &event) {
-    const auto &key = event.key();
-
-    if (key.isGlobal()) {
-        return;
-    }
-
-    // event.consume();
-}
-
-void OverviewPage::keyPress(KeyPressEvent &event) {
-    const auto &key = event.key();
-
-    if (key.isGlobal()) {
-        return;
-    }
-
-    // event.consume();
 }
 
 void OverviewPage::encoder(EncoderEvent &event) {
-    // event.consume();
+
+    auto &track = _project.selectedTrack();
+
+    if (!_stepSelection.any()) {
+        return;
+    }
+
+    _showDetail = true;
+    _showDetailTicks = os::ticks();
+
+    switch (track.trackMode()) {
+
+        case Track::TrackMode::Note: {
+                auto &sequence = _project.selectedNoteSequence();
+                const auto &scale = sequence.selectedScale(_project.scale());
+                for (size_t stepIndex = 0; stepIndex < sequence.steps().size(); ++stepIndex) {
+                    if (_stepSelection[stepIndex]) {
+                        auto &step = sequence.step(stepIndex);
+                        bool shift = globalKeyState()[Key::Shift];
+                        step.setNote(step.note() + event.value() * ((shift && scale.isChromatic()) ? scale.notesPerOctave() : 1));
+                        updateMonitorStep();
+                    }
+                }
+            }   
+            break;
+        case Track::TrackMode::Stochastic: {
+             auto &sequence = _project.selectedStochasticSequence();
+                for (size_t stepIndex = 0; stepIndex < sequence.steps().size(); ++stepIndex) {
+                    if (_stepSelection[stepIndex]) {
+                        auto &step = sequence.step(stepIndex);
+                        step.setNoteVariationProbability(step.noteVariationProbability() + event.value());
+                    }
+                }
+        }
+        default:
+            break;
+        }
+
+    event.consume();
+}
+
+void OverviewPage::drawDetail(Canvas &canvas, const NoteSequence::Step &step) {
+    const auto &sequence = _project.selectedNoteSequence();
+    const auto &scale = sequence.selectedScale(_project.scale());
+
+    FixedStringBuilder<16> str;
+
+    WindowPainter::drawFrame(canvas, 64, 16, 128, 32);
+
+    canvas.setBlendMode(BlendMode::Set);
+    canvas.setColor(Color::Bright);
+    canvas.vline(64 + 32, 16, 32);
+
+    canvas.setFont(Font::Small);
+    str("%d", _stepSelection.first() + 1);
+    if (_stepSelection.count() > 1) {
+        str("*");
+    }
+    canvas.drawTextCentered(64, 16, 32, 32, str);
+
+    canvas.setFont(Font::Tiny);
+
+    str.reset();
+    scale.noteName(str, step.note(), sequence.selectedRootNote(_model.project().rootNote()), Scale::Long);
+    canvas.setFont(Font::Small);
+    canvas.drawTextCentered(64 + 32, 16, 64, 32, str);
+    canvas.setFont(Font::Tiny);
+
+}
+
+
+void OverviewPage::drawStochasticDetail(Canvas &canvas, const StochasticSequence::Step &step) {
+    FixedStringBuilder<16> str;
+
+    WindowPainter::drawFrame(canvas, 64, 16, 128, 32);
+
+    canvas.setBlendMode(BlendMode::Set);
+    canvas.setColor(Color::Bright);
+    canvas.vline(64 + 32, 16, 32);
+
+    canvas.setFont(Font::Small);
+    str("%d", _stepSelection.first() + 1);
+    if (_stepSelection.count() > 1) {
+        str("*");
+    }
+    canvas.drawTextCentered(64, 16, 32, 32, str);
+
+    canvas.setFont(Font::Tiny);
+
+    str.reset();
+    SequencePainter::drawProbability(
+            canvas,
+            64 + 32 + 8, 32 - 4, 64 - 16, 8,
+            step.noteVariationProbability() + 1, StochasticSequence::NoteVariationProbability::Range
+        );
+        str.reset();
+    str("%.1f%%", 100.f * (step.noteVariationProbability()) / (StochasticSequence::NoteVariationProbability::Range -1));
+    canvas.setColor(Color::Bright);
+    canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
+    canvas.setFont(Font::Tiny);
+
+
+}
+
+void OverviewPage::updateMonitorStep() {
+    auto &trackEngine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
+
+    // TODO should we monitor an all layers not just note?
+    if (_stepSelection.any()) {
+        trackEngine.setMonitorStep(_stepSelection.first());
+    }
 }

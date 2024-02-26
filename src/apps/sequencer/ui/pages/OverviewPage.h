@@ -19,6 +19,11 @@ public:
     virtual void encoder(EncoderEvent &event) override;
 
 private:
+
+    void drawDetail(Canvas &canvas, const NoteSequence::Step &step);
+    void drawStochasticDetail(Canvas &canvas, const StochasticSequence::Step &step);
+    void updateMonitorStep();
+
     static const int StepCount = 16;
 
     int stepOffset() const { 
@@ -28,4 +33,6 @@ private:
         return _project.selectedNoteSequence().section() * StepCount; 
     }
     StepSelection<CONFIG_STEP_COUNT> _stepSelection;
+    bool _showDetail;
+    uint32_t _showDetailTicks;
 };
