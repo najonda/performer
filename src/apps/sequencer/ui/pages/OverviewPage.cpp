@@ -123,9 +123,16 @@ OverviewPage::OverviewPage(PageManager &manager, PageContext &context) :
 {}
 
 void OverviewPage::enter() {
+    updateMonitorStep();
+    _showDetail = false;
 }
 
 void OverviewPage::exit() {
+    if (_project.selectedTrack().trackMode()==Track::TrackMode::Note) {
+        _engine.selectedTrackEngine().as<NoteTrackEngine>().setMonitorStep(-1);
+    } else if (_project.selectedTrack().trackMode()==Track::TrackMode::Stochastic) {
+        _engine.selectedTrackEngine().as<NoteTrackEngine>().setMonitorStep(-1);
+    }
 }
 
 void OverviewPage::draw(Canvas &canvas) {
@@ -298,7 +305,7 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
                 bool lpConnected = _engine.isLaunchpadConnected();
                 track.togglePatternFollowDisplay(lpConnected);
             }
-        }
+        } 
     }
 
         if (key.pageModifier()) {
