@@ -1297,7 +1297,7 @@ The _Overview_ page is entered using `PAGE` + `PREV`.
 
 ![](images/page-overview.png)
 
-On this page you can see an overall representation of all currently running sequences. This page is a bit like a screensaver, as it has no controls attached to it and purely serves as a neat visualization. In the left section, the currently playing pattern for each track is indicated. In the middle section, a dense representation of the sequence is shown (steps or curves). In the right section, the current state of the gate and CV outputs is visualized.
+On this page you can see an overall representation of all currently running sequences. In the left section, the currently playing pattern for each track is indicated. In the middle section, a dense representation of the sequence is shown (steps or curves). In the right section, the current state of the gate and CV outputs is visualized. You can enter gates selecting a track on hitting the desired `step` button. If the traci is a _Note_ track, `STEP[1-16]`+`ENCODER` will change the step note. If the track is a _Stochastic_ track, `STEP[1-16]`+`ENCODER` will change the noe probability. It's also possible to activate per track follow mode hitting `PAGE`+`S16` and navigate the sequence with `NEXT` and `PREV` buttons. 
 
 <!-- Monitor -->
 
@@ -1919,9 +1919,9 @@ Because the 8x8 grid of the Launchpad can only represent part of the data to be 
 
 Both modes also allow controlling track mutes and fills:
 
-| Buttons | Description                |
-| :--- |:---------------------------|
-| `2` + `GRID` | toggle selected note to 5V |
+| Buttons         | Description                |
+|:----------------|:---------------------------|
+| `7` + `GRID`    | toggle selected note to 5V |
 | `7` + `A` - `H` | Fill track                 |
 | `8` + `A` - `H` | Mute/unmute track          |
 | `6` + `A` - `H` | Solo/unsolo track          |
@@ -1952,7 +1952,12 @@ Requested patterns due to latching or syncing are shown in dim green.
 <h4>Performance Mode </h4>
 
 Performance mode allow user to perform some quick live edits.
-Holding a step and then pressing another one will set first step and last step of the sequence resulting in looping the current slice of the sequence until you will release the grid buttons.
+There are two modes available accessible by holding `2` + `GRID[1|2]`:
+
+* `GRID 1` - Sequence Length: Holding a step and then pressing another one will set first step and last step of the sequence resulting in looping the current slice of the sequence until you will release the grid buttons. 
+* `GRID 2` - Overview Page: each row represents the _track_ from 1-8 and allows to enter gates quickly. `6`+`ROW3+COL1` enables follow mode. for the overview page. All others functions are still available for the selected track.
+
+
 
 <h4 id="appendix-circuit">Circuit note editor</h4>
 
