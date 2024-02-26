@@ -6,10 +6,15 @@
 #include "ui/LedPainter.h"
 #include "ui/painters/SequencePainter.h"
 
-static void drawNoteTrack(Canvas &canvas, int trackIndex, const NoteTrackEngine &trackEngine, NoteSequence &sequence, bool running) {
+static void drawNoteTrack(Canvas &canvas, int trackIndex, const NoteTrackEngine &trackEngine, NoteSequence &sequence, bool running, bool patternFollow) {
     canvas.setBlendMode(BlendMode::Set);
 
-    int stepOffset = (std::max(0, trackEngine.currentStep()) / 16) * 16 + (sequence.section()*16);
+    int stepOffset = 16*sequence.section();
+    if (patternFollow) {
+        stepOffset = (std::max(0, trackEngine.currentStep()) / 16) * 16*sequence.section();
+        int section_no = int((trackEngine.currentStep()) / 16);
+        sequence.setSecion(section_no);
+    }
     int y = trackIndex * 8;
 
     for (int i = 0; i < 16; ++i) {
@@ -25,10 +30,9 @@ static void drawNoteTrack(Canvas &canvas, int trackIndex, const NoteTrackEngine 
             canvas.setColor(step.gate() ? Color::Medium : Color::Low);
             canvas.fillRect(x + 1, y + 1, 6, 6);
         }
-        if (running) {
-            int section_no = int((trackEngine.currentStep()) / 16);
-            sequence.setSecion(section_no);
-        }
+        //if (running) {
+            
+        //}
 
         // if (trackEngine.currentStep() == stepIndex) {
         //     canvas.setColor(Color::Bright);
@@ -176,7 +180,7 @@ void OverviewPage::draw(Canvas &canvas) {
         canvas.setBlendMode(BlendMode::Sub);
         canvas.drawText(46, y, FixedStringBuilder<8>("P%d", trackState.pattern() + 1));
         canvas.setBlendMode(BlendMode::Set);
-        // gate output
+
         bool gate = _engine.gateOutput() & (1 << trackIndex);
         canvas.setColor(gate ? Color::Bright : Color::Medium);
         canvas.fillRect(256 - 48 + 1, trackIndex * 8 + 1, 6, 6);
@@ -186,8 +190,14 @@ void OverviewPage::draw(Canvas &canvas) {
         canvas.drawText(256 - 32, y, FixedStringBuilder<8>("%.2fV", _engine.cvOutput().channel(trackIndex)));
 
         switch (track.trackMode()) {
-        case Track::TrackMode::Note: 
-            drawNoteTrack(canvas, trackIndex, trackEngine.as<NoteTrackEngine>(), track.noteTrack().sequence(trackState.pattern()), _engine.state().running());    
+        case Track::TrackMode::Note: {
+                bool patterFolow = false;
+                if (track.noteTrack().patternFollow()==Types::PatternFollow::Display || track.noteTrack().patternFollow()==Types::PatternFollow::DispAndLP) {
+                    patterFolow = true;
+                    canvas.drawText(256 - 54, y, FixedStringBuilder<8>("F"));
+                }
+                drawNoteTrack(canvas, trackIndex, trackEngine.as<NoteTrackEngine>(), track.noteTrack().sequence(trackState.pattern()), _engine.state().running(), patterFolow);    
+            }
             break;
         case Track::TrackMode::Curve:
             drawCurveTrack(canvas, trackIndex, trackEngine.as<CurveTrackEngine>(), track.curveTrack().sequence(trackState.pattern()));
@@ -284,8 +294,17 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
         return;
     }
 
+    if (key.isQuickEdit()) {
+        if (_project.selectedTrack().trackMode() == Track::TrackMode::Note) {
+            auto &track = _project.selectedTrack().noteTrack();
+            if (key.is(Key::Step15)) {
+                bool lpConnected = _engine.isLaunchpadConnected();
+                track.togglePatternFollowDisplay(lpConnected);
+            }
+        }
+    }
 
-    if (key.pageModifier()) {
+        if (key.pageModifier()) {
         return;
     }
 
@@ -295,8 +314,9 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
         
         switch (track.trackMode()) {
             case Track::TrackMode::Note: {
-                    int stepIndex = stepOffset() + key.step();
+                    
                     auto &sequence = _project.selectedNoteSequence();
+                    int stepIndex = stepOffset() + key.step();
                     sequence.step(stepIndex).toggleGate();
                     event.consume();
                 }
@@ -319,6 +339,7 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
             case Track::TrackMode::Note: {
                 auto &sequence = _project.selectedNoteSequence();
                 sequence.setSecion(std::max(0, sequence.section() - 1));
+                 track.noteTrack().setPatternFollowDisplay(false);
                 break;
             }
             default:
@@ -332,6 +353,7 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
             case Track::TrackMode::Note: {
                 auto &sequence = _project.selectedNoteSequence();
                 sequence.setSecion(std::min(3, sequence.section() + 1));
+                track.noteTrack().setPatternFollowDisplay(false);
                 break;
             }
             default:
