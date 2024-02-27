@@ -432,6 +432,7 @@ void NoteTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextS
                 break;
     }
 
+
     if (stepGate) {
         uint32_t stepLength = (divisor * evalStepLength(step, _noteTrack.lengthBias())) / NoteSequence::Length::Range;
         int stepRetrigger = evalStepRetrigger(step, _noteTrack.retriggerProbabilityBias());

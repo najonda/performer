@@ -105,6 +105,9 @@ enum ProjectVersion {
     // change note length form 3 to 4 bits
     Version36 = 36,
 
+    // add logic track
+    Version37 = 37,
+
 
     // automatically derive latest version
     Last,

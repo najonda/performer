@@ -373,12 +373,16 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
     if (stepIndex < 0) return;
 
+
+   
+
+
     const auto &step = evalSequence.step(stepIndex);
 
     int gateOffset = ((int) divisor * step.gateOffset()) / (LogicSequence::GateOffset::Max + 1);
     uint32_t stepTick = (int) tick + gateOffset;
 
-    bool stepGate = evalStepGate(step, _logicTrack.gateProbabilityBias()) || useFillGates;
+    /*bool stepGate = evalStepGate(step, _logicTrack.gateProbabilityBias()) || useFillGates;
     if (stepGate) {
         stepGate = evalStepCondition(step, _sequenceState.iteration(), useFillCondition, _prevCondition);
     }
@@ -430,7 +434,15 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
                 }
                 break;
-    }
+    }*/
+
+   
+    auto inputTrack1 = _model.project().track(_logicTrack.inputTrack1()).noteTrack();
+    auto inputTrack2 = _model.project().track(_logicTrack.inputTrack2()).noteTrack();
+
+    bool stepGate1 = inputTrack1.sequence(pattern()).step(stepIndex).gate();
+    bool stepGate2 = inputTrack2.sequence(pattern()).step(stepIndex).gate();
+    bool stepGate = stepGate1 & stepGate2;
 
     if (stepGate) {
         uint32_t stepLength = (divisor * evalStepLength(step, _logicTrack.lengthBias())) / LogicSequence::Length::Range;

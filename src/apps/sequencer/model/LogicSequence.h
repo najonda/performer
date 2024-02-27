@@ -229,6 +229,18 @@ public:
             setBypassScale(!bypassScale());
         }
 
+        const bool inputGate1() const { return _input1Gate; }
+
+        void setInputGate1(bool gate) {
+            _input1Gate = gate;
+        }
+
+        const bool inputGate2() const { return _input2Gate; }
+
+        void setInputGate2(bool gate) {
+            _input2Gate = gate;
+        }
+
         //----------------------------------------
         // Methods
         //----------------------------------------
@@ -272,9 +284,14 @@ public:
             BitField<uint32_t, 26, StageRepeatsMode::Bits> stageRepeatMode;
             // 4 bits left
         } _data1;
+
+        bool _input1Gate;
+        bool _input2Gate;
     };
 
     typedef std::array<Step, CONFIG_STEP_COUNT> StepArray;
+
+
 
     //----------------------------------------
     // Properties

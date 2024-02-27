@@ -196,6 +196,8 @@ void LogicSequence::Step::clear() {
     setCondition(Types::Condition::Off);
     setStageRepeats(0);
     setStageRepeatsMode(StageRepeatMode::Each);
+    setInputGate1(false);
+    setInputGate2(false);
 }
 
 void LogicSequence::Step::write(VersionedSerializedWriter &writer) const {
