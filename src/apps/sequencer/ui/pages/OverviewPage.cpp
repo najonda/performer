@@ -79,20 +79,20 @@ static void drawStochasticTrack(Canvas &canvas, int trackIndex, const Stochastic
             canvas.setColor(step.gate() ? Color::Medium : Color::Low);
             canvas.fillRect(x + 1, y + 1, 6, 6);
         }
-
-        // if (trackEngine.currentStep() == stepIndex) {
-        //     canvas.setColor(Color::Bright);
-        //     canvas.drawRect(x + 1, y + 1, 6, 6);
-        // }
     }
 
 }
 
-static void drawCurveTrack(Canvas &canvas, int trackIndex, const CurveTrackEngine &trackEngine, const CurveSequence &sequence) {
+static void drawCurveTrack(Canvas &canvas, int trackIndex, const CurveTrackEngine &trackEngine, CurveSequence &sequence, bool running, bool patternFollow) {
     canvas.setBlendMode(BlendMode::Add);
     canvas.setColor(Color::MediumBright);
 
-    int stepOffset = (std::max(0, trackEngine.currentStep()) / 16) * 16;
+    int stepOffset = 16*sequence.section();
+    if (patternFollow) {
+        stepOffset = (std::max(0, trackEngine.currentStep()) / 16) * 16*sequence.section();
+        int section_no = int((trackEngine.currentStep()) / 16);
+        sequence.setSecion(section_no);
+    }
     int y = trackIndex * 8;
 
     float lastY = -1.f;
@@ -203,8 +203,14 @@ void OverviewPage::draw(Canvas &canvas) {
                 drawNoteTrack(canvas, trackIndex, trackEngine.as<NoteTrackEngine>(), track.noteTrack().sequence(trackState.pattern()), _engine.state().running(), patterFolow);    
             }
             break;
-        case Track::TrackMode::Curve:
-            drawCurveTrack(canvas, trackIndex, trackEngine.as<CurveTrackEngine>(), track.curveTrack().sequence(trackState.pattern()));
+        case Track::TrackMode::Curve: {
+                bool patterFolow = false;
+                if (track.curveTrack().patternFollow()==Types::PatternFollow::Display || track.curveTrack().patternFollow()==Types::PatternFollow::DispAndLP) {
+                    patterFolow = true;
+                    canvas.drawText(256 - 54, y, FixedStringBuilder<8>("F"));
+                }
+                drawCurveTrack(canvas, trackIndex, trackEngine.as<CurveTrackEngine>(), track.curveTrack().sequence(trackState.pattern()), _engine.state().running(), patterFolow);
+            }
             break;
         case Track::TrackMode::Stochastic:
             drawStochasticTrack(canvas, trackIndex, trackEngine.as<StochasticEngine>(), track.stochasticTrack().sequence(trackState.pattern()));
@@ -303,24 +309,56 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
     }
 
     if (key.isQuickEdit()) {
-        if (_project.selectedTrack().trackMode() == Track::TrackMode::Note) {
-            auto &track = _project.selectedTrack().noteTrack();
-            if (key.is(Key::Step15)) {
-                bool lpConnected = _engine.isLaunchpadConnected();
-                track.togglePatternFollowDisplay(lpConnected);
-            }
-        } 
+
+        switch (_project.selectedTrack().trackMode()) {
+            case Track::TrackMode::Note: {
+                    auto &track = _project.selectedTrack().noteTrack();
+                    if (key.is(Key::Step15)) {
+                        bool lpConnected = _engine.isLaunchpadConnected();
+                        track.togglePatternFollowDisplay(lpConnected);
+                    }
+                }
+                break;
+            case Track::TrackMode::Curve: {
+                    auto &track = _project.selectedTrack().curveTrack();
+                    if (key.is(Key::Step15)) {
+                        bool lpConnected = _engine.isLaunchpadConnected();
+                        track.togglePatternFollowDisplay(lpConnected);
+                    }
+                }
+                break;
+            default:
+                break;
+         }
     }
 
-        if (key.pageModifier()) {
+    if (key.pageModifier()) {
         return;
     }
 
     _stepSelection.keyPress(event, stepOffset());
      auto &track = _project.selectedTrack();
 
+     if (key.isEncoder() && _project.selectedTrack().trackMode() == Track::TrackMode::Curve) {
+        switch (_project.selectedCurveSequenceLayer()) {
+            case CurveSequence::Layer::Shape:
+                showMessage("Min");
+                _project.setSelectedCurveSequenceLayer(CurveSequence::Layer::Min);
+                break;
+            case CurveSequence::Layer::Min:
+                showMessage("Max");
+                _project.setSelectedCurveSequenceLayer(CurveSequence::Layer::Max);
+                break;
+            case CurveSequence::Layer::Max:
+                showMessage("Shape");
+                _project.setSelectedCurveSequenceLayer(CurveSequence::Layer::Shape);
+                break;
+            default:
+                break;
+        }
+     }
+
     if (key.isStep() && event.count() == 2) {
-        
         switch (track.trackMode()) {
             case Track::TrackMode::Note: {
                     
@@ -337,20 +375,25 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
                     event.consume();
                 }
                 break;
+            default:
+                break;
+        }
+    }
+
+    if (key.isStep()) {
+        switch (track.trackMode()) {
             case Track::TrackMode::Curve: {
                 int stepIndex = stepOffset() + key.step();
                 auto &sequence = _project.selectedCurveSequence();
                 if (globalKeyState()[Key::Shift]) {
-                    sequence.step(stepIndex).setShape(sequence.step(stepIndex).shape()-1);
-                } else {    
-                    sequence.step(stepIndex).setShape(sequence.step(stepIndex).shape()+1);
+                    sequence.step(stepIndex).setGate(sequence.step(stepIndex).gate()-1);
+                } else {
+                    sequence.step(stepIndex).setGate(sequence.step(stepIndex).gate()+1);
                 }
-
             }
             default:
                 break;
         }
-        
     }
 
      if (key.isLeft()) {
@@ -359,6 +402,12 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
                 auto &sequence = _project.selectedNoteSequence();
                 sequence.setSecion(std::max(0, sequence.section() - 1));
                  track.noteTrack().setPatternFollowDisplay(false);
+                break;
+            }
+             case Track::TrackMode::Curve: {
+                auto &sequence = _project.selectedCurveSequence();
+                sequence.setSecion(std::max(0, sequence.section() - 1));
+                 track.curveTrack().setPatternFollowDisplay(false);
                 break;
             }
             default:
@@ -373,6 +422,12 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
                 auto &sequence = _project.selectedNoteSequence();
                 sequence.setSecion(std::min(3, sequence.section() + 1));
                 track.noteTrack().setPatternFollowDisplay(false);
+                break;
+            }
+            case Track::TrackMode::Curve: {
+                auto &sequence = _project.selectedCurveSequence();
+                sequence.setSecion(std::min(3, sequence.section() + 1));
+                track.curveTrack().setPatternFollowDisplay(false);
                 break;
             }
             default:
@@ -424,11 +479,21 @@ void OverviewPage::encoder(EncoderEvent &event) {
                 for (size_t stepIndex = 0; stepIndex < sequence.steps().size(); ++stepIndex) {
                     if (_stepSelection[stepIndex]) {
                         auto &step = sequence.step(stepIndex);
-                        if (globalKeyState()[Key::Shift]) {
-                            step.setMin(step.min() + event.value());
-                        } else {
-                            step.setMax(step.max() + event.value());
+                        
+                        switch (_project.selectedCurveSequenceLayer()) {
+                            case CurveSequence::Layer::Shape:
+                                step.setShape(step.shape() + event.value());
+                                break;
+                            case CurveSequence::Layer::Min:
+                                step.setMin(step.min() + event.value());
+                                break;
+                            case CurveSequence::Layer::Max:
+                                step.setMax(step.max() + event.value());
+                                break;
+                            default:
+                                break;
                         }
+                        
                     }
                 }
         }
@@ -487,13 +552,32 @@ void OverviewPage::drawCurveDetail(Canvas &canvas, const CurveSequence::Step &st
     canvas.setFont(Font::Tiny);
 
     str.reset();
-    if (globalKeyState()[Key::Shift]) {
-        str("%.1f%%", 100.f * (step.min()) / (CurveSequence::Min::Range-1));
-    } else {
-        str("%.1f%%", 100.f * (step.max()) / (CurveSequence::Max::Range-1));
+
+    switch (_project.selectedCurveSequenceLayer()) {
+        case CurveSequence::Layer::Shape: {
+            float min = step.minNormalized();
+            float max = step.maxNormalized();
+            float lastY = -1.f;
+            const auto function = Curve::function(Curve::Type(std::min(Curve::Last - 1, step.shape())));
+            drawCurve(canvas, 64 + 64, 24 + 1, 18, 12, lastY, function, min, max);
+        }
+            break;
+        case CurveSequence::Layer::Min: {
+                str("%.1f%%", 100.f * (step.min()) / (CurveSequence::Min::Range-1));
+                canvas.setFont(Font::Small);
+                canvas.drawTextCentered(64 + 32, 16, 64, 32, str);
+            }
+            break;
+        case CurveSequence::Layer::Max: {
+                str("%.1f%%", 100.f * (step.max()) / (CurveSequence::Max::Range-1));
+                canvas.setFont(Font::Small);
+                canvas.drawTextCentered(64 + 32, 16, 64, 32, str);
+            }
+            break;
+        default:
+            break;
     }
-    canvas.setFont(Font::Small);
-    canvas.drawTextCentered(64 + 32, 16, 64, 32, str);
+
     canvas.setFont(Font::Tiny);
 
 }
