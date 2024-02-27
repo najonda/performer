@@ -9,6 +9,7 @@
 #include "FileDefs.h"
 #include "core/utils/StringUtils.h"
 #include "BaseTrack.h"
+#include <cstdint>
 
 
 class LogicTrack : public BaseTrack, public BaseTrackPatternFollow {
@@ -285,6 +286,39 @@ public:
     inline void printRouted(StringBuilder &str, Routing::Target target) const { Routing::printRouted(str, target, _trackIndex); }
     void writeRouted(Routing::Target target, int intValue, float floatValue);
 
+    const int inputTrack1() const {
+        return _inputTrack1;
+    }
+
+    void setInputTrack1(int trackIndex) {
+        _inputTrack1 = trackIndex;
+    }
+
+    void printInputTrack1(StringBuilder &str) const {
+        if (inputTrack1()==-1) {
+            str("-");
+        } else {
+            str("%d", inputTrack1());
+        }
+    }
+
+
+    const int inputTrack2() const {
+        return _inputTrack2;
+    }
+
+    void setInputTrack2(int trackIndex) {
+        _inputTrack2 = trackIndex;
+    }
+
+     void printInputTrack2(StringBuilder &str) const {
+        if (inputTrack2()==-1) {
+            str("-");
+        } else {
+            str("%d", inputTrack2());
+        }
+    }
+
     //----------------------------------------
     // Methods
     //----------------------------------------
@@ -317,6 +351,9 @@ private:
     Routable<int8_t> _retriggerProbabilityBias;
     Routable<int8_t> _lengthBias;
     Routable<int8_t> _noteProbabilityBias;
+
+    int8_t _inputTrack1 = -1;
+    int8_t _inputTrack2 = -1;
 
     LogicSequenceArray _sequences;
 

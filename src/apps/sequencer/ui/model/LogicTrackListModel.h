@@ -5,6 +5,7 @@
 #include "RoutableListModel.h"
 
 #include "model/LogicTrack.h"
+#include <vector>
 
 class LogicTrackListModel : public RoutableListModel {
 public:
@@ -73,6 +74,8 @@ private:
         LengthBias,
         NoteProbabilityBias,
         PatternFollow,
+        InputTrack1,
+        InputTrack2,
         Last
     };
 
@@ -92,6 +95,8 @@ private:
         case LengthBias: return "Length Bias";
         case NoteProbabilityBias: return "Note P. Bias";
         case PatternFollow: return "Pattern Follow";
+        case InputTrack1: return "Input Trk 1";
+        case InputTrack2: return "Input Trk 2";
         case Last:      break;
         }
         return nullptr;
@@ -145,6 +150,12 @@ private:
         case PatternFollow:
             _track->printPatternFollow(str);
             break;
+        case InputTrack1:
+            _track->printInputTrack1(str);
+            break;
+        case InputTrack2:
+            _track->printInputTrack2(str);
+            break;
         case Last:
             break;
         }
@@ -193,6 +204,9 @@ private:
             break;
         case PatternFollow:
             _track->editPatternFollow(value, shift);
+            break;
+        case InputTrack1:
+        case InputTrack2:
             break;
         case Last:
             break;

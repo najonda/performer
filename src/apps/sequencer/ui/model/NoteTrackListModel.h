@@ -5,11 +5,17 @@
 #include "RoutableListModel.h"
 
 #include "model/NoteTrack.h"
+#include <vector>
 
 class NoteTrackListModel : public RoutableListModel {
 public:
+
     void setTrack(NoteTrack &track) {
         _track = &track;
+    }
+
+    void setAvailableLogicTracks(std::vector<int> availableLogicTracks) {
+        _availableLogicTracks = availableLogicTracks;
     }
 
     virtual int rows() const override {
@@ -73,6 +79,8 @@ private:
         LengthBias,
         NoteProbabilityBias,
         PatternFollow,
+        LogicTrack,
+        LogicTrackInput,
         Last
     };
 
@@ -92,6 +100,8 @@ private:
         case LengthBias: return "Length Bias";
         case NoteProbabilityBias: return "Note P. Bias";
         case PatternFollow: return "Pattern Follow";
+        case LogicTrack: return "Logic Track";
+        case LogicTrackInput: return "Logic Track In";
         case Last:      break;
         }
         return nullptr;
@@ -145,6 +155,12 @@ private:
         case PatternFollow:
             _track->printPatternFollow(str);
             break;
+        case LogicTrack:
+            _track->printLogicTrack(str);
+            break;
+        case LogicTrackInput:
+            _track->printLogicTrackInput(str);
+            break;
         case Last:
             break;
         }
@@ -194,6 +210,48 @@ private:
         case PatternFollow:
             _track->editPatternFollow(value, shift);
             break;
+        case LogicTrack: {
+                if (value == -1 && _selectedTrack == -1) {
+                    break;
+                }
+
+                if (value == -1 && _selectedTrack == _availableLogicTracks.front()) {
+                    _track->setLogicTrack(-1);
+                    _selectedTrack = -1;
+                    break;
+                }
+
+                if (value == 1 && _selectedTrack == _availableLogicTracks.back()) {
+                    break;
+                }
+
+                if (value == 1) {
+                    for (int i = 0; i < 8; ++i ) {
+                        if (std::find(_availableLogicTracks.begin(), _availableLogicTracks.end(), i) != _availableLogicTracks.end() && i != _selectedTrack) {
+                            _track->setLogicTrack(i);
+                            _selectedTrack = i;
+                            break;
+                        }
+                    }
+                } else {
+                    for (int i = 7; i > 0; --i ) {
+                        if (std::find(_availableLogicTracks.begin(), _availableLogicTracks.end(), i) != _availableLogicTracks.end() && i != _selectedTrack) {
+                            _track->setLogicTrack(i);
+                            _selectedTrack = i;
+                            break;
+                        }
+                    }
+                }
+
+                
+            }
+            break;
+            case LogicTrackInput:
+                if (_track->logicTrack()==-1) {
+                    return;
+                }
+                _track->editLogicTrackInput(value, shift);
+                break;
         case Last:
             break;
         }
@@ -202,4 +260,7 @@ private:
     virtual void setSelectedScale(int defaultScale, bool force = false) override {};
 
     NoteTrack *_track;
+
+    std::vector<int> _availableLogicTracks;
+    int _selectedTrack = -1;
 };
