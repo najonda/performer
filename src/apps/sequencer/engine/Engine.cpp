@@ -417,7 +417,7 @@ void Engine::updateTrackSetups() {
 
             switch (track.trackMode()) {
             case Track::TrackMode::Note:
-                trackEngine = trackContainer.create<NoteTrackEngine>(*this, _model, track, linkedTrackEngine);
+                trackEngine = trackContainer.create<NoteTrackEngine>(*this, _model, track, linkedTrackEngine, _project);
                 if (sizeof(track.noteTrack().name()==0)) {
                     track.noteTrack().setName(str);
                 }

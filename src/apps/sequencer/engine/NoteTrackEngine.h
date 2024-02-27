@@ -10,9 +10,10 @@
 
 class NoteTrackEngine : public TrackEngine {
 public:
-    NoteTrackEngine(Engine &engine, const Model &model, Track &track, const TrackEngine *linkedTrackEngine) :
+    NoteTrackEngine(Engine &engine, const Model &model, Track &track, const TrackEngine *linkedTrackEngine, Project &project) :
         TrackEngine(engine, model, track, linkedTrackEngine),
-        _noteTrack(track.noteTrack())
+        _noteTrack(track.noteTrack()),
+        _project(project)
     {
         reset();
     }
@@ -82,6 +83,8 @@ private:
     float _cvOutputTarget;
     bool _slideActive;
     unsigned int _currentStageRepeat;
+
+    Project &_project;
 
     struct Gate {
         uint32_t tick;

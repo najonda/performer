@@ -432,6 +432,20 @@ void NoteTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextS
                 break;
     }
 
+    int logicTrackIndex = _noteTrack.logicTrack();
+    if (logicTrackIndex!=-1) {
+        auto &logicTrack = _project.track(_noteTrack.logicTrack()).logicTrack();
+        LogicSequence &logicSequence = logicTrack.sequence(pattern());
+
+        LogicSequence::Step &logicStep = logicSequence.step(stepIndex);
+        
+
+        if (_noteTrack.logicTrackInput() == 0) {
+            logicStep.setInputGate1(stepGate);
+        } else if (_noteTrack.logicTrackInput() == 1) {
+            logicStep.setInputGate2(stepGate);
+        }
+    }
 
     if (stepGate) {
         uint32_t stepLength = (divisor * evalStepLength(step, _noteTrack.lengthBias())) / NoteSequence::Length::Range;

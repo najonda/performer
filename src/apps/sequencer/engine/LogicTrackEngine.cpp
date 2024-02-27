@@ -436,12 +436,9 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
                 break;
     }*/
 
-   
-    auto inputTrack1 = _model.project().track(_logicTrack.inputTrack1()).noteTrack();
-    auto inputTrack2 = _model.project().track(_logicTrack.inputTrack2()).noteTrack();
+    bool stepGate1 = step.inputGate1();
+    bool stepGate2 = step.inputGate2();
 
-    bool stepGate1 = inputTrack1.sequence(pattern()).step(stepIndex).gate();
-    bool stepGate2 = inputTrack2.sequence(pattern()).step(stepIndex).gate();
     bool stepGate = stepGate1 & stepGate2;
 
     if (stepGate) {
