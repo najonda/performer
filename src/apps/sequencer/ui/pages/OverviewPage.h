@@ -27,11 +27,23 @@ private:
     static const int StepCount = 16;
 
     int stepOffset() const { 
-        if (_project.selectedTrack().trackMode() == Track::TrackMode::Stochastic) {
-            return 0;
+
+        switch (_project.selectedTrack().trackMode()) {
+
+            case Track::TrackMode::Note:
+                return _project.selectedNoteSequence().section() * StepCount; 
+            case Track::TrackMode::Stochastic:
+                return 0;
+            case Track::TrackMode::Curve:
+                return _project.selectedCurveSequence().section() * StepCount; 
+            case Track::TrackMode::MidiCv:
+                return 0;
+            default:
+                return 0;
+        
         }
-        return _project.selectedNoteSequence().section() * StepCount; 
     }
+    
     StepSelection<CONFIG_STEP_COUNT> _stepSelection;
     bool _showDetail;
     uint32_t _showDetailTicks;
