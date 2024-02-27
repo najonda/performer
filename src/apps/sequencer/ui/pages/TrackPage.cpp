@@ -6,6 +6,7 @@
 #include "ui/painters/WindowPainter.h"
 
 #include "core/utils/StringBuilder.h"
+#include <vector>
 
 enum class ContextAction {
     Init,
@@ -114,6 +115,32 @@ void TrackPage::keyPress(KeyPressEvent &event) {
     return;
 }
 
+if (key.is(Key::Encoder) && selectedRow() == 14) {
+
+    if (_project.selectedTrack().trackMode() == Track::TrackMode::Note) {
+        std::vector<int> availableLogicTracks;
+        for (int i =0; i<8; ++i) {
+            if (_project.track(i).trackMode() == Track::TrackMode::Logic) {
+                availableLogicTracks.insert(availableLogicTracks.end(), i);
+            } 
+        }
+        _noteTrackListModel.setAvailableLogicTracks(availableLogicTracks);
+    }
+}
+
+if (key.is(Key::Encoder) && selectedRow() == 15) {
+    if (_project.selectedTrack().trackMode() == Track::TrackMode::Note) {
+        int logicTrackIndex = _project.selectedTrack().noteTrack().logicTrack();
+        if (logicTrackIndex!=-1) {
+
+            if (_project.selectedTrack().noteTrack().logicTrackInput() == 0) {
+                _project.track(logicTrackIndex).logicTrack().setInputTrack1(_project.selectedTrack().trackIndex());
+            } else if (_project.selectedTrack().noteTrack().logicTrackInput() == 1) {
+                _project.track(logicTrackIndex).logicTrack().setInputTrack2(_project.selectedTrack().trackIndex());
+            }
+        }
+    }
+}
 
     ListPage::keyPress(event);
 }

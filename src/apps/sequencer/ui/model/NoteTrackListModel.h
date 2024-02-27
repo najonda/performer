@@ -211,33 +211,33 @@ private:
             _track->editPatternFollow(value, shift);
             break;
         case LogicTrack: {
-                if (value == -1 && _selectedTrack == -1) {
+                if (value == -1 && _selectedTrack[_track->trackIndex()] == -1) {
                     break;
                 }
 
-                if (value == -1 && _selectedTrack == _availableLogicTracks.front()) {
+                if (value == -1 && _selectedTrack[_track->trackIndex()] == _availableLogicTracks.front()) {
                     _track->setLogicTrack(-1);
-                    _selectedTrack = -1;
+                    _selectedTrack[_track->trackIndex()] = -1;
                     break;
                 }
 
-                if (value == 1 && _selectedTrack == _availableLogicTracks.back()) {
+                if (value == 1 && _selectedTrack[_track->trackIndex()] == _availableLogicTracks.back()) {
                     break;
                 }
 
                 if (value == 1) {
                     for (int i = 0; i < 8; ++i ) {
-                        if (std::find(_availableLogicTracks.begin(), _availableLogicTracks.end(), i) != _availableLogicTracks.end() && i != _selectedTrack) {
+                        if (std::find(_availableLogicTracks.begin(), _availableLogicTracks.end(), i) != _availableLogicTracks.end() && i != _selectedTrack[_track->trackIndex()]) {
                             _track->setLogicTrack(i);
-                            _selectedTrack = i;
+                            _selectedTrack[_track->trackIndex()] = i;
                             break;
                         }
                     }
                 } else {
                     for (int i = 7; i > 0; --i ) {
-                        if (std::find(_availableLogicTracks.begin(), _availableLogicTracks.end(), i) != _availableLogicTracks.end() && i != _selectedTrack) {
+                        if (std::find(_availableLogicTracks.begin(), _availableLogicTracks.end(), i) != _availableLogicTracks.end() && i != _selectedTrack[_track->trackIndex()]) {
                             _track->setLogicTrack(i);
-                            _selectedTrack = i;
+                            _selectedTrack[_track->trackIndex()] = i;
                             break;
                         }
                     }
@@ -262,5 +262,5 @@ private:
     NoteTrack *_track;
 
     std::vector<int> _availableLogicTracks;
-    int _selectedTrack = -1;
+    int _selectedTrack[8];
 };

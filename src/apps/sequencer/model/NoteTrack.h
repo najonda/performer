@@ -62,6 +62,8 @@ public:
     // Properties
     //----------------------------------------
 
+    const int trackIndex() const { return _trackIndex;}
+
     // playMode
 
     Types::PlayMode playMode() const { return _playMode; }
