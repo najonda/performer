@@ -298,7 +298,7 @@ public:
         if (inputTrack1()==-1) {
             str("-");
         } else {
-            str("%d", inputTrack1());
+            str("%d", inputTrack1()+1);
         }
     }
 
@@ -315,7 +315,7 @@ public:
         if (inputTrack2()==-1) {
             str("-");
         } else {
-            str("%d", inputTrack2());
+            str("%d", inputTrack2()+1);
         }
     }
 
