@@ -1443,7 +1443,6 @@ void LaunchpadController::performerDraw() {
             
             }
             int section = int((currentStep) / 8);
-            std::cerr << section << "\n";
             for (int i = 0; i < 8; ++i) {
                 setFunctionLed(section, colorYellow());
             }        
