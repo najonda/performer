@@ -502,10 +502,10 @@ void OverviewPage::encoder(EncoderEvent &event) {
                                 step.setShape(step.shape() + event.value());
                                 break;
                             case CurveSequence::Layer::Min:
-                                step.setMin(step.min() + event.value());
+                                step.setMin(step.min() + event.value()*8);
                                 break;
                             case CurveSequence::Layer::Max:
-                                step.setMax(step.max() + event.value());
+                                step.setMax(step.max() + event.value()*8);
                                 break;
                             default:
                                 break;
