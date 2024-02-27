@@ -235,6 +235,10 @@ void OverviewPage::draw(Canvas &canvas) {
                     drawStochasticDetail(canvas, sequence.step(_stepSelection.first()));
                 }
                 break;
+            case Track::TrackMode::Curve: {
+                auto &sequence = _project.selectedCurveSequence();
+                drawCurveDetail(canvas, sequence.step(_stepSelection.first()));
+            }
             default:
                 break;
         }
@@ -333,6 +337,16 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
                     event.consume();
                 }
                 break;
+            case Track::TrackMode::Curve: {
+                int stepIndex = stepOffset() + key.step();
+                auto &sequence = _project.selectedCurveSequence();
+                if (globalKeyState()[Key::Shift]) {
+                    sequence.step(stepIndex).setShape(sequence.step(stepIndex).shape()-1);
+                } else {    
+                    sequence.step(stepIndex).setShape(sequence.step(stepIndex).shape()+1);
+                }
+
+            }
             default:
                 break;
         }
@@ -404,6 +418,20 @@ void OverviewPage::encoder(EncoderEvent &event) {
                     }
                 }
         }
+
+        case Track::TrackMode::Curve: {
+            auto &sequence = _project.selectedCurveSequence();
+                for (size_t stepIndex = 0; stepIndex < sequence.steps().size(); ++stepIndex) {
+                    if (_stepSelection[stepIndex]) {
+                        auto &step = sequence.step(stepIndex);
+                        if (globalKeyState()[Key::Shift]) {
+                            step.setMin(step.min() + event.value());
+                        } else {
+                            step.setMax(step.max() + event.value());
+                        }
+                    }
+                }
+        }
         default:
             break;
         }
@@ -434,6 +462,36 @@ void OverviewPage::drawDetail(Canvas &canvas, const NoteSequence::Step &step) {
 
     str.reset();
     scale.noteName(str, step.note(), sequence.selectedRootNote(_model.project().rootNote()), Scale::Long);
+    canvas.setFont(Font::Small);
+    canvas.drawTextCentered(64 + 32, 16, 64, 32, str);
+    canvas.setFont(Font::Tiny);
+
+}
+
+void OverviewPage::drawCurveDetail(Canvas &canvas, const CurveSequence::Step &step) {
+    FixedStringBuilder<16> str;
+
+    WindowPainter::drawFrame(canvas, 64, 16, 128, 32);
+
+    canvas.setBlendMode(BlendMode::Set);
+    canvas.setColor(Color::Bright);
+    canvas.vline(64 + 32, 16, 32);
+
+    canvas.setFont(Font::Small);
+    str("%d", _stepSelection.first() + 1);
+    if (_stepSelection.count() > 1) {
+        str("*");
+    }
+    canvas.drawTextCentered(64, 16, 32, 32, str);
+
+    canvas.setFont(Font::Tiny);
+
+    str.reset();
+    if (globalKeyState()[Key::Shift]) {
+        str("%.1f%%", 100.f * (step.min()) / (CurveSequence::Min::Range-1));
+    } else {
+        str("%.1f%%", 100.f * (step.max()) / (CurveSequence::Max::Range-1));
+    }
     canvas.setFont(Font::Small);
     canvas.drawTextCentered(64 + 32, 16, 64, 32, str);
     canvas.setFont(Font::Tiny);
@@ -471,7 +529,17 @@ void OverviewPage::drawStochasticDetail(Canvas &canvas, const StochasticSequence
     canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
     canvas.setFont(Font::Tiny);
 
+    SequencePainter::drawProbability(
+            canvas,
+            64 + 32 + 8, 32 - 4, 64 - 16, 8,
+            step.gateProbability(), CurveSequence::GateProbability::Range-1
+        );
+        str.reset();
+        str("%.1f%%", 100.f * (step.gateProbability()) / (CurveSequence::GateProbability::Range-1));
+        canvas.setColor(Color::Bright);
+        canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
 
+        canvas.setFont(Font::Tiny);
 }
 
 void OverviewPage::updateMonitorStep() {

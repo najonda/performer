@@ -22,6 +22,7 @@ private:
 
     void drawDetail(Canvas &canvas, const NoteSequence::Step &step);
     void drawStochasticDetail(Canvas &canvas, const StochasticSequence::Step &step);
+    void drawCurveDetail(Canvas &canvas, const CurveSequence::Step &step);
     void updateMonitorStep();
 
     static const int StepCount = 16;
@@ -43,7 +44,7 @@ private:
         
         }
     }
-    
+
     StepSelection<CONFIG_STEP_COUNT> _stepSelection;
     bool _showDetail;
     uint32_t _showDetailTicks;
