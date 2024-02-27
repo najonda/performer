@@ -358,6 +358,13 @@ public:
     void write(VersionedSerializedWriter &writer) const;
     bool read(VersionedSerializedReader &reader);
 
+    int section() { return _section; }
+    const int section() const { return _section; }
+
+    void setSecion(int section) {
+        _section = section;
+    }
+
 private:
     void setTrackIndex(int trackIndex) { _trackIndex = trackIndex; }
 
@@ -383,6 +390,8 @@ private:
     Routable<uint8_t> _lastStep;
 
     StepArray _steps;
+
+    int _section = 0;
 
     friend class CurveTrack;
 };
