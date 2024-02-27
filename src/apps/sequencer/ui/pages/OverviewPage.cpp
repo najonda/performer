@@ -287,6 +287,23 @@ void OverviewPage::updateLeds(Leds &leds) {
             LedPainter::drawSelectedSequenceSection(leds, 0);
             }
             break;
+        case Track::TrackMode::Curve: {
+             const auto &trackEngine = _engine.selectedTrackEngine().as<CurveTrackEngine>();
+            const auto &sequence = _project.selectedCurveSequence();
+            int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
+
+            for (int i = 0; i < 16; ++i) {
+                int stepIndex = stepOffset() + i;
+                bool red = (stepIndex == currentStep) || _stepSelection[stepIndex];
+                bool green = (stepIndex != currentStep) && (sequence.step(stepIndex).gate() > 0 || _stepSelection[stepIndex]);
+                leds.set(MatrixMap::fromStep(i), red, green);
+            }
+
+            LedPainter::drawSelectedSequenceSection(leds, sequence.section());
+
+            LedPainter::drawSelectedSequenceSection(leds, sequence.section());
+            }
+            break;
         default:
             break;
     }
