@@ -441,6 +441,12 @@ void Engine::updateTrackSetups() {
                     track.stochasticTrack().setName(str);
                 }
                 break;
+            case Track::TrackMode::Logic:
+                trackEngine = trackContainer.create<LogicTrackEngine>(*this, _model, track, linkedTrackEngine);
+                if (sizeof(track.logicTrack().name()==0)) {
+                    track.logicTrack().setName(str);
+                }
+                break;
             case Track::TrackMode::Last:
                 break;
             }

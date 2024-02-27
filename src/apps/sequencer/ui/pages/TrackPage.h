@@ -6,6 +6,7 @@
 #include "ui/model/CurveTrackListModel.h"
 #include "ui/model/MidiCvTrackListModel.h"
 #include "ui/model/StochasticTrackListModel.h"
+#include "ui/model/LogicTrackListModel.h"
 
 
 class TrackPage : public ListPage {
@@ -37,6 +38,7 @@ private:
     CurveTrackListModel _curveTrackListModel;
     MidiCvTrackListModel _midiCvTrackListModel;
     StochasticTrackListModel _stochasticTrackListModel;
+    LogicTrackListModel _logicTrackListModel;
 
     Track *_track;
     
@@ -44,4 +46,5 @@ private:
     CurveTrack *_curveTrack;
     MidiCvTrack *_midiCvTrack;
     StochasticTrack *_stochasticTrack;
+    LogicTrack *_logicTrack;
 };

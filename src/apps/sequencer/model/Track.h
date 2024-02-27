@@ -8,6 +8,7 @@
 #include "CurveTrack.h"
 #include "MidiCvTrack.h"
 #include "StochasticTrack.h"
+#include "LogicTrack.h"
 
 #include "core/Debug.h"
 #include "core/math/Math.h"
@@ -37,6 +38,7 @@ public:
         Curve,
         MidiCv,
         Stochastic,
+        Logic,
         Last,
         Default = Note
     };
@@ -47,6 +49,7 @@ public:
         case TrackMode::Curve:  return "Curve";
         case TrackMode::MidiCv: return "MIDI/CV";
         case TrackMode::Stochastic: return "Stochastic";
+        case TrackMode::Logic:  return "Logic";
         case TrackMode::Last:   break;
         }
         return nullptr;
@@ -58,6 +61,7 @@ public:
         case TrackMode::Curve:  return 1;
         case TrackMode::MidiCv: return 2;
         case TrackMode::Stochastic: return 3;
+        case TrackMode::Logic:  return 4;
         case TrackMode::Last:   break;
         }
         return 0;
@@ -123,6 +127,9 @@ public:
     const StochasticTrack &stochasticTrack() const { SANITIZE_TRACK_MODE(_trackMode, TrackMode::Stochastic); return *_track.stochastic; }
           StochasticTrack &stochasticTrack()       { SANITIZE_TRACK_MODE(_trackMode, TrackMode::Stochastic); return *_track.stochastic; }
 
+    const LogicTrack &logicTrack() const { SANITIZE_TRACK_MODE(_trackMode, TrackMode::Logic); return *_track.logic; }
+          LogicTrack &logicTrack()       { SANITIZE_TRACK_MODE(_trackMode, TrackMode::Logic); return *_track.logic; }
+
     //----------------------------------------
     // Methods
     //----------------------------------------
@@ -170,12 +177,13 @@ private:
     TrackMode _trackMode;
     int8_t _linkTrack;
 
-    Container<NoteTrack, CurveTrack, MidiCvTrack> _container;
+    Container<NoteTrack, CurveTrack, MidiCvTrack, StochasticTrack, LogicTrack> _container;
     union {
         NoteTrack *note;
         CurveTrack *curve;
         MidiCvTrack *midiCv;
         StochasticTrack *stochastic;
+        LogicTrack *logic;
     } _track;
 
     friend class Project;

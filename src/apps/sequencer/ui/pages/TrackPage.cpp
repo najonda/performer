@@ -100,6 +100,13 @@ void TrackPage::keyPress(KeyPressEvent &event) {
                     }
                  });
             break;   
+            case Track::TrackMode::Logic:
+                _manager.pages().textInput.show("NAME:", _logicTrack->name(), LogicTrack::NameLength, [this] (bool result, const char *text) {
+                    if (result) {
+                        _project.selectedTrack().logicTrack().setName(text);
+                    }
+                 });
+            break;  
             case Track::TrackMode::Last:
                 break;     
         }
@@ -135,6 +142,11 @@ void TrackPage::setTrack(Track &track) {
         newListModel = &_stochasticTrackListModel;
         _stochasticTrack = &track.stochasticTrack();
         break;
+    case Track::TrackMode::Logic:
+        _logicTrackListModel.setTrack(track.logicTrack());
+        newListModel = &_logicTrackListModel;
+        _logicTrack = &track.logicTrack();
+        break;    
     case Track::TrackMode::Last:
         ASSERT(false, "invalid track mode");
         break;

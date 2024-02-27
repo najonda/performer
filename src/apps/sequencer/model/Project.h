@@ -426,6 +426,9 @@ public:
                 case Track::TrackMode::Stochastic:
                     StringUtils::copy(_selectedTrackName, selectedTrack().stochasticTrack().name(), sizeof(_selectedTrackName));
                     break;
+                case Track::TrackMode::Logic:
+                    StringUtils::copy(_selectedTrackName, selectedTrack().logicTrack().name(), sizeof(_selectedTrackName));
+                    break;
                 case Track::TrackMode::Last:
                     break;
             }
@@ -460,9 +463,15 @@ public:
     NoteSequence::Layer selectedNoteSequenceLayer() const { return _selectedNoteSequenceLayer; }
     void setSelectedNoteSequenceLayer(NoteSequence::Layer layer) { _selectedNoteSequenceLayer = layer; }
 
+    // selectedStochasticSequenceLayer
 
     StochasticSequence::Layer selectedStochasticSequenceLayer() const { return _selectedStochasticSequenceLayer; }
     void setSelectedStochasticSequenceLayer(StochasticSequence::Layer layer) { _selectedStochasticSequenceLayer = layer; }
+
+    // selectedLogicSequenceLayer
+
+    LogicSequence::Layer selectedLogicSequenceLayer() const { return _selectedLogicSequenceLayer; }
+    void setSelectedLogicSequenceLayer(LogicSequence::Layer layer) { _selectedLogicSequenceLayer = layer; }
 
     // selectedCurveSequenceLayer
 
@@ -502,15 +511,29 @@ public:
     const CurveSequence &selectedCurveSequence() const { return curveSequence(_selectedTrackIndex, selectedPatternIndex()); }
           CurveSequence &selectedCurveSequence()       { return curveSequence(_selectedTrackIndex, selectedPatternIndex()); }
 
-        // curveSequence
+    // stochasticSequence
 
     const StochasticSequence &stochasticSequence(int trackIndex, int patternIndex) const { return _tracks[trackIndex].stochasticTrack().sequence(patternIndex); }
           StochasticSequence &stochasticSequence(int trackIndex, int patternIndex)       { return _tracks[trackIndex].stochasticTrack().sequence(patternIndex); }
 
-    // selectedCurveSequence
+    // selectedStochasticSequence
 
     const StochasticSequence &selectedStochasticSequence() const { return stochasticSequence(_selectedTrackIndex, selectedPatternIndex()); }
           StochasticSequence &selectedStochasticSequence()       { return stochasticSequence(_selectedTrackIndex, selectedPatternIndex()); }
+
+    // logicSequence
+    
+    const LogicSequence &logicSequence(int trackIndex, int patternIndex) const { return _tracks[trackIndex].logicTrack().sequence(patternIndex); }
+          LogicSequence &logicSequence(int trackIndex, int patternIndex)       { return _tracks[trackIndex].logicTrack().sequence(patternIndex); }
+
+    // selectedLogicSequence
+
+    const LogicSequence &selectedLogicSequence() const { return logicSequence(_selectedTrackIndex, selectedPatternIndex()); }
+          LogicSequence &selectedLogicSequence()       { return logicSequence(_selectedTrackIndex, selectedPatternIndex()); }
+
+    void setselectedLogicSequence(LogicSequence seq) {
+        _tracks[_selectedTrackIndex].logicTrack().setSequence(selectedPatternIndex(), seq);
+    }
 
     //----------------------------------------
     // Routing
@@ -585,6 +608,7 @@ private:
     NoteSequence::Layer _selectedNoteSequenceLayer = NoteSequence::Layer(0);
     CurveSequence::Layer _selectedCurveSequenceLayer = CurveSequence::Layer(0);
     StochasticSequence::Layer _selectedStochasticSequenceLayer = StochasticSequence::Layer(10);
+    LogicSequence::Layer _selectedLogicSequenceLayer = LogicSequence::Layer(0);
 
     Observable<Event, 2> _observable;
 };
