@@ -2,7 +2,6 @@
 
 #include "Config.h"
 #include "Observable.h"
-#include "StochasticSequence.h"
 #include "Scale.h"
 #include "Types.h"
 #include "TimeSignature.h"

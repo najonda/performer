@@ -170,7 +170,7 @@ private:
     TrackMode _trackMode;
     int8_t _linkTrack;
 
-    Container<NoteTrack, CurveTrack, MidiCvTrack> _container;
+    Container<NoteTrack, CurveTrack, MidiCvTrack, StochasticTrack> _container;
     union {
         NoteTrack *note;
         CurveTrack *curve;
