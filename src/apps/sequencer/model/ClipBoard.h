@@ -2,6 +2,7 @@
 
 #include "Config.h"
 
+#include "StochasticSequence.h"
 #include "Track.h"
 #include "NoteSequence.h"
 #include "CurveSequence.h"
@@ -25,6 +26,8 @@ public:
     void copyNoteSequenceSteps(const NoteSequence &noteSequence, const SelectedSteps &selectedSteps);
     void copyCurveSequence(const CurveSequence &curveSequence);
     void copyCurveSequenceSteps(const CurveSequence &curveSequence, const SelectedSteps &selectedSteps);
+    void copyStochasticSequence(const StochasticSequence &noteSequence);
+    void copyStochasticSequenceSteps(const StochasticSequence &noteSequence, const SelectedSteps &selectedSteps);
     void copyPattern(int patternIndex);
     void copyUserScale(const UserScale &userScale);
 
@@ -33,6 +36,8 @@ public:
     void pasteNoteSequenceSteps(NoteSequence &noteSequence, const SelectedSteps &selectedSteps) const;
     void pasteCurveSequence(CurveSequence &curveSequence) const;
     void pasteCurveSequenceSteps(CurveSequence &curveSequence, const SelectedSteps &selectedSteps) const;
+    void pasteStochasticSequence(StochasticSequence &noteSequence) const;
+    void pasteStochasticSequenceSteps(StochasticSequence &noteSequence, const SelectedSteps &selectedSteps) const;
     void pastePattern(int patternIndex) const;
     void pasteUserScale(UserScale &userScale) const;
 
@@ -41,6 +46,8 @@ public:
     bool canPasteNoteSequenceSteps() const;
     bool canPasteCurveSequence() const;
     bool canPasteCurveSequenceSteps() const;
+    bool canPasteStochasticSequence() const;
+    bool canPasteStochasticSequenceSteps() const;
     bool canPastePattern() const;
     bool canPasteUserScale() const;
 
@@ -52,6 +59,8 @@ private:
         NoteSequenceSteps,
         CurveSequence,
         CurveSequenceSteps,
+        StochasticSequence,
+        StochasticSequenceSteps,
         Pattern,
         UserScale,
     };
@@ -63,6 +72,11 @@ private:
 
     struct CurveSequenceSteps {
         CurveSequence sequence;
+        SelectedSteps selected;
+    };
+
+    struct StochasticSequenceSteps {
+        StochasticSequence sequence;
         SelectedSteps selected;
     };
 
@@ -78,5 +92,5 @@ private:
 
     Project &_project;
     Type _type = Type::None;
-    Container<Track, NoteSequence, NoteSequenceSteps, CurveSequence, CurveSequenceSteps, Pattern, UserScale> _container;
+    Container<Track, NoteSequence, NoteSequenceSteps, CurveSequence, CurveSequenceSteps, StochasticSequence, StochasticSequenceSteps, Pattern, UserScale> _container;
 };
