@@ -160,6 +160,13 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
         switch (layer()) {
         case Layer::Gate:
             break;
+        case Layer::GateLogic:
+            SequencePainter::drawGateLogicMode(
+                canvas,
+                x + 2, y + 18, stepWidth - 4, 6,
+                step.gateLogic()
+            );
+            break;
         case Layer::GateProbability:
             SequencePainter::drawProbability(
                 canvas,
@@ -201,42 +208,11 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
                 step.lengthVariationProbability() + 1, LogicSequence::LengthVariationProbability::Range
             );
             break;
-        case Layer::Note: {
-            int rootNote = sequence.selectedRootNote(_model.project().rootNote());
-            canvas.setColor(Color::Bright);
-            FixedStringBuilder<8> str;
-
-            if (step.bypassScale()) {
-                const Scale &bypassScale = std::ref(Scale::get(0));
-                bypassScale.noteName(str, step.note(), rootNote, Scale::Short1);
+        case Layer::NoteLogic: {
             
-                canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
-                str.reset();
-                bypassScale.noteName(str, step.note(), rootNote, Scale::Short2);
-                canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
-                break;
-            } 
-            scale.noteName(str, step.note(), rootNote, Scale::Short1);
-            
-            canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
-            str.reset();
-            scale.noteName(str, step.note(), rootNote, Scale::Short2);
-            canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
             break;
         }
-        case Layer::NoteVariationRange: {
-            canvas.setColor(Color::Bright);
-            FixedStringBuilder<8> str("%d", step.noteVariationRange());
-            canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
-            break;
-        }
-        case Layer::NoteVariationProbability:
-            SequencePainter::drawProbability(
-                canvas,
-                x + 2, y + 18, stepWidth - 4, 2,
-                step.noteVariationProbability() + 1, LogicSequence::NoteVariationProbability::Range
-            );
-            break;
+        
         case Layer::Slide:
             SequencePainter::drawSlide(
                 canvas,
@@ -486,8 +462,11 @@ void LogicSequenceEditPage::encoder(EncoderEvent &event) {
         case Layer::Gate:
             setLayer(event.value() > 0 ? Layer::GateOffset : Layer::GateProbability);
             break;
+        case Layer::GateLogic:
+            setLayer(event.value() > 0 ? Layer::GateOffset : Layer::Gate);
+            break;
         case Layer::GateOffset:
-            setLayer(event.value() > 0 ? Layer::GateProbability : Layer::Gate);
+            setLayer(event.value() > 0 ? Layer::GateProbability : Layer::GateLogic);
             break;
         case Layer::GateProbability:
             setLayer(event.value() > 0 ? Layer::Gate : Layer::GateOffset);
@@ -513,20 +492,14 @@ void LogicSequenceEditPage::encoder(EncoderEvent &event) {
         case Layer::LengthVariationProbability:
             setLayer(event.value() > 0 ? Layer::Length : Layer::LengthVariationRange);
             break;
-        case Layer::Note:
-            setLayer(event.value() > 0 ? Layer::NoteVariationRange : Layer::BypassScale);
-            break;
-        case Layer::NoteVariationRange:
-            setLayer(event.value() > 0 ? Layer::NoteVariationProbability : Layer::Note);
-            break;
-        case Layer::NoteVariationProbability:
-            setLayer(event.value() > 0 ? Layer::Slide : Layer::NoteVariationRange);
+        case Layer::NoteLogic:
+            setLayer(event.value() > 0 ? Layer::Slide : Layer::BypassScale);
             break;
         case Layer::Slide:
-            setLayer(event.value() > 0 ? Layer::BypassScale : Layer::NoteVariationProbability);
+            setLayer(event.value() > 0 ? Layer::BypassScale : Layer::NoteLogic);
             break;
         case Layer::BypassScale:
-            setLayer(event.value() > 0 ? Layer::Note : Layer::Slide);
+            setLayer(event.value() > 0 ? Layer::NoteLogic : Layer::Slide);
         default:
             break;
         }
@@ -545,6 +518,13 @@ void LogicSequenceEditPage::encoder(EncoderEvent &event) {
             switch (layer()) {
             case Layer::Gate:
                 step.setGate(event.value() > 0);
+                break;
+            case Layer::GateLogic:
+                step.setGateLogic(
+                    static_cast<LogicSequence::GateLogicMode>(
+                        step.gateLogic() + event.value()
+                    )
+                );
                 break;
             case Layer::GateProbability:
                 step.setGateProbability(step.gateProbability() + event.value());
@@ -567,16 +547,9 @@ void LogicSequenceEditPage::encoder(EncoderEvent &event) {
             case Layer::LengthVariationProbability:
                 step.setLengthVariationProbability(step.lengthVariationProbability() + event.value());
                 break;
-            case Layer::Note:
+            case Layer::NoteLogic:
                 step.setNote(step.note() + event.value() * ((shift && scale.isChromatic()) ? scale.notesPerOctave() : 1));
                 updateMonitorStep();
-                break;
-            case Layer::NoteVariationRange:
-                step.setNoteVariationRange(step.noteVariationRange() + event.value() * ((shift && scale.isChromatic()) ? scale.notesPerOctave() : 1));
-                updateMonitorStep();
-                break;
-            case Layer::NoteVariationProbability:
-                step.setNoteVariationProbability(step.noteVariationProbability() + event.value());
                 break;
             case Layer::Slide:
                 step.setSlide(event.value() > 0);
@@ -607,7 +580,7 @@ void LogicSequenceEditPage::encoder(EncoderEvent &event) {
 }
 
 void LogicSequenceEditPage::midi(MidiEvent &event) {
-    if (!_engine.recording() && layer() == Layer::Note && _stepSelection.any()) {
+    if (!_engine.recording() && layer() == Layer::NoteLogic && _stepSelection.any()) {
         auto &trackEngine = _engine.selectedTrackEngine().as<LogicTrackEngine>();
         auto &sequence = _project.selectedLogicSequence();
         const auto &scale = sequence.selectedScale(_project.scale());
@@ -664,6 +637,9 @@ void LogicSequenceEditPage::switchLayer(int functionKey, bool shift) {
     case Function::Gate:
         switch (layer()) {
         case Layer::Gate:
+            setLayer(Layer::GateLogic);
+            break;
+        case Layer::GateLogic:
             setLayer(Layer::GateOffset);
             break;
         case Layer::GateOffset:
@@ -711,20 +687,14 @@ void LogicSequenceEditPage::switchLayer(int functionKey, bool shift) {
         break;
     case Function::Note:
         switch (layer()) {
-        case Layer::Note:
-            setLayer(Layer::NoteVariationRange);
-            break;
-        case Layer::NoteVariationRange:
-            setLayer(Layer::NoteVariationProbability);
-            break;
-        case Layer::NoteVariationProbability:
+        case Layer::NoteLogic:
             setLayer(Layer::Slide);
             break;
         case Layer::Slide:
             setLayer(Layer::BypassScale);
             break;
         default:
-            setLayer(Layer::Note);
+            setLayer(Layer::NoteLogic);
             break;
         }
         break;
@@ -739,6 +709,7 @@ int LogicSequenceEditPage::activeFunctionKey() {
     case Layer::Gate:
     case Layer::GateProbability:
     case Layer::GateOffset:
+    case Layer::GateLogic:
         return 0;
     case Layer::Retrigger:
     case Layer::RetriggerProbability:
@@ -749,9 +720,7 @@ int LogicSequenceEditPage::activeFunctionKey() {
     case Layer::LengthVariationRange:
     case Layer::LengthVariationProbability:
         return 2;
-    case Layer::Note:
-    case Layer::NoteVariationRange:
-    case Layer::NoteVariationProbability:
+    case Layer::NoteLogic:
     case Layer::Slide:
     case Layer::BypassScale:
         return 3;
@@ -768,7 +737,7 @@ void LogicSequenceEditPage::updateMonitorStep() {
     auto &trackEngine = _engine.selectedTrackEngine().as<LogicTrackEngine>();
 
     // TODO should we monitor an all layers not just note?
-    if (layer() == Layer::Note && !_stepSelection.isPersisted() && _stepSelection.any()) {
+    if (layer() == Layer::NoteLogic && !_stepSelection.isPersisted() && _stepSelection.any()) {
         trackEngine.setMonitorStep(_stepSelection.first());
     } else {
         trackEngine.setMonitorStep(-1);
@@ -863,29 +832,13 @@ void LogicSequenceEditPage::drawDetail(Canvas &canvas, const LogicSequence::Step
         canvas.setColor(Color::Bright);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
-    case Layer::Note:
+    case Layer::NoteLogic:
         str.reset();
         scale.noteName(str, step.note(), sequence.selectedRootNote(_model.project().rootNote()), Scale::Long);
         canvas.setFont(Font::Small);
         canvas.drawTextCentered(64 + 32, 16, 64, 32, str);
         break;
-    case Layer::NoteVariationRange:
-        str.reset();
-        str("%d", step.noteVariationRange());
-        canvas.setFont(Font::Small);
-        canvas.drawTextCentered(64 + 32, 16, 64, 32, str);
-        break;
-    case Layer::NoteVariationProbability:
-        SequencePainter::drawProbability(
-            canvas,
-            64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.noteVariationProbability(), LogicSequence::NoteVariationProbability::Range-1
-        );
-        str.reset();
-        str("%.1f%%", 100.f * (step.noteVariationProbability()) / (LogicSequence::NoteVariationProbability::Range-1));
-        canvas.setColor(Color::Bright);
-        canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
-        break;
+   
     case Layer::Condition:
         str.reset();
         Types::printCondition(str, step.condition(), Types::ConditionFormat::Long);

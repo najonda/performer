@@ -2,6 +2,7 @@
 #include "core/gfx/Canvas.h"
 #include "model/NoteSequence.h"
 #include "model/StochasticSequence.h"
+#include "model/LogicSequence.h"
 #include <bitset>
 
 void SequencePainter::drawLoopStart(Canvas &canvas, int x, int y, int w) {
@@ -203,6 +204,41 @@ void SequencePainter::drawStageRepeatMode(Canvas &canvas, int x, int y, int w, i
                 canvas.hline(x + 2 * i, bottom, 1);
             }
         }
+    }
+}
+
+void SequencePainter::drawGateLogicMode(Canvas &canvas, int x, int y, int w, int h, LogicSequence::GateLogicMode mode) {
+    canvas.setBlendMode(BlendMode::Set);
+    canvas.setColor(Bright);
+    int bottom = y + h - 1;
+    std::bitset<4> enabled;
+    x += (w - 8) / 2;
+
+    switch (mode) {
+        case LogicSequence::GateLogicMode::One:
+            canvas.drawText(x-1, y+4, "1");
+            break;
+        case LogicSequence::GateLogicMode::Two:
+            canvas.drawText(x-1, y+4, "2");
+            break;
+        case LogicSequence::GateLogicMode::And:
+            canvas.drawText(x-1, y+4, "&");
+            break;
+        case LogicSequence::GateLogicMode::Or:
+            canvas.drawText(x-1, y+4, "|");
+            break;
+        case LogicSequence::GateLogicMode::Xor:
+            canvas.drawText(x-1, y+4, "X|");
+            break;
+        case LogicSequence::GateLogicMode::Xnor:
+            canvas.drawText(x-1, y+4, "X!|");
+            break;
+        case LogicSequence::GateLogicMode::Nand:
+            canvas.drawText(x-1, y+4, "!&");
+            break;
+        case LogicSequence::GateLogicMode::Nor:
+            canvas.drawText(x-1, y+4, "!|");
+            break;
     }
 }
 

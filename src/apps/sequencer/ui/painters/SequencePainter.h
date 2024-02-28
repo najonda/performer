@@ -3,6 +3,7 @@
 #include "core/gfx/Canvas.h"
 #include "model/NoteSequence.h"
 #include "model/StochasticSequence.h"
+#include "model/LogicSequence.h"
 
 
 class SequencePainter {
@@ -20,6 +21,9 @@ public:
 
     static void drawStageRepeatMode(Canvas &canvas, int x, int y, int w, int h, NoteSequence::StageRepeatMode mode);
     static void drawStageRepeatMode(Canvas &canvas, int x, int y, int w, int h, StochasticSequence::StageRepeatMode mode);
+
+    static void drawGateLogicMode(Canvas &canvas, int x, int y, int w, int h, LogicSequence::GateLogicMode mode);
+
 
 
     static void drawSequenceProgress(Canvas &canvas, int x, int y, int w, int h, float progress);
