@@ -6,6 +6,7 @@
 #include "ui/painters/WindowPainter.h"
 
 #include "core/utils/StringBuilder.h"
+#include <array>
 #include <vector>
 
 enum class ContextAction {
@@ -129,17 +130,44 @@ if (key.is(Key::Encoder) && selectedRow() == 14) {
 }
 
 if (key.is(Key::Encoder) && selectedRow() == 15) {
-    if (_project.selectedTrack().trackMode() == Track::TrackMode::Note) {
-        int logicTrackIndex = _project.selectedTrack().noteTrack().logicTrack();
-        if (logicTrackIndex!=-1) {
+    
 
-            if (_project.selectedTrack().noteTrack().logicTrackInput() == 0) {
-                _project.track(logicTrackIndex).logicTrack().setInputTrack1(_project.selectedTrack().trackIndex());
-            } else if (_project.selectedTrack().noteTrack().logicTrackInput() == 1) {
-                _project.track(logicTrackIndex).logicTrack().setInputTrack2(_project.selectedTrack().trackIndex());
+        if (_project.selectedTrack().trackMode() == Track::TrackMode::Note) {
+            int logicTrackIndex = _project.selectedTrack().noteTrack().logicTrack();
+            if (logicTrackIndex!=-1) {
+
+                const auto logicTrack = _project.track(logicTrackIndex).logicTrack();
+
+                const auto tmpVal = _project.selectedTrack().noteTrack().logicTrackInput();
+
+                if (tmpVal == 0 && logicTrack.inputTrack1() != -1 && logicTrack.inputTrack1() != _project.selectedTrack().trackIndex()) {
+                    _project.selectedTrack().noteTrack().setLogicTrackInput(tmpVal+1);
+                } else if (tmpVal == 0 && logicTrack.inputTrack1() == -1 && logicTrack.inputTrack1() == _project.selectedTrack().trackIndex()) {
+                    _project.selectedTrack().noteTrack().setLogicTrackInput(tmpVal);
+                }
+                if (tmpVal == 1 && logicTrack.inputTrack2() != -1 && logicTrack.inputTrack2() != _project.selectedTrack().trackIndex()) {
+                    _project.selectedTrack().noteTrack().setLogicTrackInput(tmpVal-1);
+                } else if (tmpVal == 1 && logicTrack.inputTrack2() == -1 && logicTrack.inputTrack1() == _project.selectedTrack().trackIndex()) {
+                    _project.selectedTrack().noteTrack().setLogicTrackInput(tmpVal);
+                }
+
+
+
+                if (_project.selectedTrack().noteTrack().logicTrackInput() == 0) {
+                    _project.track(logicTrackIndex).logicTrack().setInputTrack1(_project.selectedTrack().trackIndex());
+                } else if (_project.selectedTrack().noteTrack().logicTrackInput() == 1) {
+                    _project.track(logicTrackIndex).logicTrack().setInputTrack2(_project.selectedTrack().trackIndex());
+                } else {
+                    if (_project.track(logicTrackIndex).logicTrack().inputTrack1() == _project.selectedTrack().trackIndex()) {
+                        _project.track(logicTrackIndex).logicTrack().setInputTrack1(-1);
+                    }
+                    if (_project.track(logicTrackIndex).logicTrack().inputTrack2() == _project.selectedTrack().trackIndex()) {
+                        _project.track(logicTrackIndex).logicTrack().setInputTrack2(-1);
+                    }
+                }
             }
         }
-    }
+
 }
 
     ListPage::keyPress(event);
