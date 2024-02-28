@@ -22,9 +22,8 @@ Types::LayerRange LogicSequence::layerRange(Layer layer) {
     CASE(Length)
     CASE(LengthVariationRange)
     CASE(LengthVariationProbability)
-    CASE(Note)
-    CASE(NoteVariationRange)
-    CASE(NoteVariationProbability)
+    CASE(GateLogic)
+    CASE(NoteLogic)
     CASE(Condition)
     CASE(StageRepeats)
     CASE(StageRepeatsMode)
@@ -62,12 +61,10 @@ int LogicSequence::layerDefaultValue(Layer layer)
         return step.lengthVariationRange();
     case Layer::LengthVariationProbability:
         return step.lengthVariationProbability();
-    case Layer::Note:
+    case Layer::GateLogic:
+        return step.gateLogic();
+    case Layer::NoteLogic:
         return step.note();
-    case Layer::NoteVariationRange:
-        return step.noteVariationRange();
-    case Layer::NoteVariationProbability:
-        return step.noteVariationProbability();
     case Layer::Condition:
         return int(step.condition());
     case Layer::StageRepeats:
@@ -103,12 +100,10 @@ int LogicSequence::Step::layerValue(Layer layer) const {
         return lengthVariationRange();
     case Layer::LengthVariationProbability:
         return lengthVariationProbability();
-    case Layer::Note:
+    case Layer::GateLogic:
+        return gateLogic();
+    case Layer::NoteLogic:
         return note();
-    case Layer::NoteVariationRange:
-        return noteVariationRange();
-    case Layer::NoteVariationProbability:
-        return noteVariationProbability();
     case Layer::Condition:
         return int(condition());
     case Layer::StageRepeats:
@@ -154,14 +149,11 @@ void LogicSequence::Step::setLayerValue(Layer layer, int value) {
     case Layer::LengthVariationProbability:
         setLengthVariationProbability(value);
         break;
-    case Layer::Note:
+    case Layer::GateLogic:
+        setGateLogic(value);
+        break;
+    case Layer::NoteLogic:
         setNote(value);
-        break;
-    case Layer::NoteVariationRange:
-        setNoteVariationRange(value);
-        break;
-    case Layer::NoteVariationProbability:
-        setNoteVariationProbability(value);
         break;
     case Layer::Condition:
         setCondition(Types::Condition(value));
@@ -183,6 +175,8 @@ void LogicSequence::Step::clear() {
     setGate(false);
     setGateProbability(GateProbability::Max);
     setGateOffset(0);
+    setGateLogic(GateLogicMode::One);
+
     setSlide(false);
     setBypassScale(false);
     setRetrigger(0);
@@ -192,7 +186,6 @@ void LogicSequence::Step::clear() {
     setLengthVariationProbability(LengthVariationProbability::Max);
     setNote(0);
     setNoteVariationRange(0);
-    setNoteVariationProbability(NoteVariationProbability::Max);
     setCondition(Types::Condition::Off);
     setStageRepeats(0);
     setStageRepeatsMode(StageRepeatMode::Each);
@@ -206,37 +199,8 @@ void LogicSequence::Step::write(VersionedSerializedWriter &writer) const {
 }
 
 void LogicSequence::Step::read(VersionedSerializedReader &reader) {
-
-    if (reader.dataVersion() < ProjectVersion::Version27) {
-        reader.read(_data0.raw);
-        reader.readAs<uint16_t>(_data1.raw);
-        if (reader.dataVersion() < ProjectVersion::Version5) {
-            _data1.raw &= 0x1f;
-        }
-        if (reader.dataVersion() < ProjectVersion::Version7) {
-            setGateOffset(0);
-        }
-        if (reader.dataVersion() < ProjectVersion::Version12) {
-            setCondition(Types::Condition(0));
-        }
-    } else {
-        reader.read(_data0.raw);
-        reader.read(_data1.raw);
-        if (reader.dataVersion() < ProjectVersion::Version36) {
-            bool bypassScale = (bool)((_data0.raw >> 31) & 0x1);
-
-            _data0.raw = (_data0.raw & 0x3 ) | (((_data0.raw ) & 0xFFFFFFFC) << 1);
-            _data1.raw = 0x7FFFFFFF & (_data1.raw << 1);
-            _data1.bypassScale = bypassScale;
-        }
-
-        if (reader.dataVersion() < ProjectVersion::Version34) {
-            setBypassScale(false);
-        }
-
-
-
-    }
+        reader.read(_data0.raw, ProjectVersion::Version37);
+        reader.read(_data1.raw, ProjectVersion::Version37);
 }
 
 void LogicSequence::writeRouted(Routing::Target target, int intValue, float floatValue) {

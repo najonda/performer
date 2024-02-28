@@ -33,8 +33,8 @@ public:
     typedef UnsignedValue<4> Length;
     typedef SignedValue<4> LengthVariationRange;
     typedef UnsignedValue<4> LengthVariationProbability;
-    typedef SignedValue<7> Note;
-    typedef SignedValue<7> NoteVariationRange;
+    typedef SignedValue<4> GateLogic;
+    typedef SignedValue<4> NoteLogic;
     typedef UnsignedValue<4> NoteVariationProbability;
     typedef UnsignedValue<7> Condition;
     typedef UnsignedValue<3> StageRepeats;
@@ -53,9 +53,8 @@ public:
         Length,
         LengthVariationRange,
         LengthVariationProbability,
-        Note,
-        NoteVariationRange,
-        NoteVariationProbability,
+        GateLogic,
+        NoteLogic,
         Slide,
         BypassScale,
         Condition,
@@ -64,23 +63,27 @@ public:
 
     static const char *layerName(Layer layer) {
         switch (layer) {
-        case Layer::Gate:                       return "GATE";
-        case Layer::GateProbability:            return "GATE PROB";
-        case Layer::GateOffset:                 return "GATE OFFSET";
-        case Layer::Slide:                      return "SLIDE";
-        case Layer::BypassScale:                 return "BYPASS SCALE";
-        case Layer::Retrigger:                  return "RETRIG";
-        case Layer::RetriggerProbability:       return "RETRIG PROB";
-        case Layer::Length:                     return "LENGTH";
-        case Layer::LengthVariationRange:       return "LENGTH RANGE";
-        case Layer::LengthVariationProbability: return "LENGTH PROB";
-        case Layer::Note:                       return "NOTE";
-        case Layer::NoteVariationRange:         return "NOTE RANGE";
-        case Layer::NoteVariationProbability:   return "NOTE PROB";
-        case Layer::Condition:                  return "CONDITION";
-        case Layer::StageRepeats:               return "REPEAT";
-        case Layer::StageRepeatsMode:           return "REPEAT MODE";
-        case Layer::Last:                       break;
+            case Layer::Gate:                       return "GATE";
+            case Layer::GateLogic:                  return "GATE LOGIC";
+            case Layer::GateProbability:            return "GATE PROB";
+            case Layer::GateOffset:                 return "GATE OFFSET";
+
+            case Layer::Retrigger:                  return "RETRIG";
+            case Layer::RetriggerProbability:       return "RETRIG PROB";
+
+            case Layer::Length:                     return "LENGTH";
+            case Layer::LengthVariationRange:       return "LENGTH RANGE";
+            case Layer::LengthVariationProbability: return "LENGTH PROB";
+            
+            case Layer::NoteLogic:                  return "NOTE LOGIC";
+            case Layer::BypassScale:                return "BYPASS SCALE";
+            case Layer::Slide:                      return "SLIDE";
+
+            case Layer::Condition:                  return "CONDITION";
+
+            case Layer::StageRepeats:               return "REPEAT";
+            case Layer::StageRepeatsMode:           return "REPEAT MODE";
+            case Layer::Last:                       break;
         }
         return nullptr;
     }
@@ -98,6 +101,17 @@ public:
         Triplets,
         Random,
 
+    };
+
+    enum GateLogicMode {
+        One,
+        Two,
+        And,
+        Or,
+        Xor,
+        Nand,
+        Nor,
+        Xnor
     };
 
     static constexpr size_t NameLength = FileHeader::NameLength;
@@ -143,6 +157,16 @@ public:
         int gateOffset() const { return GateOffset::Min + (int) _data1.gateOffset; }
         void setGateOffset(int gateOffset) {
             _data1.gateOffset = GateOffset::clamp(gateOffset) - GateOffset::Min;
+        }
+
+        // gateLogic
+
+        const GateLogicMode gateLogic() const { 
+            int value = _data0.gateLogic;
+            return static_cast<GateLogicMode>(value); 
+        }
+        void setGateLogic(int gateLogic) {
+            _data0.gateLogic = GateLogic::clamp(gateLogic);
         }
 
         // slide
@@ -192,23 +216,15 @@ public:
 
         // note
 
-        int note() const { return Note::Min + _data0.note; }
+        int note() const { return 0; }
         void setNote(int note) {
-            _data0.note = Note::clamp(note) - Note::Min;
+            //
         }
 
         // noteVariationRange
 
-        int noteVariationRange() const { return NoteVariationRange::Min + _data0.noteVariationRange; }
+        int noteVariationRange() const { return 0; }
         void setNoteVariationRange(int noteVariationRange) {
-            _data0.noteVariationRange = NoteVariationRange::clamp(noteVariationRange) - NoteVariationRange::Min;
-        }
-
-        // noteVariationProbability
-
-        int noteVariationProbability() const { return _data0.noteVariationProbability; }
-        void setNoteVariationProbability(int noteVariationProbability) {
-            _data0.noteVariationProbability = NoteVariationProbability::clamp(noteVariationProbability);
         }
 
         // condition
@@ -268,9 +284,8 @@ public:
             BitField<uint32_t, 2, Length::Bits> length;
             BitField<uint32_t, 6, LengthVariationRange::Bits> lengthVariationRange;
             BitField<uint32_t, 10, LengthVariationProbability::Bits> lengthVariationProbability;
-            BitField<uint32_t, 14, Note::Bits> note;
-            BitField<uint32_t, 21, NoteVariationRange::Bits> noteVariationRange;
-            BitField<uint32_t, 28, NoteVariationProbability::Bits> noteVariationProbability;
+            BitField<uint32_t, 14, GateLogic::Bits> gateLogic;
+            BitField<uint32_t, 18, NoteVariationProbability::Bits> noteVariationRange;
         } _data0;
         union {
             uint32_t raw;

@@ -76,7 +76,7 @@ static int evalTransposition(const Scale &scale, int octave, int transpose) {
 static float evalStepNote(const LogicSequence::Step &step, int probabilityBias, const Scale &scale, int rootNote, int octave, int transpose, bool useVariation = true) {
 
 
-    if (step.bypassScale()) {
+    /*if (step.bypassScale()) {
         const Scale &bypassScale = Scale::get(0);
         int note = step.note() + evalTransposition(bypassScale, octave, transpose);
         int probability = clamp(step.noteVariationProbability() + probabilityBias, -1, LogicSequence::NoteVariationProbability::Max);
@@ -98,7 +98,8 @@ static float evalStepNote(const LogicSequence::Step &step, int probabilityBias, 
         }
         note = LogicSequence::Note::clamp(note + offset);
     }
-    return scale.noteToVolts(note) + (scale.isChromatic() ? rootNote : 0) * (1.f / 12.f);
+    return scale.noteToVolts(note) + (scale.isChromatic() ? rootNote : 0) * (1.f / 12.f);*/
+    return 0.f;
 }
 
 void LogicTrackEngine::reset() {
@@ -249,7 +250,6 @@ TrackEngine::TickResult LogicTrackEngine::tick(uint32_t tick) {
 
 void LogicTrackEngine::update(float dt) {
     bool running = _engine.state().running();
-    bool recording = _engine.state().recording();
 
     const auto &sequence = *_sequence;
     const auto &scale = sequence.selectedScale(_model.project().scale());
@@ -309,7 +309,7 @@ void LogicTrackEngine::update(float dt) {
         const auto &step = sequence.step(_monitorStepIndex);
         setOverride(evalStepNote(step, 0, scale, rootNote, octave, transpose, false));
     } else if (liveMonitoring && _recordHistory.isNoteActive()) {
-        int note = noteFromMidiNote(_recordHistory.activeNote()) + evalTransposition(scale, octave, transpose);
+        int note = evalTransposition(scale, octave, transpose);
         setOverride(scale.noteToVolts(note) + (scale.isChromatic() ? rootNote : 0) * (1.f / 12.f));
     } else {
         clearOverride();
@@ -352,7 +352,6 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     int octave = _logicTrack.octave();
     int transpose = _logicTrack.transpose();
     int rotate = _logicTrack.rotate();
-    bool fillStep = fill() && (rng.nextRange(100) < uint32_t(fillAmount()));
 
     const auto &sequence = *_sequence;
     const auto &evalSequence = *_sequence;
@@ -370,16 +369,44 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
     if (stepIndex < 0) return;
 
-
-   
-
-
     const auto &step = evalSequence.step(stepIndex);
 
     int gateOffset = ((int) divisor * step.gateOffset()) / (LogicSequence::GateOffset::Max + 1);
     uint32_t stepTick = (int) tick + gateOffset;
 
-    /*bool stepGate = evalStepGate(step, _logicTrack.gateProbabilityBias()) || useFillGates;
+    bool stepGate1 = step.inputGate1();
+    bool stepGate2 = step.inputGate2();
+
+    bool stepGate = evalStepGate(step, _logicTrack.gateProbabilityBias()) || useFillGates;
+
+    switch (step.gateLogic()) {
+        case LogicSequence::GateLogicMode::One:
+            stepGate = step.gate() && step.inputGate1();
+            break;
+        case LogicSequence::GateLogicMode::Two:
+            stepGate = step.gate() && step.inputGate2();
+            break;
+        case LogicSequence::GateLogicMode::And:
+            stepGate = step.gate() && (step.inputGate1() & step.inputGate2());
+            break;
+        case LogicSequence::GateLogicMode::Or:
+            stepGate = step.gate() && (step.inputGate1() | step.inputGate2());
+            break;
+        case LogicSequence::GateLogicMode::Nor:
+            stepGate = step.gate() && !(step.inputGate1() | step.inputGate2());
+            break;
+        case LogicSequence::GateLogicMode::Nand:
+            stepGate = step.gate() && !(step.inputGate1() & step.inputGate2());
+            break;
+        case LogicSequence::GateLogicMode::Xor:
+            stepGate = step.gate() && step.inputGate1() xor step.inputGate2();
+            break;
+        case LogicSequence::GateLogicMode::Xnor:
+            break;
+        default:
+            break;
+    }
+
     if (stepGate) {
         stepGate = evalStepCondition(step, _sequenceState.iteration(), useFillCondition, _prevCondition);
     }
@@ -431,12 +458,7 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
                 }
                 break;
-    }*/
-
-    bool stepGate1 = step.inputGate1();
-    bool stepGate2 = step.inputGate2();
-
-    bool stepGate = stepGate1 & stepGate2;
+    }
 
     if (stepGate) {
         uint32_t stepLength = (divisor * evalStepLength(step, _logicTrack.lengthBias())) / LogicSequence::Length::Range;
@@ -467,81 +489,5 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor) {
 }
 
 void LogicTrackEngine::recordStep(uint32_t tick, uint32_t divisor) {
-    if (!_engine.state().recording() || _model.project().recordMode() == Types::RecordMode::StepRecord || _sequenceState.prevStep() < 0) {
-        return;
-    }
-
-    bool stepWritten = false;
-
-    auto writeStep = [this, divisor, &stepWritten] (int stepIndex, int note, int lengthTicks) {
-        auto &step = _sequence->step(stepIndex);
-        int length = (lengthTicks * LogicSequence::Length::Range) / divisor;
-
-        step.setGate(true);
-        step.setGateProbability(LogicSequence::GateProbability::Max);
-        step.setRetrigger(0);
-        step.setRetriggerProbability(LogicSequence::RetriggerProbability::Max);
-        step.setLength(length);
-        step.setLengthVariationRange(0);
-        step.setLengthVariationProbability(LogicSequence::LengthVariationProbability::Max);
-        step.setNote(noteFromMidiNote(note));
-        step.setNoteVariationRange(0);
-        step.setNoteVariationProbability(LogicSequence::NoteVariationProbability::Max);
-        step.setCondition(Types::Condition::Off);
-
-
-        stepWritten = true;
-    };
-
-    auto clearStep = [this] (int stepIndex) {
-        auto &step = _sequence->step(stepIndex);
-
-        step.clear();
-    };
-
-    uint32_t stepStart = tick - divisor;
-    uint32_t stepEnd = tick;
-    uint32_t margin = divisor / 2;
-
-    for (size_t i = 0; i < _recordHistory.size(); ++i) {
-        if (_recordHistory[i].type != RecordHistory::Type::NoteOn) {
-            continue;
-        }
-
-        int note = _recordHistory[i].note;
-        uint32_t noteStart = _recordHistory[i].tick;
-        uint32_t noteEnd = i + 1 < _recordHistory.size() ? _recordHistory[i + 1].tick : tick;
-
-        if (noteStart >= stepStart - margin && noteStart < stepStart + margin) {
-            // note on during step start phase
-            if (noteEnd >= stepEnd) {
-                // note hold during step
-                int length = std::min(noteEnd, stepEnd) - stepStart;
-                writeStep(_sequenceState.prevStep(), note, length);
-            } else {
-                // note released during step
-                int length = noteEnd - noteStart;
-                writeStep(_sequenceState.prevStep(), note, length);
-            }
-        } else if (noteStart < stepStart && noteEnd > stepStart) {
-            // note on during previous step
-            int length = std::min(noteEnd, stepEnd) - stepStart;
-            writeStep(_sequenceState.prevStep(), note, length);
-        }
-    }
-
-    if (isSelected() && !stepWritten && _model.project().recordMode() == Types::RecordMode::Overwrite) {
-        clearStep(_sequenceState.prevStep());
-    }
-}
-
-int LogicTrackEngine::noteFromMidiNote(uint8_t midiNote) const {
-    const auto &scale = _sequence->selectedScale(_model.project().scale());
-    int rootNote = _sequence->selectedRootNote(_model.project().rootNote());
-
-    if (scale.isChromatic()) {
-        return scale.noteFromVolts((midiNote - 60 - rootNote) * (1.f / 12.f));
-    } else {
-        return scale.noteFromVolts((midiNote - 60) * (1.f / 12.f));
-    }
+    
 }
