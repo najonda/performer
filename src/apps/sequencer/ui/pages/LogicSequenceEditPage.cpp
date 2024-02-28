@@ -175,18 +175,10 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
             );
             break;
         case Layer::Retrigger:
-            SequencePainter::drawRetrigger(
-                canvas,
-                x, y + 18, stepWidth, 2,
-                step.retrigger() + 1, LogicSequence::Retrigger::Range
-            );
+            
             break;
         case Layer::RetriggerProbability:
-            SequencePainter::drawProbability(
-                canvas,
-                x + 2, y + 18, stepWidth - 4, 2,
-                step.retriggerProbability() + 1, LogicSequence::RetriggerProbability::Range
-            );
+            
             break;
         case Layer::Length:
             SequencePainter::drawLength(
@@ -833,26 +825,10 @@ void LogicSequenceEditPage::drawDetail(Canvas &canvas, const LogicSequence::Step
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
     case Layer::Retrigger:
-        SequencePainter::drawRetrigger(
-            canvas,
-            64+ 32 + 8, 32 - 4, 64 - 16, 8,
-            step.retrigger() + 1, LogicSequence::Retrigger::Range
-        );
-        str.reset();
-        str("%d", step.retrigger() + 1);
-        canvas.setColor(Color::Bright);
-        canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
+
         break;
     case Layer::RetriggerProbability:
-        SequencePainter::drawProbability(
-            canvas,
-            64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.retriggerProbability(), LogicSequence::RetriggerProbability::Range-1
-        );
-        str.reset();
-        str("%.1f%%", 100.f * (step.retriggerProbability()) / (LogicSequence::RetriggerProbability::Range-1));
-        canvas.setColor(Color::Bright);
-        canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
+
         break;
     case Layer::Length:
         SequencePainter::drawLength(
