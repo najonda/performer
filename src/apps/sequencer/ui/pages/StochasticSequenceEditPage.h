@@ -74,5 +74,4 @@ private:
 
     StepSelection<CONFIG_STEP_COUNT> _stepSelection;
 
-    Container<StochasticSequenceBuilder> _builderContainer;
 };

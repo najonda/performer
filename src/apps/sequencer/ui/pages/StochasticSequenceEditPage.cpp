@@ -616,7 +616,7 @@ void StochasticSequenceEditPage::midi(MidiEvent &event) {
 
 void StochasticSequenceEditPage::switchLayer(int functionKey, bool shift) {
 
-    auto engine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
+    auto engine = _engine.selectedTrackEngine().as<StochasticEngine>();
     if (shift) {
         switch (Function(functionKey)) {
         case Function::Gate:
