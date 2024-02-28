@@ -81,7 +81,7 @@ class StochasticLoopStep {
 
 class StochasticEngine : public TrackEngine {
 public:
-    StochasticEngine(Engine &engine, const Model &model, Track &track, const TrackEngine *linkedTrackEngine) :
+    StochasticEngine(Engine &engine, Model &model, Track &track, const TrackEngine *linkedTrackEngine) :
         TrackEngine(engine, model, track, linkedTrackEngine),
         _stochasticTrack(track.stochasticTrack())
     {

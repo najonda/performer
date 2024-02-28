@@ -434,10 +434,10 @@ void NoteTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextS
 
     int logicTrackIndex = _noteTrack.logicTrack();
     if (logicTrackIndex!=-1) {
-        auto &logicTrack = _project.track(_noteTrack.logicTrack()).logicTrack();
-        LogicSequence &logicSequence = logicTrack.sequence(pattern());
+        auto &logicTrack = _model.project().track(_noteTrack.logicTrack()).logicTrack();
+        auto &logicSequence = logicTrack.sequence(pattern());
 
-        LogicSequence::Step &logicStep = logicSequence.step(stepIndex);
+        auto &logicStep = logicSequence.step(stepIndex);
         
 
         if (_noteTrack.logicTrackInput() == 0) {

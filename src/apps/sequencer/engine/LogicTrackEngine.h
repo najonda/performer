@@ -10,7 +10,7 @@
 
 class LogicTrackEngine : public TrackEngine {
 public:
-    LogicTrackEngine(Engine &engine, const Model &model, Track &track, const TrackEngine *linkedTrackEngine) :
+    LogicTrackEngine(Engine &engine, Model &model, Track &track, const TrackEngine *linkedTrackEngine) :
         TrackEngine(engine, model, track, linkedTrackEngine),
         _logicTrack(track.logicTrack())
     {
