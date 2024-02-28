@@ -966,7 +966,7 @@ void StochasticSequenceEditPage::contextAction(int index) {
 bool StochasticSequenceEditPage::contextActionEnabled(int index) const {
     switch (ContextAction(index)) {
     case ContextAction::Paste:
-        return _model.clipBoard().canPasteNoteSequenceSteps();
+        return _model.clipBoard().canPasteStochasticSequenceSteps();
     default:
         return true;
     }
@@ -978,12 +978,12 @@ void StochasticSequenceEditPage::initSequence() {
 }
 
 void StochasticSequenceEditPage::copySequence() {
-    _model.clipBoard().copyNoteSequenceSteps(_project.selectedNoteSequence(), _stepSelection.selected());
+    _model.clipBoard().copyStochasticSequenceSteps(_project.selectedStochasticSequence(), _stepSelection.selected());
     showMessage("STEPS COPIED");
 }
 
 void StochasticSequenceEditPage::pasteSequence() {
-    _model.clipBoard().pasteNoteSequenceSteps(_project.selectedNoteSequence(), _stepSelection.selected());
+    _model.clipBoard().pasteStochasticSequenceSteps(_project.selectedStochasticSequence(), _stepSelection.selected());
     showMessage("STEPS PASTED");
 }
 
