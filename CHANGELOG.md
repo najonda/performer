@@ -18,7 +18,7 @@
 - Multi Curve CV Recording (cv curve input has been moved in track page)
 - quick change octave shortuct (step+F[1-5]) 1-5V
 - quick gate accent launchpad control on gate page and circuit page (`7`+`GRID`)
-- add steps to stop feature in project page. Omce started when the engine reaches the steps to stop value the clock will stop.
+- add steps to stop feature in project page. Once started when the engine reaches the steps to stop value the clock will stop.
 - improved overview page. quick edit tracks
 -
 
