@@ -1779,7 +1779,7 @@ void LaunchpadController::drawStochasticSequenceDots(const StochasticSequence &s
     for (int col = 0; col < 8; ++col) {
         int stepIndex = col + _sequence.navigation.col * 8;
         const auto &step = sequence.step(stepIndex);
-        if (stepIndex>12) {
+        if (stepIndex>11) {
             break;
         }
         int value = step.layerValue(layer);
@@ -2022,7 +2022,7 @@ void LaunchpadController::drawStochasticSequenceBars(const StochasticSequence &s
         int lastStep = sequence.lastStep();
         followModeAction(currentStep, lastStep);
         const auto &step = sequence.step(stepIndex);
-        if (stepIndex>12) {
+        if (stepIndex>11) {
             break;
         }
         drawBar(col, step.layerValue(layer), true, stepIndex == currentStep);
