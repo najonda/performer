@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <climits>
 #include <cstddef>
+#include <cstdlib>
 #include <iostream>
 #include <ctime>
 #include <iterator>
@@ -168,7 +169,7 @@ void StochasticEngine::reset() {
     _gateQueue.clear();
     _cvQueue.clear();
     _recordHistory.clear();
-    
+    rng = Random(time(NULL)); 
     changePattern();
 }
 
@@ -176,7 +177,7 @@ void StochasticEngine::restart() {
     _freeRelativeTick = 0;
     _sequenceState.reset();
     _currentStep = -1;
-    
+    rng = Random(time(NULL));    
 }
 
 TrackEngine::TickResult StochasticEngine::tick(uint32_t tick) {
@@ -502,7 +503,7 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
         int rnd = 0;
         if (sequence.lengthModifier()!= 0) {
-            int m = -StochasticSequence::NoteVariationProbability::Range + ( std::rand() % ( StochasticSequence::NoteVariationProbability::Range - -StochasticSequence::NoteVariationProbability::Range + 1 ) );
+            int m = rng.nextRange(StochasticSequence::NoteVariationProbability::Range-1);
             int mean = sequence.lengthModifier();
             std::mt19937 e2(m);
             std::normal_distribution<float> normal_dist(mean, 2);
@@ -594,7 +595,6 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
                 stepGate = stepGate && (_currentStageRepeat - 1) % 3 == 0;
                 break;
             case StochasticSequence::StageRepeatMode::Random:
-                    srand((unsigned int)time(NULL));
                     int rndMode = rng.nextRange(6);
                     switch (rndMode) {
                         case 0:
