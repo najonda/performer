@@ -351,10 +351,13 @@ void StochasticSequenceEditPage::updateLeds(Leds &leds) {
             leds.set(index, false, quickEditItems[i] != StochasticSequenceListModel::Item::Last);
             leds.mask(index);
         }
-        int index = MatrixMap::fromStep(15);
-        leds.unmask(index);
-        leds.set(index, false, true);
-        leds.mask(index);
+
+        for (int i : {4, 5, 6, 15}) {
+            int index = MatrixMap::fromStep(i);
+            leds.unmask(index);
+            leds.set(index, false, true);
+            leds.mask(index);
+        }
     }
 }
 
