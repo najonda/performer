@@ -241,7 +241,25 @@ In MIDI/CV mode, a track acts as a MIDI to CV converter, taking MIDI note data f
 
 <h3 id="concepts-stochastic-track">Stochastic Track</h3>
 
-In Stochastic Mode, a track acts a stochastic CV generator based on notes probabilities. The sequence is fixed at 12 steps (representing the 12 chromatic semitones).
+In Stochastic Mode, a track acts as a stochastic CV generator based on note probabilities.
+Unlike other sequencer (SEQ) views which show blocks as sequence steps,
+the stochastic sequencer view shows 12 blocks with each block representing the 12 semitones in a western chromatic scale.
+
+The Gate layer can be used to enable a note in the scale shown in the Note layer.
+This layer is also used to configure the probability that a gate is output when the corresponding note is played.
+Each gate can be configured with an offset which causes the gate to be output before or after the corresponding sequence step.
+
+The Retrigger layer is used to create ratcheting effects which outputs a burst of gates when a note is played.
+Up to 8 rachets can be sent per step; the probability of the retrigger happening is configured in the probability section.
+All ratchets are sent within the length of the specific step and do not overlap into the next step in a sequence.
+If the track is configured in free_mode (Track->Play Mode: Free) this activates a Metropolix mode in the Retrigger layer.
+
+The Length layer is used to define the length of gates.
+Length probability and length range can also be used introduce gate length variations in the generated sequence.
+
+The Note layer is used to configure the probability of an enabled note being played in the generated sequence.
+In addition to note probability, the Note layer is used to configure the probability of an octave shift and the octave range.
+Slide (portamento) is also configured for each note in the Note layer - this causes the CV voltage to glide up or down to the next note.
 
 It offers basically all the Note track layer features:
 
