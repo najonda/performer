@@ -114,6 +114,19 @@ void GeneratorPage::updateLeds(Leds &leds) {
                 }
             }
             break;
+        case Track::TrackMode::Stochastic: {
+                const auto &trackEngine = _engine.selectedTrackEngine().as<StochasticEngine>();
+                const auto &sequence = _project.selectedStochasticSequence();
+                currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
+                for (int i = 0; i < 12; ++i) {
+                    int stepIndex = stepOffset() + i;
+                    bool red = (stepIndex == currentStep) || _stepSelection->at(stepIndex);
+                    bool green = (stepIndex != currentStep) && (sequence.step(stepIndex).gate() || _stepSelection->at(stepIndex));
+                    leds.set(MatrixMap::fromStep(i), red, green);
+                }
+            }
+            break;    
+
         default:
             return;
     }
@@ -220,6 +233,9 @@ void GeneratorPage::drawEuclideanGenerator(Canvas &canvas, const EuclideanGenera
 void GeneratorPage::drawRandomGenerator(Canvas &canvas, const RandomGenerator &generator) const {
     const auto &pattern = generator.pattern();
     int steps = pattern.size();
+    if (_project.selectedTrack().trackMode() == Track::TrackMode::Stochastic) {
+        steps = 12;
+    } 
 
     int stepWidth = Width / steps;
     int stepHeight = 16;

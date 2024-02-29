@@ -109,7 +109,7 @@ void StochasticSequencePage::contextAction(int index) {
 bool StochasticSequencePage::contextActionEnabled(int index) const {
     switch (ContextAction(index)) {
     case ContextAction::Paste:
-        return _model.clipBoard().canPasteNoteSequence();
+        return _model.clipBoard().canPasteStochasticSequence();
     case ContextAction::Route:
         return _listModel.routingTarget(selectedRow()) != Routing::Target::None;
     default:
@@ -123,12 +123,12 @@ void StochasticSequencePage::initSequence() {
 }
 
 void StochasticSequencePage::copySequence() {
-    _model.clipBoard().copyNoteSequence(_project.selectedNoteSequence());
+    _model.clipBoard().copyStochasticSequence(_project.selectedStochasticSequence());
     showMessage("SEQUENCE COPIED");
 }
 
 void StochasticSequencePage::pasteSequence() {
-    _model.clipBoard().pasteNoteSequence(_project.selectedNoteSequence());
+    _model.clipBoard().pasteStochasticSequence(_project.selectedStochasticSequence());
     showMessage("SEQUENCE PASTED");
 }
 

@@ -20,6 +20,7 @@ enum class ContextAction {
     Copy,
     Paste,
     Duplicate, 
+    Generate,
     Last
 };
 
@@ -28,6 +29,7 @@ static const ContextMenuModel::Item contextMenuItems[] = {
     { "COPY" },
     { "PASTE" },
     { "DUPL" },
+    { "GEN" },
 };
 
 enum class Function {
@@ -958,6 +960,9 @@ void StochasticSequenceEditPage::contextAction(int index) {
     case ContextAction::Duplicate:
         duplicateSequence();
         break;
+    case ContextAction::Generate:
+        generateSequence();
+        break;
     case ContextAction::Last:
         break;
     }
@@ -990,6 +995,23 @@ void StochasticSequenceEditPage::pasteSequence() {
 void StochasticSequenceEditPage::duplicateSequence() {
     _project.selectedStochasticSequence().duplicateSteps();
     showMessage("STEPS DUPLICATED");
+}
+
+void StochasticSequenceEditPage::generateSequence() {
+    _manager.pages().generatorSelect.show([this] (bool success, Generator::Mode mode) {
+        if (success) {
+            auto builder = _builderContainer.create<StochasticSequenceBuilder>(_project.selectedStochasticSequence(), layer());
+
+            if (_stepSelection.none()) {
+                _stepSelection.selectAll();
+            }
+
+            auto generator = Generator::execute(mode, *builder, _stepSelection.selected());
+            if (generator) {
+                _manager.pages().generator.show(generator, &_stepSelection);
+            }
+        }
+    });
 }
 
 
