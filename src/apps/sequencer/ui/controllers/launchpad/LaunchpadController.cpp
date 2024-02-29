@@ -715,7 +715,7 @@ void LaunchpadController::sequenceUpdateNavigation() {
     case Track::TrackMode::Stochastic: {
         auto layer = _project.selectedStochasticSequenceLayer();
         _sequence.navigation.left = 0;
-        _sequence.navigation.right = layer == StochasticSequence::Layer::Gate || layer == StochasticSequence::Layer::Slide || layer == StochasticSequence::Layer::NoteVariationProbability ? 0 : 7;
+        _sequence.navigation.right = layer == StochasticSequence::Layer::Gate || layer == StochasticSequence::Layer::Slide || layer == StochasticSequence::Layer::NoteVariationProbability ? 0 : 1;
 
         auto range = StochasticSequence::layerRange(_project.selectedStochasticSequenceLayer());
         _sequence.navigation.top = layer == StochasticSequence::Layer::NoteVariationProbability ? 0 : range.max / 8;
@@ -946,6 +946,9 @@ void LaunchpadController::sequenceEditStochasticStep(int row, int col) {
     auto layer = _project.selectedStochasticSequenceLayer();
 
     int gridIndex = row * 8 + col;
+    if (gridIndex>11) {
+        return;
+    }
     int linearIndex = col + _sequence.navigation.col * 8;
     int value = (7 - row) + _sequence.navigation.row * 8;
 
@@ -1580,9 +1583,6 @@ void LaunchpadController::performerButton(const Button &button, ButtonAction act
                     }
 
                 }
-                if (_performButton.lastStepButton.row == -1) {
-                    
-                }
             }
         }
     }
@@ -1775,6 +1775,9 @@ void LaunchpadController::drawStochasticSequenceDots(const StochasticSequence &s
     for (int col = 0; col < 8; ++col) {
         int stepIndex = col + _sequence.navigation.col * 8;
         const auto &step = sequence.step(stepIndex);
+        if (stepIndex>12) {
+            break;
+        }
         int value = step.layerValue(layer);
         setGridLed((7 - value) + ofs, col, stepColor(true, stepIndex == currentStep));
     }
@@ -1985,10 +1988,13 @@ void LaunchpadController::drawCurveSequenceDots(const CurveSequence &sequence, C
 }
 
 void LaunchpadController::drawStochasticSequenceBits(const StochasticSequence &sequence, StochasticSequence::Layer layer, int currentStep) {
-    for (int row = 0; row < 8; ++row) {
+    for (int row = 0; row < 2; ++row) {
         for (int col = 0; col < 8; ++col) {
             int stepIndex = row * 8 + col;
             const auto &step = sequence.step(stepIndex);
+            if (stepIndex>11) {
+                break;
+            }
 
             Color color = colorOff();
             if (step.gate()) {
@@ -2012,6 +2018,9 @@ void LaunchpadController::drawStochasticSequenceBars(const StochasticSequence &s
         int lastStep = sequence.lastStep();
         followModeAction(currentStep, lastStep);
         const auto &step = sequence.step(stepIndex);
+        if (stepIndex>12) {
+            break;
+        }
         drawBar(col, step.layerValue(layer), true, stepIndex == currentStep);
     }
 }
