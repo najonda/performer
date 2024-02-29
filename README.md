@@ -6,7 +6,7 @@ This is a fork of the [original repository](https://github.com/westlicht/perform
 
 [Full updated documentation](https://mebitek.github.io/performer/manual/)
 
-To find out more about improvements changes, check [changelog](https://github.com/mebitek/performer/blob/master/CHANGELOG.md) and the [WIKI page ](https://github.com/mebitek/performer/wiki)
+To find out more about improvements changes, check [changelog](https://github.com/mebitek/performer/blob/master/CHANGELOG.md)
 
 --- original documentation below ---
 
