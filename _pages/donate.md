@@ -16,12 +16,10 @@ mebitek donation:
 <input type="image" src="https://www.paypalobjects.com/en_US/IT/i/btn/btn_donateCC_LG.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" />
 <img alt="" border="0" src="https://www.paypal.com/en_IT/i/scr/pixel.gif" width="1" height="1" />
 </form>
-
+<br>
 <script src="https://liberapay.com/mebitek/widgets/button.js"></script>
 <noscript><a href="https://liberapay.com/mebitek/donate"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg"></a></noscript>
-
-<br><br>
-
+<br>
 Simon donation:
 <!-- https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=NV3WTUPDCGWEN&source=url -->
 
