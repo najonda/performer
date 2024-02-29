@@ -170,10 +170,6 @@ void StochasticEngine::reset() {
     _recordHistory.clear();
     
     changePattern();
-
-    //_inMemSteps[_track.trackIndex()].clear();
-    //auto &sequence = *_sequence;
-    //_skips[_track.trackIndex()] = evalRestProbability(sequence);
 }
 
 void StochasticEngine::restart() {
@@ -407,13 +403,8 @@ bool canLoop = false;
 void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextStep) {
     int octave = _stochasticTrack.octave();
     int transpose = _stochasticTrack.transpose();
-    //bool fillStep = fill() && (rng.nextRange(100) < uint32_t(fillAmount()));
-    //bool useFillGates = fillStep && _stochasticTrack.fillMode() == StochasticTrack::FillMode::Gates;
-    //bool useFillSequence = fillStep && _stochasticTrack.fillMode() == StochasticTrack::FillMode::NextPattern;
-    //bool useFillCondition = fillStep && _stochasticTrack.fillMode() == StochasticTrack::FillMode::Condition;
 
     auto &sequence = *_sequence;
-    //auto &evalSequence = useFillSequence ? *_fillSequence : *_sequence;
     
     int stepIndex;
 

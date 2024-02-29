@@ -1,23 +1,25 @@
 # Changelog
 
-# v0.2.0 ()
+# v0.2.0 (29 Febrary 2024)
 - Stochastic Track
     - global octave modifier
     - launchpad control general octave
     - loop and lock loop
     - reseed
     - rest probability 2,4,8 steps
-    - global gate length modifier  
+    - global gate length modifier
+    - clipboard actions
+    - generators  
 - Load/Save Sequence to use a sequence library (fast switch on loading)
-- Launchpad Performance Mode (8+3 -> press two grid buttons to set first step and last step until release them). access overview page with `2`+`GRDI2`
+- Launchpad Performance Mode `8`+`3` (`2`+`GRID2` -> quick set lenght sequence; `2`+`GRID1` -> overview page )
 - Submenu shortcuts (double click F[1-5] to enter project, layout, routing, midi out, user scale)
 - Page buttons on launchpad circuit note edit
 - Extend gate Lenght to 4bits [@glibersat](https://github.com/glibersat)
-- Multi Curve CV Recording (cv curve inoput has been moved in track page)
+- Multi Curve CV Recording (cv curve input has been moved in track page)
 - quick change octave shortuct (step+F[1-5]) 1-5V
-- quick gate accent launchpad control on gate page and circuit page (7+grid)
-- add steps to stop feature in project page. when the engine reaches the steps to stop value the clock will stop.
-- improved overview page. toggle gates to selected track
+- quick gate accent launchpad control on gate page and circuit page (`7`+`GRID`)
+- add steps to stop feature in project page. Omce started when the engine reaches the steps to stop value the clock will stop.
+- improved overview page. quick edit tracks
 -
 
 > **testers** :
