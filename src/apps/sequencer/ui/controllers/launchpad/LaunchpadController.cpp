@@ -946,17 +946,21 @@ void LaunchpadController::sequenceEditStochasticStep(int row, int col) {
     auto layer = _project.selectedStochasticSequenceLayer();
 
     int gridIndex = row * 8 + col;
-    if (gridIndex>11) {
-        return;
-    }
+
     int linearIndex = col + _sequence.navigation.col * 8;
     int value = (7 - row) + _sequence.navigation.row * 8;
 
     switch (layer) {
     case StochasticSequence::Layer::Gate:
+        if (gridIndex>11) {
+            return;
+        }
         sequence.step(gridIndex).toggleGate();
         break;
     case StochasticSequence::Layer::Slide:
+        if (gridIndex>11) {
+            return;
+        }
         sequence.step(gridIndex).toggleSlide();
         break;
     default:
@@ -1775,7 +1779,7 @@ void LaunchpadController::drawStochasticSequenceDots(const StochasticSequence &s
     for (int col = 0; col < 8; ++col) {
         int stepIndex = col + _sequence.navigation.col * 8;
         const auto &step = sequence.step(stepIndex);
-        if (stepIndex>12) {
+        if (stepIndex>11) {
             break;
         }
         int value = step.layerValue(layer);
@@ -2018,7 +2022,7 @@ void LaunchpadController::drawStochasticSequenceBars(const StochasticSequence &s
         int lastStep = sequence.lastStep();
         followModeAction(currentStep, lastStep);
         const auto &step = sequence.step(stepIndex);
-        if (stepIndex>12) {
+        if (stepIndex>11) {
             break;
         }
         drawBar(col, step.layerValue(layer), true, stepIndex == currentStep);
