@@ -1973,7 +1973,7 @@ Performance mode allow user to perform some quick live edits.
 There are two modes available accessible by holding `2` + `GRID[1|2]`:
 
 * `GRID 1` - Sequence Length: Holding a step and then pressing another one will set first step and last step of the sequence resulting in looping the current slice of the sequence until you will release the grid buttons. 
-* `GRID 2` - Overview Page: each row represents the _track_ from 1-8 and allows to enter gates quickly. `6`+`ROW3+COL1` enables follow mode. for the overview page. All others functions are still available for the selected track.
+* `GRID 2` - Overview Page: each row represents the _track_ from 1-8 and allows to enter gates quickly. `6`+`ROW3+COL1` enables follow mode globally, or you can select per track follow mode. for the overview page. All others functions are still available for the selected track.
 
 
 
