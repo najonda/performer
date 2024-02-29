@@ -2,6 +2,8 @@
 
 #include "core/gfx/Canvas.h"
 #include "model/NoteSequence.h"
+#include "model/StochasticSequence.h"
+
 
 class SequencePainter {
 public:
@@ -17,6 +19,8 @@ public:
     static void drawBypassScale(Canvas &canvas, int x, int y, int w, int h, bool active);
 
     static void drawStageRepeatMode(Canvas &canvas, int x, int y, int w, int h, NoteSequence::StageRepeatMode mode);
+    static void drawStageRepeatMode(Canvas &canvas, int x, int y, int w, int h, StochasticSequence::StageRepeatMode mode);
+
 
     static void drawSequenceProgress(Canvas &canvas, int x, int y, int w, int h, float progress);
 };

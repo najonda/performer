@@ -4,11 +4,11 @@
 
 #include "RoutableListModel.h"
 
-#include "model/CurveTrack.h"
+#include "model/StochasticTrack.h"
 
-class CurveTrackListModel : public RoutableListModel {
+class StochasticTrackListModel : public RoutableListModel {
 public:
-    void setTrack(CurveTrack &track) {
+    void setTrack(StochasticTrack &track) {
         _track = &track;
     }
 
@@ -38,14 +38,20 @@ public:
         switch (Item(row)) {
         case SlideTime:
             return Routing::Target::SlideTime;
-        case Offset:
-            return Routing::Target::Offset;
+        case Octave:
+            return Routing::Target::Octave;
+        case Transpose:
+            return Routing::Target::Transpose;
         case Rotate:
             return Routing::Target::Rotate;
-        case ShapeProbabilityBias:
-            return Routing::Target::ShapeProbabilityBias;
         case GateProbabilityBias:
             return Routing::Target::GateProbabilityBias;
+        case RetriggerProbabilityBias:
+            return Routing::Target::RetriggerProbabilityBias;
+        case LengthBias:
+            return Routing::Target::LengthBias;
+        case NoteProbabilityBias:
+            return Routing::Target::NoteProbabilityBias;
         default:
             return Routing::Target::None;
         }
@@ -55,32 +61,36 @@ private:
     enum Item {
         TrackName,
         PlayMode,
-        FillMode,
-        MuteMode,
+        //FillMode,
+        //FillMuted,
+        CvUpdateMode,
         SlideTime,
-        Offset,
+        Octave,
+        Transpose,
         Rotate,
-        ShapeProbabilityBias,
         GateProbabilityBias,
-        PatternFollow,
-        CurveCvInput,
+        RetriggerProbabilityBias,
+        LengthBias,
+        NoteProbabilityBias,
         Last
     };
 
     static const char *itemName(Item item) {
         switch (item) {
-        case TrackName:             return "Name";
-        case PlayMode:              return "Play Mode";
-        case FillMode:              return "Fill Mode";
-        case MuteMode:              return "Mute Mode";
-        case SlideTime:             return "Slide Time";
-        case Offset:                return "Offset";
-        case Rotate:                return "Rotate";
-        case ShapeProbabilityBias:  return "Shape P. Bias";
-        case GateProbabilityBias:   return "Gate P. Bias";
-        case PatternFollow:         return "Pattern Follow";
-        case CurveCvInput:          return "Curve CV Input";
-        case Last:                  break;
+        case TrackName: return "Name";
+        case PlayMode:  return "Play Mode";
+        //case FillMode:  return "Fill Mode";
+        //case FillMuted: return "Fill Muted";
+        case CvUpdateMode:  return "CV Update Mode";
+        case SlideTime: return "Slide Time";
+        case Octave:    return "Octave";
+        case Transpose: return "Transpose";
+        case Rotate:    return "Rotate";
+        case GateProbabilityBias: return "Gate P. Bias";
+        case RetriggerProbabilityBias: return "Retrig P. Bias";
+        case LengthBias: return "Length Bias";
+        case NoteProbabilityBias: return "Note P. Bias";
+        case Last:      break;
         }
         return nullptr;
     }
@@ -97,32 +107,38 @@ private:
         case PlayMode:
             _track->printPlayMode(str);
             break;
-        case FillMode:
+        /*case FillMode:
             _track->printFillMode(str);
             break;
-        case MuteMode:
-            _track->printMuteMode(str);
+        case FillMuted:
+            _track->printFillMuted(str);
+            break;*/
+        case CvUpdateMode:
+            _track->printCvUpdateMode(str);
             break;
         case SlideTime:
             _track->printSlideTime(str);
             break;
-        case Offset:
-            _track->printOffset(str);
+        case Octave:
+            _track->printOctave(str);
+            break;
+        case Transpose:
+            _track->printTranspose(str);
             break;
         case Rotate:
             _track->printRotate(str);
             break;
-        case ShapeProbabilityBias:
-            _track->printShapeProbabilityBias(str);
-            break;
         case GateProbabilityBias:
             _track->printGateProbabilityBias(str);
             break;
-        case PatternFollow:
-            _track->printPatternFollow(str);
+        case RetriggerProbabilityBias:
+            _track->printRetriggerProbabilityBias(str);
             break;
-        case CurveCvInput:
-            _track->printCurveCvInput(str);
+        case LengthBias:
+            _track->printLengthBias(str);
+            break;
+        case NoteProbabilityBias:
+            _track->printNoteProbabilityBias(str);
             break;
         case Last:
             break;
@@ -131,37 +147,44 @@ private:
 
     void editValue(Item item, int value, bool shift) {
         switch (item) {
+
         case TrackName:
             break;
         case PlayMode:
             _track->editPlayMode(value, shift);
             break;
-        case FillMode:
+        /*case FillMode:
             _track->editFillMode(value, shift);
             break;
-        case MuteMode:
-            _track->editMuteMode(value, shift);
+        case FillMuted:
+            _track->editFillMuted(value, shift);
+            break;*/
+        case CvUpdateMode:
+            _track->editCvUpdateMode(value, shift);
             break;
         case SlideTime:
             _track->editSlideTime(value, shift);
             break;
-        case Offset:
-            _track->editOffset(value, shift);
+        case Octave:
+            _track->editOctave(value, shift);
+            break;
+        case Transpose:
+            _track->editTranspose(value, shift);
             break;
         case Rotate:
             _track->editRotate(value, shift);
             break;
-        case ShapeProbabilityBias:
-            _track->editShapeProbabilityBias(value, shift);
-            break;
         case GateProbabilityBias:
             _track->editGateProbabilityBias(value, shift);
             break;
-        case PatternFollow:
-            _track->editPatternFollow(value, shift);
+        case RetriggerProbabilityBias:
+            _track->editRetriggerProbabilityBias(value, shift);
             break;
-        case CurveCvInput:
-            _track->editCurveCvInput(value, shift);
+        case LengthBias:
+            _track->editLengthBias(value, shift);
+            break;
+        case NoteProbabilityBias:
+            _track->editNoteProbabilityBias(value, shift);
             break;
         case Last:
             break;
@@ -170,5 +193,6 @@ private:
 
     virtual void setSelectedScale(int defaultScale, bool force = false) override {};
 
-    CurveTrack *_track;
+
+    StochasticTrack *_track;
 };

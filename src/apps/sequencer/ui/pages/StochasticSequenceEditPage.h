@@ -3,16 +3,16 @@
 #include "BasePage.h"
 
 #include "ui/StepSelection.h"
-#include "ui/model/NoteSequenceListModel.h"
+#include "ui/model/StochasticSequenceListModel.h"
 
 #include "engine/generators/SequenceBuilder.h"
 #include "ui/KeyPressEventTracker.h"
 
 #include "core/utils/Container.h"
 
-class NoteSequenceEditPage : public BasePage {
+class StochasticSequenceEditPage : public BasePage {
 public:
-    NoteSequenceEditPage(PageManager &manager, PageContext &context);
+    StochasticSequenceEditPage(PageManager &manager, PageContext &context);
 
     virtual void enter() override;
     virtual void exit() override;
@@ -27,17 +27,17 @@ public:
     virtual void midi(MidiEvent &event) override;
 
 private:
-    typedef NoteSequence::Layer Layer;
+    typedef StochasticSequence::Layer Layer;
 
     static const int StepCount = 16;
 
-    int stepOffset() const { return _project.selectedNoteSequence().section() * StepCount; }
+    int stepOffset() const { return _section * StepCount; }
 
     void switchLayer(int functionKey, bool shift);
     int activeFunctionKey();
 
     void updateMonitorStep();
-    void drawDetail(Canvas &canvas, const NoteSequence::Step &step);
+    void drawDetail(Canvas &canvas, const StochasticSequence::Step &step);
 
     void contextShow(bool doubleClick = false);
     void contextAction(int index);
@@ -56,23 +56,24 @@ private:
     void setSelectedStepsGate(bool gate);
 
     void setSectionTracking(bool track);
-    bool isSectionTracking();
-    void toggleSectionTracking();
 
-    NoteSequence::Layer layer() const { return _project.selectedNoteSequenceLayer(); };
-    void setLayer(NoteSequence::Layer layer) { _project.setSelectedNoteSequenceLayer(layer); }
+    void displayMessage(StochasticSequence &sequence);
 
+    StochasticSequence::Layer layer() const { return _project.selectedStochasticSequenceLayer(); };
+    void setLayer(StochasticSequence::Layer layer) { _project.setSelectedStochasticSequenceLayer(layer); }
+
+    int _section = 0;
+    bool _sectionTracking = false;
     bool _showDetail;
     uint32_t _showDetailTicks;
 
     KeyPressEventTracker _keyPressEventTracker;
 
 
-    NoteSequenceListModel _listModel;
+    StochasticSequenceListModel _listModel;
 
     StepSelection<CONFIG_STEP_COUNT> _stepSelection;
 
-    Container<NoteSequenceBuilder> _builderContainer;
+    Container<StochasticSequenceBuilder> _builderContainer;
 
-    NoteSequence _inMemorySequence;
 };

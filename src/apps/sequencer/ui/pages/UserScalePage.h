@@ -32,6 +32,8 @@ private:
 
     void saveUserScaleToSlot(int slot);
     void loadUserScaleFromSlot(int slot);
+    void functionShortcuts(KeyPressEvent event);
+
 
     int _selectedIndex;
     UserScale *_userScale;

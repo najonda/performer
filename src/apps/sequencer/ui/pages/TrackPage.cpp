@@ -92,7 +92,14 @@ void TrackPage::keyPress(KeyPressEvent &event) {
                         _project.selectedTrack().midiCvTrack().setName(text);
                     }
                 });
-                break;      
+                break;   
+            case Track::TrackMode::Stochastic:
+                _manager.pages().textInput.show("NAME:", _stochasticTrack->name(), StochasticTrack::NameLength, [this] (bool result, const char *text) {
+                    if (result) {
+                        _project.selectedTrack().stochasticTrack().setName(text);
+                    }
+                 });
+            break;   
             case Track::TrackMode::Last:
                 break;     
         }
@@ -122,6 +129,11 @@ void TrackPage::setTrack(Track &track) {
         _midiCvTrackListModel.setTrack(track.midiCvTrack());
         newListModel = &_midiCvTrackListModel;
         _midiCvTrack = &track.midiCvTrack();
+        break;
+    case Track::TrackMode::Stochastic:
+        _stochasticTrackListModel.setTrack(track.stochasticTrack());
+        newListModel = &_stochasticTrackListModel;
+        _stochasticTrack = &track.stochasticTrack();
         break;
     case Track::TrackMode::Last:
         ASSERT(false, "invalid track mode");

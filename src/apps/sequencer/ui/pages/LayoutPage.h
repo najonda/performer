@@ -37,6 +37,8 @@ private:
 
     void setMode(Mode mode);
 
+    void functionShortcuts(KeyPressEvent event);
+
     Mode _mode = Mode::TrackMode;
     TrackModeListModel _trackModeListModel;
     LinkTrackListModel _linkTrackListModel;

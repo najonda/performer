@@ -19,6 +19,10 @@ public:
         _ledState[row * Cols + col] = mapColor(red, green, style);;
     }
 
+    void setCustomLed(int row, int col, Color color, int style = 0) override{
+         _ledState[row * Cols + col] = mapCustomColor(color.red, color.green, style);
+    }
+
     void syncLeds() override;
 
 private:
@@ -46,5 +50,16 @@ private:
         } else {
             return mapBlue[(red & 0x3) * 4 + (green & 0x3)];
         }     
+    }
+    
+    inline uint8_t mapCustomColor(int x, int y, int style) const {
+        static const uint8_t map[] = {
+        //  g0 g1 g2 g3
+            0, 1, 2, 3, // r0
+            32, 36, 40, 44, // r1
+            48, 52, 56, 60, // r2
+            5,  5,  9, 3, // r3
+        };
+        return map[(x & 0x3) * 4 + (y & 0x3)];
     }
 };

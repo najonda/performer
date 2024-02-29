@@ -25,6 +25,7 @@ public:
 private:
     void showOutput(int outputIndex);
     void selectOutput(int outputIndex);
+    void functionShortcuts(KeyPressEvent event);
 
     MidiOutput::Output _editOutput;
     OutputListModel _outputListModel;

@@ -1,5 +1,7 @@
 #include "RoutingPage.h"
 
+#include "Pages.h"
+
 #include "ui/painters/WindowPainter.h"
 
 #include "core/utils/StringBuilder.h"
@@ -50,6 +52,8 @@ void RoutingPage::draw(Canvas &canvas) {
 
 void RoutingPage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
+    
+    functionShortcuts(event);
 
     if (edit() && selectedRow() == int(RouteListModel::Item::Tracks) && key.isTrack()) {
         _editRoute.toggleTrack(key.track());
@@ -83,14 +87,17 @@ void RoutingPage::keyPress(KeyPressEvent &event) {
             }
             break;
         case Function::Commit:
-            _engine.midiLearn().stop();
-            int conflict = _project.routing().checkRouteConflict(_editRoute, *_route);
-            if (conflict >= 0) {
-                showMessage(FixedStringBuilder<64>("ROUTE SETTINGS CONFLICT WITH ROUTE %d", conflict + 1));
-            } else {
-                *_route = _editRoute;
-                setEdit(false);
-                showMessage("ROUTE CHANGED");
+            bool showCommit = *_route != _editRoute;
+                if (showCommit) {
+                _engine.midiLearn().stop();
+                int conflict = _project.routing().checkRouteConflict(_editRoute, *_route);
+                if (conflict >= 0) {
+                    showMessage(FixedStringBuilder<64>("ROUTE SETTINGS CONFLICT WITH ROUTE %d", conflict + 1));
+                } else {
+                    *_route = _editRoute;
+                    setEdit(false);
+                    showMessage("ROUTE CHANGED");
+                }
             }
             break;
         }
@@ -179,4 +186,25 @@ void RoutingPage::assignMidiLearn(const MidiLearn::Result &result) {
     setSelectedRow(int(RouteListModel::MidiSource));
     setTopRow(int(RouteListModel::MidiSource));
     setEdit(false);
+}
+
+void RoutingPage::functionShortcuts(KeyPressEvent event) {
+    {
+        const auto &key = event.key();
+        if (key.isFunction() && key.is(Key::F0) && event.count() == 2) {
+            _manager.pages().top.setMode(TopPage::Mode::Project);
+        }
+
+        if (key.isFunction() && key.is(Key::F1) && event.count() == 2) {
+            _manager.pages().top.setMode(TopPage::Mode::Layout);
+        }
+
+        if (key.isFunction() && key.is(Key::F3) && event.count() == 2) {
+            _manager.pages().top.setMode(TopPage::Mode::MidiOutput);
+        }
+
+        if (key.isFunction() && key.is(Key::F4) && event.count() == 2) {
+            _manager.pages().top.setMode(TopPage::Mode::UserScale);
+        }
+    }
 }

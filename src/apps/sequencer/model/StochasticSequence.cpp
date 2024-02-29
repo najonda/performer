@@ -1,9 +1,11 @@
-#include "NoteSequence.h"
+#include "StochasticSequence.h"
 #include "ProjectVersion.h"
 
 #include "ModelUtils.h"
+#include "Routing.h"
+#include <iostream>
 
-Types::LayerRange NoteSequence::layerRange(Layer layer) {
+Types::LayerRange StochasticSequence::layerRange(Layer layer) {
     #define CASE(_layer_) \
     case Layer::_layer_: \
         return { _layer_::Min, _layer_::Max };
@@ -12,9 +14,7 @@ Types::LayerRange NoteSequence::layerRange(Layer layer) {
     case Layer::Gate:
         return { 0, 1 };
     case Layer::Slide:
-        return { 0, 1 };
-    case Layer::BypassScale:
-        return {0 ,1 };
+        return { 0, 1 }; 
     CASE(GateOffset)
     CASE(GateProbability)
     CASE(Retrigger)
@@ -22,8 +22,8 @@ Types::LayerRange NoteSequence::layerRange(Layer layer) {
     CASE(Length)
     CASE(LengthVariationRange)
     CASE(LengthVariationProbability)
-    CASE(Note)
-    CASE(NoteVariationRange)
+    CASE(NoteOctave)
+    CASE(NoteOctaveProbability)
     CASE(NoteVariationProbability)
     CASE(Condition)
     CASE(StageRepeats)
@@ -37,9 +37,9 @@ Types::LayerRange NoteSequence::layerRange(Layer layer) {
     return { 0, 0 };
 }
 
-int NoteSequence::layerDefaultValue(Layer layer)
+int StochasticSequence::layerDefaultValue(Layer layer)
 {
-    NoteSequence::Step step;
+    StochasticSequence::Step step;
 
     switch (layer) {
     case Layer::Gate:
@@ -50,8 +50,6 @@ int NoteSequence::layerDefaultValue(Layer layer)
         return step.gateOffset();
     case Layer::Slide:
         return step.slide();
-    case Layer::BypassScale:
-        return step.bypassScale();
     case Layer::Retrigger:
         return step.retrigger();
     case Layer::RetriggerProbability:
@@ -62,10 +60,10 @@ int NoteSequence::layerDefaultValue(Layer layer)
         return step.lengthVariationRange();
     case Layer::LengthVariationProbability:
         return step.lengthVariationProbability();
-    case Layer::Note:
-        return step.note();
-    case Layer::NoteVariationRange:
-        return step.noteVariationRange();
+    case Layer::NoteOctave:
+        return step.noteOctave();
+    case Layer::NoteOctaveProbability:
+        return step.noteOctaveProbability();
     case Layer::NoteVariationProbability:
         return step.noteVariationProbability();
     case Layer::Condition:
@@ -81,14 +79,12 @@ int NoteSequence::layerDefaultValue(Layer layer)
     return 0;
 }
 
-int NoteSequence::Step::layerValue(Layer layer) const {
+int StochasticSequence::Step::layerValue(Layer layer) const {
     switch (layer) {
     case Layer::Gate:
         return gate() ? 1 : 0;
     case Layer::Slide:
         return slide() ? 1 : 0;
-    case Layer::BypassScale:
-        return bypassScale() ? 1 : 0;
     case Layer::GateProbability:
         return gateProbability();
     case Layer::GateOffset:
@@ -103,10 +99,10 @@ int NoteSequence::Step::layerValue(Layer layer) const {
         return lengthVariationRange();
     case Layer::LengthVariationProbability:
         return lengthVariationProbability();
-    case Layer::Note:
-        return note();
-    case Layer::NoteVariationRange:
-        return noteVariationRange();
+    case Layer::NoteOctave:
+        return noteOctave();
+    case Layer::NoteOctaveProbability:
+        return noteOctaveProbability();
     case Layer::NoteVariationProbability:
         return noteVariationProbability();
     case Layer::Condition:
@@ -122,16 +118,13 @@ int NoteSequence::Step::layerValue(Layer layer) const {
     return 0;
 }
 
-void NoteSequence::Step::setLayerValue(Layer layer, int value) {
+void StochasticSequence::Step::setLayerValue(Layer layer, int value) {
     switch (layer) {
     case Layer::Gate:
         setGate(value);
         break;
     case Layer::Slide:
         setSlide(value);
-        break;
-    case Layer::BypassScale:
-        setBypassScale(value);
         break;
     case Layer::GateProbability:
         setGateProbability(value);
@@ -154,11 +147,11 @@ void NoteSequence::Step::setLayerValue(Layer layer, int value) {
     case Layer::LengthVariationProbability:
         setLengthVariationProbability(value);
         break;
-    case Layer::Note:
-        setNote(value);
+    case Layer::NoteOctave:
+        setNoteOctave(value);
         break;
-    case Layer::NoteVariationRange:
-        setNoteVariationRange(value);
+    case Layer::NoteOctaveProbability:
+        setNoteOctaveProbability(value);
         break;
     case Layer::NoteVariationProbability:
         setNoteVariationProbability(value);
@@ -170,41 +163,41 @@ void NoteSequence::Step::setLayerValue(Layer layer, int value) {
         setStageRepeats(value);
         break;
     case Layer::StageRepeatsMode:
-        setStageRepeatsMode(static_cast<NoteSequence::StageRepeatMode>(value));
+        setStageRepeatsMode(static_cast<StochasticSequence::StageRepeatMode>(value));
         break;
     case Layer::Last:
         break;
     }
 }
 
-void NoteSequence::Step::clear() {
+void StochasticSequence::Step::clear() {
     _data0.raw = 0;
     _data1.raw = 1;
     setGate(false);
     setGateProbability(GateProbability::Max);
     setGateOffset(0);
     setSlide(false);
-    setBypassScale(false);
+    setBypassScale(true);
     setRetrigger(0);
     setRetriggerProbability(RetriggerProbability::Max);
     setLength(Length::Max / 2);
     setLengthVariationRange(0);
     setLengthVariationProbability(LengthVariationProbability::Max);
     setNote(0);
-    setNoteVariationRange(0);
-    setNoteVariationProbability(NoteVariationProbability::Max);
+    setNoteOctave(0);
+    setNoteOctaveProbability(NoteOctaveProbability::Max);
+    setNoteVariationProbability(0);
     setCondition(Types::Condition::Off);
     setStageRepeats(0);
     setStageRepeatsMode(StageRepeatMode::Each);
 }
 
-void NoteSequence::Step::write(VersionedSerializedWriter &writer) const {
+void StochasticSequence::Step::write(VersionedSerializedWriter &writer) const {
     writer.write(_data0.raw);
     writer.write(_data1.raw);
 }
 
-void NoteSequence::Step::read(VersionedSerializedReader &reader) {
-
+void StochasticSequence::Step::read(VersionedSerializedReader &reader) {
     if (reader.dataVersion() < ProjectVersion::Version27) {
         reader.read(_data0.raw);
         reader.readAs<uint16_t>(_data1.raw);
@@ -220,27 +213,12 @@ void NoteSequence::Step::read(VersionedSerializedReader &reader) {
     } else {
         reader.read(_data0.raw);
         reader.read(_data1.raw);
-        if (reader.dataVersion() < ProjectVersion::Version36) {
-            bool bypassScale = (bool)((_data0.raw >> 31) & 0x1);
-
-            _data0.raw = (_data0.raw & 0x3 ) | (((_data0.raw ) & 0xFFFFFFFC) << 1);
-            _data1.raw = 0x7FFFFFFF & (_data1.raw << 1);
-            _data1.bypassScale = bypassScale;
-        }
-
-        if (reader.dataVersion() < ProjectVersion::Version34) {
-            setBypassScale(false);
-        }
-
-
-
     }
 }
 
-void NoteSequence::writeRouted(Routing::Target target, int intValue, float floatValue) {
+void StochasticSequence::writeRouted(Routing::Target target, int intValue, float floatValue) {
     switch (target) {
     case Routing::Target::Scale:
-        //_model._selectedScale[0] = intValue;
         setScale(intValue, true);
         break;
     case Routing::Target::RootNote:
@@ -258,45 +236,78 @@ void NoteSequence::writeRouted(Routing::Target target, int intValue, float float
     case Routing::Target::LastStep:
         setLastStep(intValue, true);
         break;
+    case Routing::Target::Reseed:
+        setReseed(intValue, true);
+        break;
+    case Routing::Target::RestProbability2:
+        setRestProbability2(intValue, true);
+        break;
+    case Routing::Target::RestProbability4:
+        setRestProbability4(intValue, true);
+        break;
+    case Routing::Target::RestProbability8:
+        setRestProbability8(intValue, true);
+        break;
+    case Routing::Target::SequenceFirstStep:
+        setSequenceFirstStep(intValue, true);
+        break;
+    case Routing::Target::SequenceLastStep:
+        setSequenceLastStep(intValue, true);
+        break;
+    case Routing::Target::LowOctaveRange:
+        setLowOctaveRange(intValue, true);
+        break;
+    case Routing::Target::HighOctaveRange:
+        setHighOctaveRange(intValue, true);
+        break;
+    case Routing::Target::LengthModifier:
+        setLengthModifier(intValue, true);
+        break;
     default:
         break;
     }
 }
 
-void NoteSequence::clear() {
-    setName("INIT");
+void StochasticSequence::clear() {
     setScale(-1);
     setRootNote(-1);
     setDivisor(12);
     setResetMeasure(0);
     setRunMode(Types::RunMode::Forward);
     setFirstStep(0);
-    setLastStep(15);
+    setLastStep(0);
+    //setRestProbability(0);
+    setSequenceFirstStep(0);
+    setSequenceLastStep(15);
+    setLengthModifier(0);
+    setRestProbability2(0);
+    setRestProbability4(0);
+    setRestProbability8(0);
+    setLowOctaveRange(0);
+    setHighOctaveRange(0);
+    setUseLoop(false);
+    setReseed(false);
 
     clearSteps();
 }
 
-void NoteSequence::clearSteps() {
+void StochasticSequence::clearSteps() {
     for (auto &step : _steps) {
         step.clear();
     }
-}
-
-void NoteSequence::clearStepsSelected(const std::bitset<CONFIG_STEP_COUNT> &selected) {
-    if (selected.any()) {
-        for (size_t i = 0; i < CONFIG_STEP_COUNT; ++i) {
-            if (selected[i]) {
-                _steps[i].clear();
-            }
-    }
-    } else {
-        clearSteps();
+    
+    for (int i = 0; i < 12; ++i) {
+        _steps[i].setNote(i);
     }
 }
 
-bool NoteSequence::isEdited() const {
+bool StochasticSequence::isEdited() const {
     auto clearStep = Step();
-    for (const auto &step : _steps) {
+
+    for (int i = 0; i < 12; ++i) {
+       auto step =  _steps[i];
+        clearStep.setNote(i);
+
         if (step != clearStep) {
             return true;
         }
@@ -304,7 +315,7 @@ bool NoteSequence::isEdited() const {
     return false;
 }
 
-void NoteSequence::setGates(std::initializer_list<int> gates) {
+void StochasticSequence::setGates(std::initializer_list<int> gates) {
     size_t step = 0;
     for (auto gate : gates) {
         if (step < _steps.size()) {
@@ -313,7 +324,7 @@ void NoteSequence::setGates(std::initializer_list<int> gates) {
     }
 }
 
-void NoteSequence::setNotes(std::initializer_list<int> notes) {
+void StochasticSequence::setNotes(std::initializer_list<int> notes) {
     size_t step = 0;
     for (auto note : notes) {
         if (step < _steps.size()) {
@@ -322,7 +333,7 @@ void NoteSequence::setNotes(std::initializer_list<int> notes) {
     }
 }
 
-void NoteSequence::shiftSteps(const std::bitset<CONFIG_STEP_COUNT> &selected, int direction) {
+void StochasticSequence::shiftSteps(const std::bitset<CONFIG_STEP_COUNT> &selected, int direction) {
     if (selected.any()) {
         ModelUtils::shiftSteps(_steps, selected, firstStep(), lastStep(), direction);
     } else {
@@ -330,27 +341,30 @@ void NoteSequence::shiftSteps(const std::bitset<CONFIG_STEP_COUNT> &selected, in
     }
 }
 
-void NoteSequence::duplicateSteps() {
+void StochasticSequence::duplicateSteps() {
     ModelUtils::duplicateSteps(_steps, firstStep(), lastStep());
     setLastStep(lastStep() + (lastStep() - firstStep() + 1));
 }
 
-void NoteSequence::write(VersionedSerializedWriter &writer) const {
+void StochasticSequence::write(VersionedSerializedWriter &writer) const {
     writer.write(_scale.base);
     writer.write(_rootNote.base);
     writer.write(_divisor.base);
     writer.write(_resetMeasure);
     writer.write(_runMode.base);
-    writer.write(_firstStep.base);
-    writer.write(_lastStep.base);
+    writer.write(_firstStep);
+    writer.write(_lastStep);
+    writer.write(_restProbability2);  
+    writer.write(_restProbability4);
+    writer.write(_restProbability8);
+    writer.write(_lengthModifier);
+    writer.write(_lowOctaveRange);
+    writer.write(_highOctaveRange);
 
     writeArray(writer, _steps);
-    writer.write(_name, NameLength + 1);
-    writer.write(_slot);
-    writer.writeHash();
 }
 
-bool NoteSequence::read(VersionedSerializedReader &reader) {
+void StochasticSequence::read(VersionedSerializedReader &reader) {
     reader.read(_scale.base);
     reader.read(_rootNote.base);
     if (reader.dataVersion() < ProjectVersion::Version10) {
@@ -360,21 +374,16 @@ bool NoteSequence::read(VersionedSerializedReader &reader) {
     }
     reader.read(_resetMeasure);
     reader.read(_runMode.base);
-    reader.read(_firstStep.base);
-    reader.read(_lastStep.base);
+    reader.read(_firstStep);
+    reader.read(_lastStep);
+    reader.read(_restProbability2, ProjectVersion::Version36);  
+    reader.read(_restProbability4, ProjectVersion::Version36);
+    reader.read(_restProbability8, ProjectVersion::Version36);
+    reader.read(_lengthModifier, ProjectVersion::Version36);
+    reader.read(_lowOctaveRange, ProjectVersion::Version36);
+    reader.read(_highOctaveRange, ProjectVersion::Version36);
+    
+
 
     readArray(reader, _steps);
-
-    if (reader.dataVersion() >= ProjectVersion::Version35) {
-        reader.read(_name, NameLength + 1, ProjectVersion::Version35);
-        reader.read(_slot);
-        bool success = reader.checkHash();
-        if (!success) {
-            clear();
-        }
-
-        return success;
-    } else {
-        return true;
-    }
 }

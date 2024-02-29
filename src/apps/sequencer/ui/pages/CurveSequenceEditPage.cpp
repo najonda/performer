@@ -138,7 +138,7 @@ void CurveSequenceEditPage::draw(Canvas &canvas) {
     WindowPainter::drawFooter(canvas, functionNames, pageKeyState(), activeFunctionKey());
 
     auto &trackEngine = _engine.selectedTrackEngine().as<CurveTrackEngine>();
-    const auto &sequence = _project.selectedCurveSequence();
+    auto &sequence = _project.selectedCurveSequence();
     int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
 
     bool isActiveSequence = trackEngine.isActiveSequence(sequence);
@@ -160,8 +160,8 @@ void CurveSequenceEditPage::draw(Canvas &canvas) {
     if (track.isPatternFollowDisplayOn() && _engine.state().running()) {
         bool section_change = bool((currentStep) % StepCount == 0); // StepCount is relative to screen
         int section_no = int((currentStep) / StepCount);
-        if (section_change && section_no != _section) {
-            _section = section_no;
+        if (section_change && section_no != sequence.section()) {
+            sequence.setSecion(section_no);
         }
     }
 
@@ -314,9 +314,9 @@ void CurveSequenceEditPage::updateLeds(Leds &leds) {
         leds.set(MatrixMap::fromStep(i), red, green);
     }
 
-    LedPainter::drawSelectedSequenceSection(leds, _section);
+    LedPainter::drawSelectedSequenceSection(leds, sequence.section());
 
-    LedPainter::drawSelectedSequenceSection(leds, _section);
+    LedPainter::drawSelectedSequenceSection(leds, sequence.section());
 
     // show quick edit keys
     if (globalKeyState()[Key::Page] && !globalKeyState()[Key::Shift]) {
@@ -367,6 +367,10 @@ void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
         return;
     }
 
+    if (key.pageModifier()) {
+        return;
+    }
+
     if (key.isEncoder() && layer() == Layer::Shape && globalKeyState()[Key::Shift] && _stepSelection.count() > 1) {
         for (size_t stepIndex = 0; stepIndex < _stepSelection.size(); ++stepIndex) {
         if (_stepSelection[stepIndex]) {
@@ -395,7 +399,7 @@ void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
             sequence.shiftSteps(_stepSelection.selected(), -1);
         } else {
             track.setPatternFollowDisplay(false);
-            _section = std::max(0, _section - 1);
+            sequence.setSecion(std::max(0, sequence.section() - 1));
         }
         event.consume();
     }
@@ -404,7 +408,7 @@ void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
             sequence.shiftSteps(_stepSelection.selected(), 1);
         } else {
             track.setPatternFollowDisplay(false);
-            _section = std::min(3, _section + 1);
+            sequence.setSecion(std::min(3, sequence.section() + 1));
         }
         event.consume();
     }
@@ -631,10 +635,10 @@ void CurveSequenceEditPage::drawDetail(Canvas &canvas, const CurveSequence::Step
         SequencePainter::drawProbability(
             canvas,
             64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.gateProbability() + 1, CurveSequence::GateProbability::Range
+            step.gateProbability(), CurveSequence::GateProbability::Range-1
         );
         str.reset();
-        str("%.1f%%", 100.f * (step.gateProbability() + 1.f) / CurveSequence::GateProbability::Range);
+        str("%.1f%%", 100.f * (step.gateProbability()) / (CurveSequence::GateProbability::Range-1));
         canvas.setColor(Color::Bright);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;

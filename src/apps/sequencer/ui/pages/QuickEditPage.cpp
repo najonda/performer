@@ -68,13 +68,15 @@ void QuickEditPage::keyPress(KeyPressEvent &event) {
 
     if (key.isLeft()) {
         _listModel->edit(_row, 1, -1, key.shiftModifier());
+        _listModel->setSelectedScale(_project.scale(), true);
     } else if (key.isRight()) {
         _listModel->edit(_row, 1, 1, key.shiftModifier());
+        _listModel->setSelectedScale(_project.scale(), true);
     } else if (key.isStep()) {
         _listModel->setIndexed(_row, key.step());
     }
 
-    if (_row == 5 && key.isEncoder()) {
+    if (key.isEncoder()) {
         _listModel->setSelectedScale(_project.scale(), true);
         close();
     }

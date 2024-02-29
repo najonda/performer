@@ -2,7 +2,6 @@
 
 #include "Config.h"
 #include "Types.h"
-#include "NoteSequence.h"
 #include "Serialize.h"
 #include "Routing.h"
 #include "FileDefs.h"

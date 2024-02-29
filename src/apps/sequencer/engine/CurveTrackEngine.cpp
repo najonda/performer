@@ -80,6 +80,11 @@ TrackEngine::TickResult CurveTrackEngine::tick(uint32_t tick) {
         uint32_t resetDivisor = sequence.resetMeasure() * _engine.measureDivisor();
         uint32_t relativeTick = resetDivisor == 0 ? tick : tick % resetDivisor;
 
+
+        if (int(_model.project().stepsToStop()) != 0 && int(relativeTick / divisor) == int(_model.project().stepsToStop())) {
+            _engine.clockStop();
+        }
+
         // handle reset measure
         if (relativeTick == 0) {
             reset();
@@ -232,14 +237,15 @@ void CurveTrackEngine::updateOutput(uint32_t relativeTick, uint32_t divisor) {
 bool CurveTrackEngine::isRecording() const {
     return
         _engine.state().recording() &&
-        _model.project().curveCvInput() != Types::CurveCvInput::Off &&
-        _model.project().selectedTrackIndex() == _track.trackIndex();
+        _curveTrack.curveCvInput() != Types::CurveCvInput::Off;
+        //&&
+        //_model.project().selectedTrackIndex() == _track.trackIndex();
 }
 
 void CurveTrackEngine::updateRecordValue() {
     auto &sequence = *_sequence;
     const auto &range = Types::voltageRangeInfo(sequence.range());
-    auto curveCvInput = _model.project().curveCvInput();
+    auto curveCvInput = _curveTrack.curveCvInput();
 
     switch (curveCvInput) {
     case Types::CurveCvInput::Cv1:

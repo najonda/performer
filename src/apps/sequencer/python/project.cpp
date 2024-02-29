@@ -256,6 +256,7 @@ void register_project(py::module &m) {
         .def_property_readonly("noteTrack", [] (Track &track) { return &track.noteTrack(); })
         .def_property_readonly("curveTrack", [] (Track &track) { return &track.curveTrack(); })
         .def_property_readonly("midiCvTrack", [] (Track &track) { return &track.midiCvTrack(); })
+        .def_property_readonly("stochasticTrack", [] (Track &track) { return &track.stochasticTrack(); })
         .def("clear", &Track::clear)
         .def("clearPattern", &Track::clearPattern, "patternIndex"_a)
         .def("copyPattern", &Track::copyPattern, "srcIndex"_a, "dstIndex"_a)
@@ -265,6 +266,7 @@ void register_project(py::module &m) {
         .value("Note", Track::TrackMode::Note)
         .value("Curve", Track::TrackMode::Curve)
         .value("MidiCv", Track::TrackMode::MidiCv)
+        .value("Stochastic", Track::TrackMode::Stochastic)
         .export_values()
     ;
 
@@ -310,6 +312,47 @@ void register_project(py::module &m) {
     ;
 
     // ------------------------------------------------------------------------
+    // Stochastic Track
+    // ------------------------------------------------------------------------
+
+    py::class_<StochasticTrack> stochasticTrack(m, "StochasticTrack");
+    stochasticTrack
+        .def_property("playMode", &StochasticTrack::playMode, &StochasticTrack::setPlayMode)
+        .def_property("fillMode", &StochasticTrack::fillMode, &StochasticTrack::setFillMode)
+        .def_property("cvUpdateMode", &StochasticTrack::cvUpdateMode, &StochasticTrack::setCvUpdateMode)
+        .def_property("slideTime", &StochasticTrack::slideTime, &StochasticTrack::setSlideTime)
+        .def_property("octave", &StochasticTrack::octave, &StochasticTrack::setOctave)
+        .def_property("transpose", &StochasticTrack::transpose, &StochasticTrack::setTranspose)
+        .def_property("rotate", &StochasticTrack::rotate, &StochasticTrack::setRotate)
+        .def_property("gateProbabilityBias", &StochasticTrack::gateProbabilityBias, &StochasticTrack::setGateProbabilityBias)
+        .def_property("retriggerProbabilityBias", &StochasticTrack::retriggerProbabilityBias, &StochasticTrack::setRetriggerProbabilityBias)
+        .def_property("lengthBias", &StochasticTrack::lengthBias, &StochasticTrack::setLengthBias)
+        .def_property("noteProbabilityBias", &StochasticTrack::noteProbabilityBias, &StochasticTrack::setNoteProbabilityBias)
+        .def_property_readonly("sequences", [] (StochasticTrack &StochasticTrack) {
+            py::list result;
+            for (int i = 0; i < CONFIG_PATTERN_COUNT; ++i) {
+                result.append(&StochasticTrack.sequence(i));
+            }
+            return result;
+        })
+        .def("clear", &StochasticTrack::clear)
+    ;
+
+    py::enum_<StochasticTrack::FillMode>(stochasticTrack, "FillMode")
+        .value("None", StochasticTrack::FillMode::None)
+        .value("Gates", StochasticTrack::FillMode::Gates)
+        .value("NextPattern", StochasticTrack::FillMode::NextPattern)
+        .value("Condition", StochasticTrack::FillMode::Condition)
+        .export_values()
+    ;
+
+    py::enum_<StochasticTrack::CvUpdateMode>(stochasticTrack, "CvUpdateMode")
+        .value("Gate", StochasticTrack::CvUpdateMode::Gate)
+        .value("Always", StochasticTrack::CvUpdateMode::Always)
+        .export_values()
+    ;
+
+    // ------------------------------------------------------------------------
     // CurveTrack
     // ------------------------------------------------------------------------
 
@@ -323,6 +366,7 @@ void register_project(py::module &m) {
         .def_property("rotate", &CurveTrack::rotate, &CurveTrack::setRotate)
         .def_property("shapeProbabilityBias", &CurveTrack::shapeProbabilityBias, &CurveTrack::setShapeProbabilityBias)
         .def_property("gateProbabilityBias", &CurveTrack::gateProbabilityBias, &CurveTrack::setGateProbabilityBias)
+        .def_property("curveCvInput", &CurveTrack::curveCvInput, &CurveTrack::setCurveCvInput)
         .def_property_readonly("sequences", [] (CurveTrack &curveTrack) {
             py::list result;
             for (int i = 0; i < CONFIG_PATTERN_COUNT; ++i) {

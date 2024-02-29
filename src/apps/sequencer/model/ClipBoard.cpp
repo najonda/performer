@@ -2,6 +2,7 @@
 
 #include "Model.h"
 #include "ModelUtils.h"
+#include "StochasticSequence.h"
 
 ClipBoard::ClipBoard(Project &project) :
     _project(project)
@@ -41,6 +42,18 @@ void ClipBoard::copyCurveSequenceSteps(const CurveSequence &curveSequence, const
     auto &curveSequenceSteps = _container.as<CurveSequenceSteps>();
     curveSequenceSteps.sequence = curveSequence;
     curveSequenceSteps.selected = selectedSteps;
+}
+
+void ClipBoard::copyStochasticSequence(const StochasticSequence &sequence) {
+    _type = Type::StochasticSequence;
+    _container.as<StochasticSequence>() = sequence;
+}
+
+void ClipBoard::copyStochasticSequenceSteps(const StochasticSequence &sequence, const SelectedSteps &selectedSteps) {
+    _type = Type::StochasticSequenceSteps;
+    auto &stochasticSequenceSteps = _container.as<StochasticSequenceSteps>();
+    stochasticSequenceSteps.sequence = sequence;
+    stochasticSequenceSteps.selected = selectedSteps;
 }
 
 void ClipBoard::copyPattern(int patternIndex) {
@@ -103,6 +116,21 @@ void ClipBoard::pasteCurveSequenceSteps(CurveSequence &curveSequence, const Sele
     }
 }
 
+
+void ClipBoard::pasteStochasticSequence(StochasticSequence &sequence) const {
+    if (canPasteStochasticSequence()) {
+        Model::WriteLock lock;
+        sequence = _container.as<StochasticSequence>();
+    }
+}
+
+void ClipBoard::pasteStochasticSequenceSteps(StochasticSequence &sequence, const SelectedSteps &selectedSteps) const {
+    if (canPasteStochasticSequenceSteps()) {
+        const auto &stochasticSequenceSteps = _container.as<StochasticSequenceSteps>();
+        ModelUtils::copySteps(stochasticSequenceSteps.sequence.steps(), stochasticSequenceSteps.selected, sequence.steps(), selectedSteps);
+    }
+}
+
 void ClipBoard::pastePattern(int patternIndex) const {
     if (canPastePattern()) {
         Model::WriteLock lock;
@@ -149,6 +177,14 @@ bool ClipBoard::canPasteCurveSequence() const {
 
 bool ClipBoard::canPasteCurveSequenceSteps() const {
     return _type == Type::CurveSequenceSteps;
+}
+
+bool ClipBoard::canPasteStochasticSequence() const {
+    return _type == Type::StochasticSequence;
+}
+
+bool ClipBoard::canPasteStochasticSequenceSteps() const {
+    return _type == Type::StochasticSequenceSteps;
 }
 
 bool ClipBoard::canPastePattern() const {

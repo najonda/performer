@@ -7,20 +7,17 @@
 #include "Types.h"
 #include "Scale.h"
 #include "Routing.h"
-#include "FileDefs.h"
 
 #include "core/math/Math.h"
 #include "core/utils/StringBuilder.h"
-#include "core/utils/StringUtils.h"
 
 #include <array>
 #include <bitset>
 #include <cstdint>
 #include <initializer_list>
 #include <iostream>
-#include <map>
 
-class NoteSequence {
+class StochasticSequence {
 public:
     //----------------------------------------
     // Types
@@ -34,8 +31,9 @@ public:
     typedef SignedValue<4> LengthVariationRange;
     typedef UnsignedValue<4> LengthVariationProbability;
     typedef SignedValue<7> Note;
-    typedef SignedValue<7> NoteVariationRange;
     typedef UnsignedValue<4> NoteVariationProbability;
+    typedef SignedValue<3> NoteOctave;
+    typedef UnsignedValue<4> NoteOctaveProbability;
     typedef UnsignedValue<7> Condition;
     typedef UnsignedValue<3> StageRepeats;
     typedef UnsignedValue<3> StageRepeatsMode;
@@ -53,11 +51,10 @@ public:
         Length,
         LengthVariationRange,
         LengthVariationProbability,
-        Note,
-        NoteVariationRange,
         NoteVariationProbability,
+        NoteOctave,
+        NoteOctaveProbability,
         Slide,
-        BypassScale,
         Condition,
         Last
     };
@@ -68,14 +65,13 @@ public:
         case Layer::GateProbability:            return "GATE PROB";
         case Layer::GateOffset:                 return "GATE OFFSET";
         case Layer::Slide:                      return "SLIDE";
-        case Layer::BypassScale:                 return "BYPASS SCALE";
         case Layer::Retrigger:                  return "RETRIG";
         case Layer::RetriggerProbability:       return "RETRIG PROB";
         case Layer::Length:                     return "LENGTH";
         case Layer::LengthVariationRange:       return "LENGTH RANGE";
         case Layer::LengthVariationProbability: return "LENGTH PROB";
-        case Layer::Note:                       return "NOTE";
-        case Layer::NoteVariationRange:         return "NOTE RANGE";
+        case Layer::NoteOctave:                 return "OCTAVE";
+        case Layer::NoteOctaveProbability:      return "OCTAVE PROB";
         case Layer::NoteVariationProbability:   return "NOTE PROB";
         case Layer::Condition:                  return "CONDITION";
         case Layer::StageRepeats:               return "REPEAT";
@@ -100,8 +96,13 @@ public:
 
     };
 
-    static constexpr size_t NameLength = FileHeader::NameLength;
-
+    enum Message {
+        None,
+        LoopOn,
+        LoopOff,
+        Cleared,
+        ReSeed,
+    };
 
     class Step {
 
@@ -109,7 +110,7 @@ public:
         //----------------------------------------
         // Properties
         //----------------------------------------
-
+        
         // stage
         void setStageRepeats(int repeats) {
             _data1.stageRepeats = StageRepeats::clamp(repeats);
@@ -120,9 +121,9 @@ public:
             _data1.stageRepeatMode = mode;
         }
 
-        StageRepeatMode stageRepeatMode() const {
+        StageRepeatMode stageRepeatMode() const { 
             int value = _data1.stageRepeatMode;
-            return static_cast<StageRepeatMode>(value);
+            return static_cast<StageRepeatMode>(value); 
         }
 
         // gate
@@ -197,11 +198,18 @@ public:
             _data0.note = Note::clamp(note) - Note::Min;
         }
 
-        // noteVariationRange
+        // noteOctave
 
-        int noteVariationRange() const { return NoteVariationRange::Min + _data0.noteVariationRange; }
-        void setNoteVariationRange(int noteVariationRange) {
-            _data0.noteVariationRange = NoteVariationRange::clamp(noteVariationRange) - NoteVariationRange::Min;
+        int noteOctave() const { return NoteOctave::Min + _data0.noteOctave; }
+        void setNoteOctave(int noteOctave) {
+            _data0.noteOctave = NoteOctave::clamp(noteOctave) - NoteOctave::Min;
+        }
+
+        // noteOctaveProbability
+
+        int noteOctaveProbability() const { return _data0.noteOctaveProbability; }
+        void setNoteOctaveProbability(int noteOctaveProbability) {
+            _data0.noteOctaveProbability = NoteOctaveProbability::clamp(noteOctaveProbability);
         }
 
         // noteVariationProbability
@@ -220,6 +228,7 @@ public:
 
         int layerValue(Layer layer) const;
         void setLayerValue(Layer layer, int value);
+
 
         bool bypassScale() const { return _data1.bypassScale ? true : false; }
         void setBypassScale(bool bypass) {
@@ -257,8 +266,10 @@ public:
             BitField<uint32_t, 6, LengthVariationRange::Bits> lengthVariationRange;
             BitField<uint32_t, 10, LengthVariationProbability::Bits> lengthVariationProbability;
             BitField<uint32_t, 14, Note::Bits> note;
-            BitField<uint32_t, 21, NoteVariationRange::Bits> noteVariationRange;
-            BitField<uint32_t, 28, NoteVariationProbability::Bits> noteVariationProbability;
+            BitField<uint32_t, 21, NoteOctave::Bits> noteOctave;
+            BitField<uint32_t, 24, NoteVariationProbability::Bits> noteVariationProbability;
+            BitField<uint32_t, 28, NoteOctaveProbability::Bits> noteOctaveProbability;
+            
         } _data0;
         union {
             uint32_t raw;
@@ -270,7 +281,7 @@ public:
             BitField<uint32_t, 16, Condition::Bits> condition;
             BitField<uint32_t, 23, StageRepeats::Bits> stageRepeats;
             BitField<uint32_t, 26, StageRepeatsMode::Bits> stageRepeatMode;
-            // 4 bits left
+            // 5 bits left
         } _data1;
     };
 
@@ -280,23 +291,6 @@ public:
     // Properties
     //----------------------------------------
 
-    // slot
-
-    int slot() const { return _slot; }
-    void setSlot(int slot) {
-        _slot = slot;
-    }
-    bool slotAssigned() const {
-        return _slot != uint8_t(-1);
-    }
-
-    // name
-
-    const char *name() const { return _name; }
-    void setName(const char *name) {
-        StringUtils::copy(_name, name, sizeof(_name));
-    }
-
     // trackIndex
 
     int trackIndex() const { return _trackIndex; }
@@ -304,42 +298,8 @@ public:
     // scale
 
     int scale() const { return _scale.get(isRouted(Routing::Target::Scale)); }
-    void setScale(int s, bool routed = false, int defaultScale = 0) {
-
-        auto &pScale = selectedScale(defaultScale);
-
-        _scale.set(clamp(s, -1, Scale::Count - 1), routed);
-
-        auto &aScale = selectedScale(s);
-
-        if (pScale == aScale) {
-            return;
-        }
-
-        if (s != -1 && aScale.isChromatic() && pScale.isChromatic() > 0) {
-            for (int i = 0; i < 64; ++i) {
-
-                auto pStep = _steps[i];
-
-                int rN = pScale.noteIndex(pStep.note(), selectedRootNote(0));
-                if (rN > 0) {
-                    if (aScale.isNotePresent(rN)) {
-                        int pNoteIndex = aScale.getNoteIndex(rN);
-                        step(i).setNote(pNoteIndex);
-                    } else {
-                        // search nearest note
-                        while (!aScale.isNotePresent(rN)) {
-                            rN--;
-                        }
-                        int pNoteIndex = aScale.getNoteIndex(rN);
-                        step(i).setNote(pNoteIndex);
-                    }
-                }
-
-
-            }
-        }
-
+    void setScale(int scale, bool routed = false) {
+        _scale.set(clamp(scale, -1, Scale::Count - 1), routed);
     }
 
     int indexedScale() const { return scale() + 1; }
@@ -349,7 +309,7 @@ public:
 
     void editScale(int value, bool shift, int defaultScale = 0) {
         if (!isRouted(Routing::Target::Scale)) {
-            setScale(value, false, defaultScale);
+            setScale(value, false);
         }
     }
 
@@ -379,7 +339,7 @@ public:
             setRootNote(rootNote() + value);
         }
     }
-
+ 
     void printRootNote(StringBuilder &str) const {
         printRouted(str, Routing::Target::RootNote);
         if (rootNote() < 0) {
@@ -459,23 +419,22 @@ public:
     // firstStep
 
     int firstStep() const {
-        return _firstStep.get(isRouted(Routing::Target::FirstStep));
+        return _firstStep;
     }
 
     void setFirstStep(int firstStep, bool routed = false) {
-        _firstStep.set(clamp(firstStep, 0, lastStep()), routed);
+        _firstStep= clamp(firstStep, 0, lastStep());
     }
 
     void editFirstStep(int value, bool shift) {
         if (shift) {
             offsetFirstAndLastStep(value);
-        } else if (!isRouted(Routing::Target::FirstStep)) {
+        } else  {
             setFirstStep(firstStep() + value);
         }
     }
 
     void printFirstStep(StringBuilder &str) const {
-        printRouted(str, Routing::Target::FirstStep);
         str("%d", firstStep() + 1);
     }
 
@@ -483,25 +442,283 @@ public:
 
     int lastStep() const {
         // make sure last step is always >= first step even if stored value is invalid (due to routing changes)
-        return std::max(firstStep(), int(_lastStep.get(isRouted(Routing::Target::LastStep))));
+        return std::max(firstStep(), int(_lastStep));
     }
 
     void setLastStep(int lastStep, bool routed = false) {
-        _lastStep.set(clamp(lastStep, firstStep(), CONFIG_STEP_COUNT - 1), routed);
+        _lastStep = clamp(lastStep, firstStep(), CONFIG_STEP_COUNT - 1);
     }
 
     void editLastStep(int value, bool shift) {
         if (shift) {
             offsetFirstAndLastStep(value);
-        } else if (!isRouted(Routing::Target::LastStep)) {
+        } else {
             setLastStep(lastStep() + value);
         }
     }
 
     void printLastStep(StringBuilder &str) const {
-        printRouted(str, Routing::Target::LastStep);
         str("%d", lastStep() + 1);
     }
+
+    void setStepBounds(int index) {
+        _firstStep = index;
+        _lastStep = index;    }
+
+    // rest probability 1 step
+
+    int restProbability() const { 
+        int prob = 8 - restProbability2() - restProbability4() - restProbability8();
+        if (prob < 0) {
+            prob = 0;
+        }
+        return prob;
+    }
+
+    void printRestProbability(StringBuilder &str) const {
+        str("%+.1f%%", restProbability() * 12.5f);
+    }
+
+    // rest probability 2 steps
+
+    int restProbability2() const { return _restProbability2.get(isRouted(Routing::Target::RestProbability2)); }
+    void setRestProbability2(int restProbability, bool routed = false) {
+        _restProbability2.set(clamp(restProbability, 0, 8), routed);
+    }
+
+    void editRestProbability2(int value, bool shift) {
+        if (!isRouted(Routing::Target::RestProbability2)) {
+            setRestProbability2(restProbability2() + value);
+        }
+    }
+
+    void printRestProbability2(StringBuilder &str) const {
+        printRouted(str, Routing::Target::RestProbability2);
+        str("%+.1f%%", restProbability2() * 12.5f);
+    }
+
+    // rest probability 4 steps
+
+    int restProbability4() const { return _restProbability4.get(isRouted(Routing::Target::RestProbability4)); }
+    void setRestProbability4(int restProbability, bool routed = false) {
+        _restProbability4.set(clamp(restProbability, 0, 8), routed);
+    }
+
+    void editRestProbability4(int value, bool shift) {
+        if (!isRouted(Routing::Target::RestProbability4)) {
+            setRestProbability4(restProbability4() + value);
+        }
+    }
+
+    void printRestProbability4(StringBuilder &str) const {
+        printRouted(str, Routing::Target::RestProbability4);
+        str("%+.1f%%", restProbability4() * 12.5f);
+    }
+
+    // rest probability 8 steps
+
+    int restProbability8() const { return _restProbability8.get(isRouted(Routing::Target::RestProbability8)); }
+    void setRestProbability8(int restProbability, bool routed = false) {
+        _restProbability8.set(clamp(restProbability, 0, 8), routed);
+    }
+
+    void editRestProbability8(int value, bool shift) {
+        if (!isRouted(Routing::Target::RestProbability8)) {
+            setRestProbability8(restProbability8() + value);
+        }
+    }
+
+    void printRestProbability8(StringBuilder &str) const {
+        printRouted(str, Routing::Target::RestProbability8);
+        str("%+.1f%%", restProbability8() * 12.5f);
+    }
+
+    // reseed
+
+    bool reseed() const {
+        return _reseed.get(isRouted(Routing::Target::Reseed));
+    }
+
+    void setReseed(int r, bool routed = false) {
+        if (!isRouted(Routing::Target::Reseed)) {
+            _reseed.set(r, routed);
+        }
+        if (reseed()) {
+            setMessage(Message::ReSeed);
+        }
+    }
+
+    // sequence loop last step
+
+    int sequenceLastStep() const {
+        return std::max(sequenceFirstStep(), int(_sequenceLastStep.get(isRouted(Routing::Target::SequenceLastStep))));
+    }
+
+    void setSequenceLastStep(int lastStep, bool routed = false) {
+         _sequenceLastStep.set(clamp(lastStep, sequenceFirstStep(), CONFIG_STEP_COUNT - 1), routed);
+    }
+
+    void editSequenceLastStep(int value, bool shift) {
+        if (shift) {
+            offsetSequenceFirstAndLastStep(value);
+        } else if (!isRouted(Routing::Target::SequenceLastStep)) {
+            setSequenceLastStep(sequenceLastStep() + value);
+        }
+    }
+
+    void printSequenceLastStep(StringBuilder &str) const {
+        printRouted(str, Routing::Target::SequenceLastStep);
+        str("%d", sequenceLastStep()+1);
+    }
+
+    // sequence loop first step
+
+     int sequenceFirstStep() const {
+        return _sequenceFirstStep.get(isRouted(Routing::Target::SequenceFirstStep));
+    }
+
+    void setSequenceFirstStep(int firstStep, bool routed = false) {
+        _sequenceFirstStep.set(clamp(firstStep, 0, sequenceLastStep()), routed);
+    }
+
+    void editSequenceFirstStep(int value, bool shift) {
+        if (shift) {
+            offsetSequenceFirstAndLastStep(value);
+        } else if (!isRouted(Routing::Target::FirstStep)) {
+            setSequenceFirstStep(sequenceFirstStep() + value);
+        }
+    }
+
+    void printSequenceFirstStep(StringBuilder &str) const {
+        printRouted(str, Routing::Target::SequenceFirstStep);
+        str("%d", sequenceFirstStep()+1);
+    }
+
+    // sequence length
+
+    int sequenceLength() {
+        return _sequenceLastStep.base - _sequenceFirstStep.base + 1;
+    }
+
+    // buffer loop length
+
+    int bufferLoopLength() {
+        int bufferLoopLength = 16;
+        if (_sequenceLastStep.base > 16) {
+            bufferLoopLength = _sequenceLastStep.base+1;
+        } 
+        return bufferLoopLength;
+    }
+
+    // use loop
+
+    void setUseLoop() {
+        _useLoop = !_useLoop;
+        if (_useLoop) {
+            setMessage(Message::LoopOn);
+        } else {
+            setMessage(Message::LoopOff);
+        }
+    }
+
+    void setUseLoop(bool value) {
+        _useLoop = value;
+    }
+
+    bool useLoop() {
+        return _useLoop;
+    }
+
+    const bool useLoop() const { return _useLoop;}
+
+    // clear loop
+
+    void setClearLoop(bool clearLoop) {
+        _clearLoop = clearLoop;
+        if (_clearLoop) {
+            setMessage(Message::Cleared);
+        }
+    }
+
+    bool clearLoop() {
+        return _clearLoop;
+    }
+
+    const bool clearLoop() const { return _clearLoop; }
+
+    // low octave range
+
+    int lowOctaveRange() const { return _lowOctaveRange.get(isRouted(Routing::Target::LowOctaveRange)); }
+    void setLowOctaveRange(int octave, bool routed = false) {
+        _lowOctaveRange.set(clamp(octave, -10, highOctaveRange()), routed);
+    }
+
+    void editLowOctaveRange(int value, bool shift) {
+        if (!isRouted(Routing::Target::LowOctaveRange)) {
+            setLowOctaveRange(lowOctaveRange() + value);
+        }
+    }
+
+    void printLowOctaveRange(StringBuilder &str) const {
+        printRouted(str, Routing::Target::LowOctaveRange);
+        str("%+d", lowOctaveRange());
+    }
+
+    // high octave range
+
+    int highOctaveRange() const { return _highOctaveRange.get(isRouted(Routing::Target::HighOctaveRange)); }
+    void setHighOctaveRange(int octave, bool routed = false) {
+        _highOctaveRange.set(clamp(octave, lowOctaveRange(), 10), routed);
+    }
+
+    void editHighOctaveRange(int value, bool shift) {
+        if (!isRouted(Routing::Target::HighOctaveRange)) {
+            setHighOctaveRange(highOctaveRange() + value);
+        }
+    }
+
+    void printHighOctaveRange(StringBuilder &str) const {
+        printRouted(str, Routing::Target::HighOctaveRange);
+        str("%+d", highOctaveRange());
+    }
+
+    // length modifier
+
+    int lengthModifier() const { return _lengthModifier.get(isRouted(Routing::Target::LengthModifier)); }
+    void setLengthModifier(int length, bool routed = false) {
+        _lengthModifier.set(clamp(length, -StochasticSequence::NoteVariationProbability::Range, StochasticSequence::NoteVariationProbability::Range), routed);
+    }
+
+    void editLengthModifier(int value, bool shift) {
+        if (!isRouted(Routing::Target::LengthModifier)) {
+            setLengthModifier(lengthModifier() + value);
+        }
+    }
+
+    void printLengthModifier(StringBuilder &str) const {
+        printRouted(str, Routing::Target::LengthModifier);
+        str("%+.1f%%", lengthModifier() * 12.5f);
+    }
+
+
+    Message message() {
+        return _message;
+    }
+
+    void setMessage(Message message) {
+        _message = message;
+    }
+
+    const bool isEmpty() const {
+        for (int i = 0; i < 12; ++i) {
+            auto s = step(i);
+            if (s.gate()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 
     // steps
 
@@ -523,11 +740,10 @@ public:
     // Methods
     //----------------------------------------
 
-    NoteSequence() { clear(); }
+    StochasticSequence() { clear(); }
 
     void clear();
     void clearSteps();
-    void clearStepsSelected(const std::bitset<CONFIG_STEP_COUNT> &selected);
 
     bool isEdited() const;
 
@@ -539,18 +755,7 @@ public:
     void duplicateSteps();
 
     void write(VersionedSerializedWriter &writer) const;
-    bool read(VersionedSerializedReader &reader);
-
-    int trackIndex() {
-        return _trackIndex;
-    }
-
-    int section() { return _section; }
-    const int section() const { return _section; }
-
-    void setSecion(int section) {
-        _section = section;
-    }
+    void read(VersionedSerializedReader &reader);
 
 private:
     void setTrackIndex(int trackIndex) { _trackIndex = trackIndex; }
@@ -566,25 +771,45 @@ private:
         }
     }
 
-    uint8_t _slot = uint8_t(-1);
-    char _name[NameLength + 1];
+    void offsetSequenceFirstAndLastStep(int value) {
+        value = clamp(value, -sequenceFirstStep(), CONFIG_STEP_COUNT - 1 - sequenceLastStep());
+        if (value > 0) {
+            editSequenceLastStep(value, false);
+            editSequenceFirstStep(value, false);
+        } else {
+            editSequenceFirstStep(value, false);
+            editSequenceLastStep(value, false);
+        }
+    }
+
     int8_t _trackIndex = -1;
     Routable<int8_t> _scale;
-
-    int _previousScale;
-
     Routable<int8_t> _rootNote;
     Routable<uint16_t> _divisor;
     uint8_t _resetMeasure;
     Routable<Types::RunMode> _runMode;
-    Routable<uint8_t> _firstStep;
-    Routable<uint8_t> _lastStep;
+    uint8_t _firstStep;
+    uint8_t _lastStep;
+    Routable<bool> _reseed;
 
+    Routable<int8_t> _restProbability2;
+    Routable<int8_t> _restProbability4;
+    Routable<int8_t> _restProbability8;
+
+    Routable<uint8_t> _sequenceLastStep;
+    Routable<uint8_t> _sequenceFirstStep;
+
+    Routable<int8_t> _lowOctaveRange;
+    Routable<int8_t> _highOctaveRange;
+
+    Routable<int8_t> _lengthModifier;
+    
     StepArray _steps;
 
-    uint8_t _edited;
+    bool _useLoop = false;
+    bool _clearLoop = false;
 
-    int _section = 0;
+    Message _message = Message::None;
 
-    friend class NoteTrack;
+    friend class StochasticTrack;
 };

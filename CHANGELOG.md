@@ -1,5 +1,31 @@
 # Changelog
 
+# v0.2.0 (29 Febrary 2024)
+- Stochastic Track
+    - global octave modifier
+    - launchpad control general octave
+    - loop and lock loop
+    - reseed
+    - rest probability 2,4,8 steps
+    - global gate length modifier
+    - clipboard actions
+    - generators  
+- Load/Save Sequence to use a sequence library (fast switch on loading)
+- Launchpad Performance Mode `8`+`3` (`2`+`GRID2` -> quick set lenght sequence; `2`+`GRID1` -> overview page )
+- Submenu shortcuts (double click F[1-5] to enter project, layout, routing, midi out, user scale)
+- Page buttons on launchpad circuit note edit
+- Extend gate Lenght to 4bits [@glibersat](https://github.com/glibersat)
+- Multi Curve CV Recording (cv curve input has been moved in track page)
+- quick change octave shortuct (step+F[1-5]) 1-5V
+- quick gate accent launchpad control on gate page and circuit page (`7`+`GRID`)
+- add steps to stop feature in project page. Once started when the engine reaches the steps to stop value the clock will stop.
+- improved overview page. quick edit tracks
+-
+
+> **testers** :
+>  
+> mebitek, Guillaume Libersat, Nick Ansell, XponentOne, dblu2000, hales2488, XQSTKRPS, KittenVillage, Andreas Hieninger
+
 # v0.1.4.48 (30 January 2024)
 - Moving steps in a sequence
 - INIT by step selected
@@ -15,7 +41,7 @@
 # v0.1.4.47 (24 January 2024)
 - launchpad circuit mode improvements
 - random generator: random seed just on init method
-- patter follow
+- patter follow [@glibersat](https://github.com/glibersat)
 - pattern chain quick shortcut from pattern page
 - scale edit: scales are changed only if the encoder is pressed
 - on scale change the sequence notes are changed according to the previous scale. if a note in the previous scale is also present in the new scale the value is preeserved. if it is not present the nearest note in the new scale will be selected
@@ -23,7 +49,7 @@
 
 ## v0.1.46 (4 January 2024)
 
-- UI note edit page reaggment
+- UI note edit page reaggment [@aclangor](https://github.com/aclangor)
 - song sync with clock
 - fix reverse shape feature
 - add new shapes

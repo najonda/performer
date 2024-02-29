@@ -142,6 +142,10 @@ TrackEngine::TickResult NoteTrackEngine::tick(uint32_t tick) {
         uint32_t resetDivisor = sequence.resetMeasure() * _engine.measureDivisor();
         uint32_t relativeTick = resetDivisor == 0 ? tick : tick % resetDivisor;
 
+        if (int(_model.project().stepsToStop()) != 0 && int(relativeTick / divisor) == int(_model.project().stepsToStop())) {
+            _engine.clockStop();
+        }
+
         // handle reset measure
         if (relativeTick == 0) {
             reset();
@@ -173,23 +177,34 @@ TrackEngine::TickResult NoteTrackEngine::tick(uint32_t tick) {
                 _freeRelativeTick = 0;
             }
             if (relativeTick == 0) {
-
                 if (_currentStageRepeat == 1) {
                      _sequenceState.advanceFree(sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
+                     _sequenceState.calculateNextStepFree(
+                        sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
                 }
 
                 recordStep(tick, divisor);
                 const auto &step = sequence.step(_sequenceState.step());
-                bool isLastStageStep = ((int) (step.stageRepeats()+1) - (int) _currentStageRepeat) <= 0;
+                bool isLastStageStep = ((int) step.stageRepeats() - (int) _currentStageRepeat) <= 0;
+            
+                if (step.gateOffset() >= 0) {
+                    triggerStep(tick, divisor);
+                }
 
-                triggerStep(tick+divisor, divisor);
+                if (!isLastStageStep && step.gateOffset() < 0) {
+                    triggerStep(tick + divisor, divisor, false);
+                }
 
+                if (isLastStageStep 
+                        && sequence.step(_sequenceState.nextStep()).gateOffset() < 0) {
+                    triggerStep(tick + divisor, divisor, true);
+                }
+               
                 if (isLastStageStep) {
-                   _currentStageRepeat = 1;
+                   _currentStageRepeat = 1; 
                 } else {
                     _currentStageRepeat++;
                 }
-
             }
             break;
         case Types::PlayMode::Last:
@@ -390,7 +405,7 @@ void NoteTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextS
             break;
         case NoteSequence::StageRepeatMode::Random:
                 srand((unsigned int)time(NULL));
-                int rndMode = 0 + ( std::rand() % ( 6 - 0 + 1 ) );
+                int rndMode = rng.nextRange(6);
                 switch (rndMode) {
                     case 0:
                         break;
@@ -467,7 +482,7 @@ void NoteTrackEngine::recordStep(uint32_t tick, uint32_t divisor) {
         step.setNoteVariationRange(0);
         step.setNoteVariationProbability(NoteSequence::NoteVariationProbability::Max);
         step.setCondition(Types::Condition::Off);
-        step.setStageRepeats(1);
+
 
         stepWritten = true;
     };

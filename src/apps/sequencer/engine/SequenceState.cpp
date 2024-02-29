@@ -17,80 +17,21 @@ void SequenceState::reset() {
 }
 
 void SequenceState::advanceFree(Types::RunMode runMode, int firstStep, int lastStep, Random &rng) {
-    ASSERT(firstStep <= lastStep, "invalid first/last step");
+     ASSERT(firstStep <= lastStep, "invalid first/last step");
 
-   _prevStep = _step;
-
-    if (_step == -1) {
-        // first step
-        switch (runMode) {
-        case Types::RunMode::Forward:
-        case Types::RunMode::Pendulum:
-        case Types::RunMode::PingPong:
-            _step = firstStep;
-            break;
-        case Types::RunMode::Backward:
-            _step = lastStep;
-            break;
-        case Types::RunMode::Random:
-        case Types::RunMode::RandomWalk:
-            _step = randomStep(firstStep, lastStep, rng);
-            break;
-        case Types::RunMode::Last:
-            break;
-        }
-    } else {
-        // advance step
-        _step = clamp(int(_step), firstStep, lastStep);
-
-        switch (runMode) {
-        case Types::RunMode::Forward:
-            if (_step >= lastStep) {
-                _step = firstStep;
-                ++_iteration;
-            } else {
-                ++_step;
-            }
-            break;
-        case Types::RunMode::Backward:
-            if (_step <= firstStep) {
-                _step = lastStep;
-                ++_iteration;
-            } else {
-                --_step;
-            }
-            break;
-        case Types::RunMode::Pendulum:
-        case Types::RunMode::PingPong:
-            if (_direction > 0 && _step >= lastStep) {
-                _direction = -1;
-            } else if (_direction < 0 && _step <= firstStep) {
-                _direction = 1;
-                ++_iteration;
-            } else {
-                if (runMode == Types::RunMode::Pendulum) {
-                    _step += _direction;
-                }
-            }
-            if (runMode == Types::RunMode::PingPong) {
-                _step += _direction;
-            }
-            break;
-        case Types::RunMode::Random:
-            _step = randomStep(firstStep, lastStep, rng);
-            break;
-        case Types::RunMode::RandomWalk:
-            advanceRandomWalk(firstStep, lastStep, rng);
-            break;
-        case Types::RunMode::Last:
-            break;
-        }
+    if (_nextStep < 0) {
+        calculateNextStepFree(runMode, firstStep, lastStep, rng);
     }
+
+    _iteration = _nextIteration;
+    _prevStep = _step;
+    _step = _nextStep;
+    _nextStep = -1;
 }
 
 void SequenceState::calculateNextStepFree(Types::RunMode runMode, int firstStep, int lastStep, Random &rng) {
 
-    if (_nextStep == -1) {
+if (_step == -1) {
         // first step
         switch (runMode) {
         case Types::RunMode::Forward:
@@ -116,20 +57,18 @@ void SequenceState::calculateNextStepFree(Types::RunMode runMode, int firstStep,
         case Types::RunMode::Forward:
             if (_step >= lastStep) {
                 _nextStep = firstStep;
-                ++_nextIteration;
+                _nextIteration = _iteration + 1 ;
             } else {
-                ++_nextStep;
+                _nextStep = _step + 1;
             }
-            _direction = 1;
             break;
         case Types::RunMode::Backward:
             if (_step <= firstStep) {
                 _nextStep = lastStep;
-                ++_nextIteration;
+                _nextIteration = _iteration + 1 ;
             } else {
-                --_nextStep;
+                _nextStep = _step - 1;
             }
-            _direction = -1;
             break;
         case Types::RunMode::Pendulum:
         case Types::RunMode::PingPong:
@@ -137,14 +76,14 @@ void SequenceState::calculateNextStepFree(Types::RunMode runMode, int firstStep,
                 _direction = -1;
             } else if (_direction < 0 && _step <= firstStep) {
                 _direction = 1;
-                ++_nextIteration;
+                _nextIteration = _iteration + 1 ;
             } else {
                 if (runMode == Types::RunMode::Pendulum) {
-                    _nextStep += _direction;
+                    _nextStep = _step + _direction;
                 }
             }
             if (runMode == Types::RunMode::PingPong) {
-                _nextStep += _direction;
+                _nextStep = _step + _direction;
             }
             break;
         case Types::RunMode::Random:
