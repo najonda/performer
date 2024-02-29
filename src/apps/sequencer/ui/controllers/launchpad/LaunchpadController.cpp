@@ -1386,7 +1386,7 @@ void LaunchpadController::performerDraw() {
                     switch (track.trackMode()) {
                         case Track::TrackMode::Note: {
                                 const auto &trackEngine = _engine.trackEngine(row).as<NoteTrackEngine>();
-                                if (_performFollowMode) {
+                                if (_performFollowMode || track.noteTrack().patternFollow() == Types::PatternFollow::DispAndLP || track.noteTrack().patternFollow() == Types::PatternFollow::LaunchPad) {
                                     int stepOffset = (std::max(0, trackEngine.currentStep()) / 8) * 8;
                                     stepIndex = stepOffset + col;
                                 }
