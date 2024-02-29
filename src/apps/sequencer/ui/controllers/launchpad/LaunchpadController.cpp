@@ -946,17 +946,21 @@ void LaunchpadController::sequenceEditStochasticStep(int row, int col) {
     auto layer = _project.selectedStochasticSequenceLayer();
 
     int gridIndex = row * 8 + col;
-    if (gridIndex>11) {
-        return;
-    }
+
     int linearIndex = col + _sequence.navigation.col * 8;
     int value = (7 - row) + _sequence.navigation.row * 8;
 
     switch (layer) {
     case StochasticSequence::Layer::Gate:
+        if (gridIndex>11) {
+            return;
+        }
         sequence.step(gridIndex).toggleGate();
         break;
     case StochasticSequence::Layer::Slide:
+        if (gridIndex>11) {
+            return;
+        }
         sequence.step(gridIndex).toggleSlide();
         break;
     default:
