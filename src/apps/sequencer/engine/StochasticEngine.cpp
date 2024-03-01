@@ -232,33 +232,6 @@ TrackEngine::TickResult StochasticEngine::tick(uint32_t tick) {
         }
             break;
         case Types::PlayMode::Free: 
-            relativeTick = _freeRelativeTick;
-            if (++_freeRelativeTick >= divisor) {
-                _freeRelativeTick = 0;
-            }
-            if (relativeTick == 0) {
-
-                if (_currentStageRepeat == 1) {
-                    if (sequence.useLoop()) {
-                        _sequenceState.advanceFree(sequence.runMode(), sequence.sequenceFirstStep(), sequence.sequenceLastStep(), rng);
-                    } else {
-                        _sequenceState.advanceFree(sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
-                    }
-                }
-
-                recordStep(tick, divisor);
-                const auto &step = sequence.step(_sequenceState.step());
-                bool isLastStageStep = ((int) (step.stageRepeats()+1) - (int) _currentStageRepeat) <= 0;
-
-                triggerStep(tick+divisor, divisor);
-
-                if (isLastStageStep) {
-                   _currentStageRepeat = 1;
-                } else {
-                    _currentStageRepeat++;
-                }
-
-            }
             break;
         case Types::PlayMode::Last:
             break;
@@ -540,56 +513,6 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
         stepGate = subArray.at(_index).gate();
         step = subArray.at(_index).step();
-        switch (step.stageRepeatMode()) {
-            case StochasticSequence::StageRepeatMode::Each:
-                break;
-            case StochasticSequence::StageRepeatMode::First:
-                stepGate = stepGate && _currentStageRepeat == 1;
-                break;
-            case StochasticSequence::StageRepeatMode::Last:
-                stepGate = stepGate && _currentStageRepeat == step.stageRepeats()+1;
-                break;
-            case StochasticSequence::StageRepeatMode::Middle:
-                stepGate = stepGate && _currentStageRepeat == (step.stageRepeats()+1)/2;
-                break;
-            case StochasticSequence::StageRepeatMode::Odd:
-                stepGate = stepGate && _currentStageRepeat % 2 != 0;
-                break;
-            case StochasticSequence::StageRepeatMode::Even:
-                stepGate = stepGate && _currentStageRepeat % 2 == 0;
-                break;
-            case StochasticSequence::StageRepeatMode::Triplets:
-                stepGate = stepGate && (_currentStageRepeat - 1) % 3 == 0;
-                break;
-            case StochasticSequence::StageRepeatMode::Random:
-                    srand((unsigned int)time(NULL));
-                    int rndMode = rng.nextRange(6);
-                    switch (rndMode) {
-                        case 0:
-                            break;
-                        case 1:
-                            stepGate = stepGate && _currentStageRepeat == 1;
-                            break;
-                        case 2:
-                            stepGate = stepGate && _currentStageRepeat == step.stageRepeats()+1;
-                            break;
-                        case 3:
-                            stepGate = stepGate && _currentStageRepeat % (((step.stageRepeats()+1)/2)+1) == 0;
-                            break;
-                        case 4:
-                            stepGate = stepGate && _currentStageRepeat % 2 != 0;
-                            break;
-                        case 5:
-                            stepGate = stepGate && _currentStageRepeat % 2 == 0;
-                            break;
-                        case 6:
-                            stepGate = stepGate && (_currentStageRepeat - 1) % 3 == 0;
-                            break;
-                    
-                    }
-                    break;
-        }
-
 
         int gateOffset = ((int) divisor * step.gateOffset()) / (StochasticSequence::GateOffset::Max + 1);
         stepTick = (int) tick + gateOffset;
