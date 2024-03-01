@@ -2049,10 +2049,20 @@ void LaunchpadController::drawStochasticSequenceNotes(const StochasticSequence &
         auto stochasticEngine = _engine.selectedTrackEngine().as<StochasticEngine>();
         for (int col = 0; col < 8; ++col) {
             if (col == stochasticEngine.currentIndex()%8) {
-                if (stochasticEngine.currentIndex()<=8) {
+                if (stochasticEngine.currentIndex()<8) {
+                    setCustomGridLed(2, col, Color(1,0));
+                } else if (stochasticEngine.currentIndex() >=8 && stochasticEngine.currentIndex() <16) {
+                    setCustomGridLed(2, col, Color(1,1));
+                } else if (stochasticEngine.currentIndex() >=16 && stochasticEngine.currentIndex() <24) {
+                    setCustomGridLed(2, col, Color(1,2));
+                } else if (stochasticEngine.currentIndex() >=24 && stochasticEngine.currentIndex() <32) { 
                     setCustomGridLed(2, col, Color(1,3));
-                } else {
+                } else if (stochasticEngine.currentIndex() >=40 && stochasticEngine.currentIndex() <48) {
                     setCustomGridLed(2, col, Color(2,0));
+                } else if (stochasticEngine.currentIndex() >=48 && stochasticEngine.currentIndex() <56) {
+                    setCustomGridLed(2, col, Color(2,1));
+                } else {
+                    setCustomGridLed(2, col, Color(2,2));
                 }
             } else {
                 setGridLed(2, col, colorOff());

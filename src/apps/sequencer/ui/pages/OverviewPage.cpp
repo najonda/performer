@@ -538,7 +538,7 @@ void OverviewPage::encoder(EncoderEvent &event) {
                     }
                 }
         }
-
+        break;
         case Track::TrackMode::Curve: {
             auto &sequence = _project.selectedCurveSequence();
                 for (size_t stepIndex = 0; stepIndex < sequence.steps().size(); ++stepIndex) {
@@ -740,18 +740,6 @@ void OverviewPage::drawStochasticDetail(Canvas &canvas, const StochasticSequence
     canvas.setColor(Color::Bright);
     canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
     canvas.setFont(Font::Tiny);
-
-    SequencePainter::drawProbability(
-            canvas,
-            64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.gateProbability(), CurveSequence::GateProbability::Range-1
-        );
-        str.reset();
-        str("%.1f%%", 100.f * (step.gateProbability()) / (CurveSequence::GateProbability::Range-1));
-        canvas.setColor(Color::Bright);
-        canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
-
-        canvas.setFont(Font::Tiny);
 }
 
 void OverviewPage::updateMonitorStep() {

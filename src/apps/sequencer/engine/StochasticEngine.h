@@ -180,7 +180,6 @@ private:
 
     int _skips;
 
-    std::vector<StochasticLoopStep> _inMemSteps;
     std::vector<StochasticLoopStep> _lockedSteps;
 
     struct Gate {

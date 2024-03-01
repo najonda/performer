@@ -151,7 +151,7 @@ private:
         case TrackName:
             break;
         case PlayMode:
-            _track->editPlayMode(value, shift);
+            //_track->editPlayMode(value, shift);
             break;
         /*case FillMode:
             _track->editFillMode(value, shift);
