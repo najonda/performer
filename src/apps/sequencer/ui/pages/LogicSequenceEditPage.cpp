@@ -93,7 +93,6 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
     const auto &trackEngine = _engine.selectedTrackEngine().as<LogicTrackEngine>();
 
     auto &sequence = _project.selectedLogicSequence();
-    const auto &scale = sequence.selectedScale(_project.scale());
     int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
     int currentRecordStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentRecordStep() : -1;
 
@@ -784,9 +783,6 @@ void LogicSequenceEditPage::updateMonitorStep() {
 }
 
 void LogicSequenceEditPage::drawDetail(Canvas &canvas, const LogicSequence::Step &step) {
-
-    const auto &sequence = _project.selectedLogicSequence();
-    const auto &scale = sequence.selectedScale(_project.scale());
 
     FixedStringBuilder<16> str;
 
