@@ -2,6 +2,7 @@
 
 #include "Config.h"
 
+#include "LogicSequence.h"
 #include "StochasticSequence.h"
 #include "Track.h"
 #include "NoteSequence.h"
@@ -28,6 +29,8 @@ public:
     void copyCurveSequenceSteps(const CurveSequence &curveSequence, const SelectedSteps &selectedSteps);
     void copyStochasticSequence(const StochasticSequence &noteSequence);
     void copyStochasticSequenceSteps(const StochasticSequence &noteSequence, const SelectedSteps &selectedSteps);
+    void copyLogicSequence(const LogicSequence &noteSequence);
+    void copyLogicSequenceSteps(const LogicSequence &noteSequence, const SelectedSteps &selectedSteps);
     void copyPattern(int patternIndex);
     void copyUserScale(const UserScale &userScale);
 
@@ -38,6 +41,8 @@ public:
     void pasteCurveSequenceSteps(CurveSequence &curveSequence, const SelectedSteps &selectedSteps) const;
     void pasteStochasticSequence(StochasticSequence &noteSequence) const;
     void pasteStochasticSequenceSteps(StochasticSequence &noteSequence, const SelectedSteps &selectedSteps) const;
+    void pasteLogicSequence(LogicSequence &noteSequence) const;
+    void pasteLogicSequenceSteps(LogicSequence &noteSequence, const SelectedSteps &selectedSteps) const;
     void pastePattern(int patternIndex) const;
     void pasteUserScale(UserScale &userScale) const;
 
@@ -48,6 +53,8 @@ public:
     bool canPasteCurveSequenceSteps() const;
     bool canPasteStochasticSequence() const;
     bool canPasteStochasticSequenceSteps() const;
+    bool canPasteLogicSequence() const;
+    bool canPasteLogicSequenceSteps() const;
     bool canPastePattern() const;
     bool canPasteUserScale() const;
 
@@ -61,6 +68,8 @@ private:
         CurveSequenceSteps,
         StochasticSequence,
         StochasticSequenceSteps,
+        LogicSequence,
+        LogicSequenceSteps,
         Pattern,
         UserScale,
     };
@@ -80,6 +89,11 @@ private:
         SelectedSteps selected;
     };
 
+    struct LogicSequenceSteps {
+        LogicSequence sequence;
+        SelectedSteps selected;
+    };
+
     struct Pattern {
         struct {
             Track::TrackMode trackMode;
@@ -92,5 +106,5 @@ private:
 
     Project &_project;
     Type _type = Type::None;
-    Container<Track, NoteSequence, NoteSequenceSteps, CurveSequence, CurveSequenceSteps, StochasticSequence, StochasticSequenceSteps, Pattern, UserScale> _container;
+    Container<Track, NoteSequence, NoteSequenceSteps, CurveSequence, CurveSequenceSteps, StochasticSequence, StochasticSequenceSteps, LogicSequence, LogicSequenceSteps, Pattern, UserScale> _container;
 };

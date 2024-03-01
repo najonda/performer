@@ -1059,33 +1059,31 @@ void LogicSequenceEditPage::contextAction(int index) {
 }
 
 bool LogicSequenceEditPage::contextActionEnabled(int index) const {
-    /*switch (ContextAction(index)) {
+    switch (ContextAction(index)) {
     case ContextAction::Paste:
         return _model.clipBoard().canPasteLogicSequenceSteps();
     default:
         return true;
     }
-    */
-    return true;
 }
 
 void LogicSequenceEditPage::initSequence() {
-    //_project.selectedLogicSequence().clearStepsSelected(_stepSelection.selected());
+    _project.selectedLogicSequence().clearStepsSelected(_stepSelection.selected());
     showMessage("STEPS INITIALIZED");
 }
 
 void LogicSequenceEditPage::copySequence() {
-    //_model.clipBoard().copyLogicSequenceSteps(_project.selectedLogicSequence(), _stepSelection.selected());
+    _model.clipBoard().copyLogicSequenceSteps(_project.selectedLogicSequence(), _stepSelection.selected());
     showMessage("STEPS COPIED");
 }
 
 void LogicSequenceEditPage::pasteSequence() {
-    //_model.clipBoard().pasteLogicSequenceSteps(_project.selectedLogicSequence(), _stepSelection.selected());
+    _model.clipBoard().pasteLogicSequenceSteps(_project.selectedLogicSequence(), _stepSelection.selected());
     showMessage("STEPS PASTED");
 }
 
 void LogicSequenceEditPage::duplicateSequence() {
-    //_project.selectedLogicSequence().duplicateSteps();
+    _project.selectedLogicSequence().duplicateSteps();
     showMessage("STEPS DUPLICATED");
 }
 
