@@ -99,8 +99,8 @@ public:
         Or,
         Xor,
         Nand,
-        Nor,
-        Xnor
+        RandomInput,
+        RandomLogic
     };
 
     static constexpr size_t NameLength = FileHeader::NameLength;

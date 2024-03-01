@@ -389,17 +389,55 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         case LogicSequence::GateLogicMode::Or:
             stepGate = step.gate() && (step.inputGate1() | step.inputGate2());
             break;
-        case LogicSequence::GateLogicMode::Nor:
-            stepGate = step.gate() && !(step.inputGate1() | step.inputGate2());
+        case LogicSequence::GateLogicMode::Xor:
+            stepGate = step.gate() && step.inputGate1() xor step.inputGate2();
             break;
         case LogicSequence::GateLogicMode::Nand:
             stepGate = step.gate() && !(step.inputGate1() & step.inputGate2());
             break;
-        case LogicSequence::GateLogicMode::Xor:
-            stepGate = step.gate() && step.inputGate1() xor step.inputGate2();
+        case LogicSequence::GateLogicMode::RandomInput: {
+                int rnd = rng.nextRange(2);
+                if (rnd == 0) {
+                    stepGate = step.gate() && step.inputGate1();
+                } else {
+                    stepGate = step.gate() && step.inputGate2();
+                }
+            }
             break;
-        case LogicSequence::GateLogicMode::Xnor:
-            break;
+        case LogicSequence::GateLogicMode::RandomLogic: {
+                    rng = Random(time(NULL));
+                    int rndMode = rng.nextRange(6);
+                    switch (rndMode) {
+                        case 0:
+                            stepGate = step.gate() && step.inputGate1();
+                            break;
+                        case 1:
+                            stepGate = step.gate() && step.inputGate2();
+                            break;
+                        case 2:
+                            stepGate = step.gate() && (step.inputGate1() & step.inputGate2());
+                            break;
+                        case 3:
+                            stepGate = step.gate() && (step.inputGate1() | step.inputGate2());
+                            break;
+                        case 4:
+                            stepGate = step.gate() && step.inputGate1() xor step.inputGate2();
+                            break;
+                        case 5:
+                            stepGate = step.gate() && !(step.inputGate1() & step.inputGate2());
+                            break;
+                        case 6:
+                            int rnd = rng.nextRange(2);
+                            if (rnd == 0) {
+                                stepGate = step.gate() && step.inputGate1();
+                            } else {
+                                stepGate = step.gate() && step.inputGate2();
+                            }
+                            break;
+
+                    }
+                }
+                break;
         default:
             break;
     }
@@ -429,7 +467,7 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
             stepGate = stepGate && (_currentStageRepeat - 1) % 3 == 0;
             break;
         case Types::StageRepeatMode::Random:
-                srand((unsigned int)time(NULL));
+                rng = Random(time(NULL));
                 int rndMode = rng.nextRange(6);
                 switch (rndMode) {
                     case 0:

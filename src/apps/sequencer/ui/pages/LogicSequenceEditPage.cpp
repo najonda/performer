@@ -793,6 +793,12 @@ void LogicSequenceEditPage::drawDetail(Canvas &canvas, const LogicSequence::Step
     case Layer::GateLogic:
         str.reset();
         switch (step.gateLogic()) {
+            case LogicSequence::GateLogicMode::One:
+                str("INPUT 1");
+                break;
+            case LogicSequence::GateLogicMode::Two:
+                str("INPUT 2");
+                break;
             case LogicSequence::GateLogicMode::And:
                 str("AND");
                 break;
@@ -802,20 +808,15 @@ void LogicSequenceEditPage::drawDetail(Canvas &canvas, const LogicSequence::Step
             case LogicSequence::GateLogicMode::Xor:
                 str("XOR");
                 break;
-            case LogicSequence::GateLogicMode::Nor:
-                str("NOR");
-                break;
             case LogicSequence::GateLogicMode::Nand:
                 str("NAND");
                 break;
-            case LogicSequence::GateLogicMode::One:
-                str("INPUT 1");
+            
+            case LogicSequence::GateLogicMode::RandomInput:
+                str("RND INPUT");
                 break;
-            case LogicSequence::GateLogicMode::Two:
-                str("INPUT 2");
-                break;
-            case LogicSequence::GateLogicMode::Xnor:
-                str("XNOR");
+            case LogicSequence::GateLogicMode::RandomLogic:
+                str("RND LOGIC");
                 break;
             default:
                 break;

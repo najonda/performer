@@ -168,28 +168,28 @@ void SequencePainter::drawGateLogicMode(Canvas &canvas, int x, int y, int w, int
 
     switch (mode) {
         case LogicSequence::GateLogicMode::One:
-            canvas.drawText(x-1, y+4, "1");
+            canvas.drawTextCentered(x, y+4, 8, -8, "1");
             break;
         case LogicSequence::GateLogicMode::Two:
-            canvas.drawText(x-1, y+4, "2");
+            canvas.drawTextCentered(x, y+4, 8, -8, "2");
             break;
         case LogicSequence::GateLogicMode::And:
-            canvas.drawText(x-1, y+4, "&");
+            canvas.drawTextCentered(x, y+4, 8, -8, "&");
             break;
         case LogicSequence::GateLogicMode::Or:
-            canvas.drawText(x-1, y+4, "|");
+            canvas.drawTextCentered(x, y+4, 8, -8, "|");
             break;
         case LogicSequence::GateLogicMode::Xor:
-            canvas.drawText(x-1, y+4, "X|");
-            break;
-        case LogicSequence::GateLogicMode::Xnor:
-            canvas.drawText(x-1, y+4, "X!|");
+            canvas.drawTextCentered(x, y+4, 8, -8, "x|");
             break;
         case LogicSequence::GateLogicMode::Nand:
-            canvas.drawText(x-1, y+4, "!&");
+            canvas.drawTextCentered(x, y+4, 8, -8, "!&");
             break;
-        case LogicSequence::GateLogicMode::Nor:
-            canvas.drawText(x-1, y+4, "!|");
+        case LogicSequence::GateLogicMode::RandomInput:
+            canvas.drawTextCentered(x, y+4, 8, -8, "1?2");
+            break;
+        case LogicSequence::GateLogicMode::RandomLogic:
+            canvas.drawTextCentered(x, y+4, 8, -8, "????");
             break;
     }
 }
