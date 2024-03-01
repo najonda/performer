@@ -10,6 +10,12 @@
 class NoteTrackListModel : public RoutableListModel {
 public:
 
+    NoteTrackListModel() {
+        for (int i = 0; i< 8; ++i) {
+            _selectedTrack[i] = -1;
+        }
+    }
+
     void setTrack(NoteTrack &track) {
         _track = &track;
     }
@@ -211,13 +217,16 @@ private:
             _track->editPatternFollow(value, shift);
             break;
         case LogicTrack: {
+
+                if (_track->logicTrackInput() != -1) {
+                    break;
+                }
                 if (value == -1 && _selectedTrack[_track->trackIndex()] == -1) {
                     break;
                 }
 
                 if (value == -1 && _selectedTrack[_track->trackIndex()] == _availableLogicTracks.front()) {
                     _track->setLogicTrack(-1);
-                    _track->setLogicTrackInput(-1);
                     _selectedTrack[_track->trackIndex()] = -1;
                     break;
                 }
