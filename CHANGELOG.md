@@ -25,7 +25,6 @@
 - quick gate accent launchpad control on gate page and circuit page (`7`+`GRID`)
 - add steps to stop feature in project page. Once started when the engine reaches the steps to stop value the clock will stop.
 - improved overview page. quick edit tracks
--
 
 > **testers** :
 >  
