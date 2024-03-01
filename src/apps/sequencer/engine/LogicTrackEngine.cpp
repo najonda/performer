@@ -12,6 +12,7 @@
 #include "model/LogicSequence.h"
 #include "model/Scale.h"
 #include "ui/MatrixMap.h"
+#include <algorithm>
 #include <climits>
 #include <iostream>
 #include <ctime>
@@ -73,23 +74,74 @@ static int evalTransposition(const Scale &scale, int octave, int transpose) {
 }
 
 // evaluate note voltage
-static float evalStepNote(const LogicSequence::Step &step, int probabilityBias, const Scale &scale, int rootNote, int octave, int transpose, bool useVariation = true) {
+static float evalStepNote(const LogicSequence::Step &step, int probabilityBias, const Scale &scale, int rootNote, int octave, int transpose, int note1, int note2, bool useVariation = true) {
 
-
-    /*if (step.bypassScale()) {
-        const Scale &bypassScale = Scale::get(0);
-        int note = step.note() + evalTransposition(bypassScale, octave, transpose);
-        int probability = clamp(step.noteVariationProbability() + probabilityBias, -1, LogicSequence::NoteVariationProbability::Max);
-        if (useVariation && int(rng.nextRange(LogicSequence::NoteVariationProbability::Range)) <= probability) {
-            int offset = step.noteVariationRange() == 0 ? 0 : rng.nextRange(std::abs(step.noteVariationRange()) + 1);
-            if (step.noteVariationRange() < 0) {
-                offset = -offset;
+    auto stepNote = step.note();
+    switch (step.noteLogic()) {
+        case LogicSequence::NOne:
+            stepNote = note1;
+            break;
+        case LogicSequence::NTwo:
+            stepNote = note2;
+            break;
+        case LogicSequence::Min:
+            stepNote = std::min(note1, note2);
+            break;
+        case LogicSequence::Max:
+            stepNote = std::max(note1, note2);
+            break;
+        case LogicSequence::Op1:
+            break;
+        case LogicSequence::Op2:
+            break;
+        case LogicSequence::NRandomInput:  {
+                int rnd = rng.nextRange(2);
+                if (rnd == 0) {
+                    stepNote = note1;
+                } else {
+                    stepNote = note2;
+                }
             }
-            note = LogicSequence::Note::clamp(note + offset);
-        }
-        return bypassScale.noteToVolts(note) + (bypassScale.isChromatic() ? rootNote : 0) * (1.f / 12.f);
+            break;
+        case LogicSequence::NRandomLogic: {
+                rng = Random(time(NULL));
+                int rndMode = rng.nextRange(6);
+                switch (rndMode) {
+                    case 0:
+                        stepNote = note1;
+                        break;
+                    case 1:
+                        stepNote = note2;
+                        break;
+                    case 2:
+                        stepNote = std::min(note1, note2);
+                        break;
+                    case 3:
+                        stepNote = std::max(note1, note2);
+                        break;
+                    case 4:
+                        
+                        break;
+                    case 5:
+                        
+                        break;
+                    case 6:
+                        int rnd = rng.nextRange(2);
+                        if (rnd == 0) {
+                            stepNote = note1;
+                        } else {
+                            stepNote = note2;
+                        }
+                        break;
+                    }
+                }
+                break;
+        
+        default:
+            break;
     }
-    int note = step.note() + evalTransposition(scale, octave, transpose);
+
+    int note =  stepNote + evalTransposition(scale, octave, transpose);
     int probability = clamp(step.noteVariationProbability() + probabilityBias, -1, LogicSequence::NoteVariationProbability::Max);
     if (useVariation && int(rng.nextRange(LogicSequence::NoteVariationProbability::Range)) <= probability) {
         int offset = step.noteVariationRange() == 0 ? 0 : rng.nextRange(std::abs(step.noteVariationRange()) + 1);
@@ -98,7 +150,7 @@ static float evalStepNote(const LogicSequence::Step &step, int probabilityBias, 
         }
         note = LogicSequence::Note::clamp(note + offset);
     }
-    return scale.noteToVolts(note) + (scale.isChromatic() ? rootNote : 0) * (1.f / 12.f);*/
+    return scale.noteToVolts(note) + (scale.isChromatic() ? rootNote : 0) * (1.f / 12.f);
     return 0.f;
 }
 
@@ -307,7 +359,7 @@ void LogicTrackEngine::update(float dt) {
 
     if (stepMonitoring) {
         const auto &step = sequence.step(_monitorStepIndex);
-        setOverride(evalStepNote(step, 0, scale, rootNote, octave, transpose, false));
+        setOverride(evalStepNote(step, 0, scale, rootNote, octave, transpose, false, 0, 0));
     } else if (liveMonitoring && _recordHistory.isNoteActive()) {
         int note = evalTransposition(scale, octave, transpose);
         setOverride(scale.noteToVolts(note) + (scale.isChromatic() ? rootNote : 0) * (1.f / 12.f));
@@ -515,7 +567,11 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     if (stepGate || _logicTrack.cvUpdateMode() == LogicTrack::CvUpdateMode::Always) {
         const auto &scale = evalSequence.selectedScale(_model.project().scale());
         int rootNote = evalSequence.selectedRootNote(_model.project().rootNote());
-        _cvQueue.push({ Groove::applySwing(stepTick, swing()), evalStepNote(step, _logicTrack.noteProbabilityBias(), scale, rootNote, octave, transpose), step.slide() });
+
+        const auto inputSequence1 = _model.project().track(_logicTrack.inputTrack1()).noteTrack().sequence(pattern());
+        const auto inputSequence2 = _model.project().track(_logicTrack.inputTrack2()).noteTrack().sequence(pattern());
+
+        _cvQueue.push({ Groove::applySwing(stepTick, swing()), evalStepNote(step, _logicTrack.noteProbabilityBias(), scale, rootNote, octave, transpose, inputSequence1.step(stepIndex).note(), inputSequence2.step(stepIndex).note()), step.slide() });
     }
 }
 

@@ -194,6 +194,40 @@ void SequencePainter::drawGateLogicMode(Canvas &canvas, int x, int y, int w, int
     }
 }
 
+void SequencePainter::drawNoteLogicMode(Canvas &canvas, int x, int y, int w, int h, LogicSequence::NoteLogicMode mode) {
+    canvas.setBlendMode(BlendMode::Set);
+    canvas.setColor(Bright);
+    std::bitset<4> enabled;
+    x += (w - 8) / 2;
+
+    switch (mode) {
+        case LogicSequence::NoteLogicMode::NOne:
+            canvas.drawTextCentered(x, y+4, 8, -8, "1");
+            break;
+        case LogicSequence::NoteLogicMode::NTwo:
+            canvas.drawTextCentered(x, y+4, 8, -8, "2");
+            break;
+        case LogicSequence::NoteLogicMode::Min:
+            canvas.drawTextCentered(x, y+4, 8, -8, "<");
+            break;
+        case LogicSequence::NoteLogicMode::Max:
+            canvas.drawTextCentered(x, y+4, 8, -8, ">");
+            break;
+        case LogicSequence::NoteLogicMode::Op1:
+            canvas.drawTextCentered(x, y+4, 8, -8, "o1");
+            break;
+        case LogicSequence::NoteLogicMode::Op2:
+            canvas.drawTextCentered(x, y+4, 8, -8, "o2");
+            break;
+        case LogicSequence::NoteLogicMode::NRandomInput:
+            canvas.drawTextCentered(x, y+4, 8, -8, "1?2");
+            break;
+        case LogicSequence::NoteLogicMode::NRandomLogic:
+            canvas.drawTextCentered(x, y+4, 8, -8, "????");
+            break;
+    }
+}
+
 void SequencePainter::drawSequenceProgress(Canvas &canvas, int x, int y, int w, int h, float progress) {
     if (progress < 0.f) {
         return;

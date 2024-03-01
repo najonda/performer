@@ -34,7 +34,9 @@ public:
     typedef SignedValue<4> LengthVariationRange;
     typedef UnsignedValue<4> LengthVariationProbability;
     typedef SignedValue<3> GateLogic;
-    typedef SignedValue<4> NoteLogic;
+    typedef SignedValue<7> Note;
+    typedef SignedValue<3> NoteLogic;
+    typedef SignedValue<7> NoteVariationRange;
     typedef UnsignedValue<4> NoteVariationProbability;
     typedef UnsignedValue<7> Condition;
     typedef UnsignedValue<3> StageRepeats;
@@ -55,8 +57,9 @@ public:
         LengthVariationProbability,
         GateLogic,
         NoteLogic,
+        NoteVariationRange,
+        NoteVariationProbability,
         Slide,
-        BypassScale,
         Condition,
         Last
     };
@@ -76,7 +79,8 @@ public:
             case Layer::LengthVariationProbability: return "LENGTH PROB";
             
             case Layer::NoteLogic:                  return "NOTE LOGIC";
-            case Layer::BypassScale:                return "BYPASS SCALE";
+            case Layer::NoteVariationProbability:   return "NOTE PROB";
+            case Layer::NoteVariationRange:         return "NOTE RANGE";
             case Layer::Slide:                      return "SLIDE";
 
             case Layer::Condition:                  return "CONDITION";
@@ -101,6 +105,17 @@ public:
         Nand,
         RandomInput,
         RandomLogic
+    };
+
+    enum NoteLogicMode {
+        NOne,
+        NTwo,
+        Min,
+        Max,
+        Op1,
+        Op2,
+        NRandomInput,
+        NRandomLogic
     };
 
     static constexpr size_t NameLength = FileHeader::NameLength;
@@ -158,6 +173,16 @@ public:
             _data0.gateLogic = gateLogic;
         }
 
+        // noteLogic
+        NoteLogicMode noteLogic() const { 
+            int value = _data0.noteLogic;
+            return static_cast<NoteLogicMode>(value); 
+        }
+        void setNoteLogic(NoteLogicMode noteLogic) {
+            _data0.noteLogic = noteLogic;
+        }
+
+
         // slide
 
         bool slide() const { return _data0.slide ? true : false; }
@@ -212,8 +237,16 @@ public:
 
         // noteVariationRange
 
-        int noteVariationRange() const { return 0; }
+        int noteVariationRange() const { return NoteVariationRange::Min + _data0.noteVariationRange; }
         void setNoteVariationRange(int noteVariationRange) {
+            _data0.noteVariationRange = NoteVariationRange::clamp(noteVariationRange) - NoteVariationRange::Min;
+        }
+
+        // noteVariationProbability
+
+        int noteVariationProbability() const { return _data0.noteVariationProbability; }
+        void setNoteVariationProbability(int noteVariationProbability) {
+            _data0.noteVariationProbability = NoteVariationProbability::clamp(noteVariationProbability);
         }
 
         // condition
@@ -225,14 +258,6 @@ public:
 
         int layerValue(Layer layer) const;
         void setLayerValue(Layer layer, int value);
-
-        bool bypassScale() const { return _data1.bypassScale ? true : false; }
-        void setBypassScale(bool bypass) {
-            _data1.bypassScale = bypass;
-        }
-        void toggleBypassScale() {
-            setBypassScale(!bypassScale());
-        }
 
         const bool inputGate1() const { return  _data1.inputGate1 ? true : false;  }
 
@@ -274,21 +299,23 @@ public:
             BitField<uint32_t, 6, LengthVariationRange::Bits> lengthVariationRange;
             BitField<uint32_t, 10, LengthVariationProbability::Bits> lengthVariationProbability;
             BitField<uint32_t, 14, GateLogic::Bits> gateLogic;
-            BitField<uint32_t, 17, NoteVariationProbability::Bits> noteVariationRange;
+            BitField<uint32_t, 17, NoteVariationRange::Bits> noteVariationRange;
+            BitField<uint32_t, 24, NoteVariationProbability::Bits> noteVariationProbability;
+            BitField<uint32_t, 28, NoteLogic::Bits> noteLogic;
+
         } _data0;
         union {
             uint32_t raw;
-            BitField<uint32_t, 0, 1> bypassScale;
-            BitField<uint32_t, 1, Retrigger::Bits> retrigger;
-            BitField<uint32_t, 4, GateProbability::Bits> gateProbability;
-            BitField<uint32_t, 8, RetriggerProbability::Bits> retriggerProbability;
-            BitField<uint32_t, 12, GateOffset::Bits> gateOffset;
-            BitField<uint32_t, 16, Condition::Bits> condition;
-            BitField<uint32_t, 23, StageRepeats::Bits> stageRepeats;
-            BitField<uint32_t, 26, StageRepeatsMode::Bits> stageRepeatMode;
+            BitField<uint32_t, 0, Retrigger::Bits> retrigger;
+            BitField<uint32_t, 3, GateProbability::Bits> gateProbability;
+            BitField<uint32_t, 7, RetriggerProbability::Bits> retriggerProbability;
+            BitField<uint32_t, 11, GateOffset::Bits> gateOffset;
+            BitField<uint32_t, 15, Condition::Bits> condition;
+            BitField<uint32_t, 22, StageRepeats::Bits> stageRepeats;
+            BitField<uint32_t, 25, StageRepeatsMode::Bits> stageRepeatMode;
             // 4 bits left
-            BitField<uint32_t, 29, 1> inputGate1;
-            BitField<uint32_t, 30, 1> inputGate2;
+            BitField<uint32_t, 28, 1> inputGate1;
+            BitField<uint32_t, 29, 1> inputGate2;
         } _data1;
 
     };

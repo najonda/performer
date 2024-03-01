@@ -69,6 +69,8 @@ void LogicTrack::write(VersionedSerializedWriter &writer) const {
     writer.write(_retriggerProbabilityBias.base);
     writer.write(_lengthBias.base);
     writer.write(_noteProbabilityBias.base);
+    writer.write(_inputTrack1);
+    writer.write(_inputTrack2);
     writeArray(writer, _sequences);
 }
 
@@ -89,6 +91,9 @@ void LogicTrack::read(VersionedSerializedReader &reader) {
     reader.read(_retriggerProbabilityBias.base);
     reader.read(_lengthBias.base);
     reader.read(_noteProbabilityBias.base);
+
+    reader.read(_inputTrack1, ProjectVersion::Version37);
+    reader.read(_inputTrack2, ProjectVersion::Version37);
 
     // There is a bug in previous firmware versions where writing the properties
     // of a note track did not update the hash value.

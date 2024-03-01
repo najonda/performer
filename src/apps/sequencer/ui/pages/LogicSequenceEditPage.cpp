@@ -217,22 +217,32 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
             );
             break;
         case Layer::NoteLogic: {
-            
+            SequencePainter::drawNoteLogicMode(
+                canvas,
+                x + 2, y + 18, stepWidth - 4, 6,
+                step.noteLogic()
+            );
             break;
         }
+        case Layer::NoteVariationRange: {
+            canvas.setColor(Color::Bright);
+            FixedStringBuilder<8> str("%d", step.noteVariationRange());
+            canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
+            break;
+        }
+        case Layer::NoteVariationProbability:
+            SequencePainter::drawProbability(
+                canvas,
+                x + 2, y + 18, stepWidth - 4, 2,
+                step.noteVariationProbability() + 1, LogicSequence::NoteVariationProbability::Range
+            );
+            break;
         
         case Layer::Slide:
             SequencePainter::drawSlide(
                 canvas,
                 x + 4, y + 18, stepWidth - 8, 4,
                 step.slide()
-            );
-            break;
-        case Layer::BypassScale:
-            SequencePainter::drawBypassScale(
-                canvas,
-                x + 4, y + 18, stepWidth - 8, 4,
-                step.bypassScale()
             );
             break;
         case Layer::Condition: {
@@ -267,7 +277,7 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
     // handle detail display
 
     if (_showDetail) {
-        if (layer() == Layer::Gate || layer() == Layer::Slide || _stepSelection.none() || layer() == Layer::BypassScale) {
+        if (layer() == Layer::Gate || layer() == Layer::Slide || _stepSelection.none()) {
             _showDetail = false;
         }
         if (_stepSelection.isPersisted() && os::ticks() > _showDetailTicks + os::time::ms(500)) {
@@ -515,13 +525,17 @@ void LogicSequenceEditPage::encoder(EncoderEvent &event) {
             setLayer(event.value() > 0 ? Layer::Length : Layer::LengthVariationRange);
             break;
         case Layer::NoteLogic:
-            setLayer(event.value() > 0 ? Layer::Slide : Layer::BypassScale);
+            setLayer(event.value() > 0 ? Layer::NoteVariationRange : Layer::Slide);
+            break;
+        case Layer::NoteVariationRange:
+            setLayer(event.value() > 0 ? Layer::NoteVariationProbability : Layer::NoteLogic);
+            break;
+        case Layer::NoteVariationProbability:
+            setLayer(event.value() > 0 ? Layer::Slide : Layer::NoteVariationRange);
             break;
         case Layer::Slide:
-            setLayer(event.value() > 0 ? Layer::BypassScale : Layer::NoteLogic);
+            setLayer(event.value() > 0 ? Layer::NoteLogic : Layer::NoteVariationProbability);
             break;
-        case Layer::BypassScale:
-            setLayer(event.value() > 0 ? Layer::NoteLogic : Layer::Slide);
         default:
             break;
         }
@@ -566,14 +580,17 @@ void LogicSequenceEditPage::encoder(EncoderEvent &event) {
                 step.setLengthVariationProbability(step.lengthVariationProbability() + event.value());
                 break;
             case Layer::NoteLogic:
-                step.setNote(step.note() + event.value() * ((shift && scale.isChromatic()) ? scale.notesPerOctave() : 1));
+                step.setNoteLogic(static_cast<LogicSequence::NoteLogicMode>(step.noteLogic() + event.value()));
                 updateMonitorStep();
+                break;
+             case Layer::NoteVariationRange:
+                step.setNoteVariationRange(step.noteVariationRange() + event.value() * ((shift && scale.isChromatic()) ? scale.notesPerOctave() : 1));
+                break;
+            case Layer::NoteVariationProbability:
+                step.setNoteVariationProbability(step.noteVariationProbability() + event.value());
                 break;
             case Layer::Slide:
                 step.setSlide(event.value() > 0);
-                break;
-            case Layer::BypassScale:
-                step.setBypassScale(event.value() > 0);
                 break;
             case Layer::Condition:
                 step.setCondition(ModelUtils::adjustedEnum(step.condition(), event.value()));
@@ -642,7 +659,7 @@ void LogicSequenceEditPage::switchLayer(int functionKey, bool shift) {
             }
             break;
         case Function::Note:
-            setLayer(Layer::Slide);
+            setLayer(Layer::NoteLogic);
             break;
         case Function::Condition:
             setLayer(Layer::Condition);
@@ -706,10 +723,13 @@ void LogicSequenceEditPage::switchLayer(int functionKey, bool shift) {
     case Function::Note:
         switch (layer()) {
         case Layer::NoteLogic:
-            setLayer(Layer::Slide);
+            setLayer(Layer::NoteVariationRange);
             break;
-        case Layer::Slide:
-            setLayer(Layer::BypassScale);
+        case Layer::NoteVariationRange:
+            setLayer(Layer::NoteVariationProbability);
+            break;
+        case Layer::NoteVariationProbability:
+            setLayer(Layer::Slide);
             break;
         default:
             setLayer(Layer::NoteLogic);
@@ -739,8 +759,9 @@ int LogicSequenceEditPage::activeFunctionKey() {
     case Layer::LengthVariationProbability:
         return 2;
     case Layer::NoteLogic:
+    case Layer::NoteVariationRange:
+    case Layer::NoteVariationProbability:
     case Layer::Slide:
-    case Layer::BypassScale:
         return 3;
     case Layer::Condition:
         return 4;
@@ -787,7 +808,6 @@ void LogicSequenceEditPage::drawDetail(Canvas &canvas, const LogicSequence::Step
     switch (layer()) {
     case Layer::Gate:
     case Layer::Slide:
-    case Layer::BypassScale:
         break;
 
     case Layer::GateLogic:
@@ -847,10 +867,26 @@ void LogicSequenceEditPage::drawDetail(Canvas &canvas, const LogicSequence::Step
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
     case Layer::Retrigger:
-
+        SequencePainter::drawRetrigger(
+            canvas,
+            64+ 32 + 8, 32 - 4, 64 - 16, 8,
+            step.retrigger() + 1, NoteSequence::Retrigger::Range
+        );
+        str.reset();
+        str("%d", step.retrigger() + 1);
+        canvas.setColor(Color::Bright);
+        canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
     case Layer::RetriggerProbability:
-
+        SequencePainter::drawProbability(
+            canvas,
+            64 + 32 + 8, 32 - 4, 64 - 16, 8,
+            step.retriggerProbability(), NoteSequence::RetriggerProbability::Range-1
+        );
+        str.reset();
+        str("%.1f%%", 100.f * (step.retriggerProbability()) / (NoteSequence::RetriggerProbability::Range-1));
+        canvas.setColor(Color::Bright);
+        canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
     case Layer::Length:
         SequencePainter::drawLength(
@@ -887,9 +923,57 @@ void LogicSequenceEditPage::drawDetail(Canvas &canvas, const LogicSequence::Step
         break;
     case Layer::NoteLogic:
         str.reset();
-        scale.noteName(str, step.note(), sequence.selectedRootNote(_model.project().rootNote()), Scale::Long);
+        switch (step.noteLogic()) {
+            case LogicSequence::NoteLogicMode::NOne:
+                str("INPUT 1");
+                break;
+            case LogicSequence::NoteLogicMode::NTwo:
+                str("INPUT 2");
+                break;
+            case LogicSequence::NoteLogicMode::Min:
+                str("MIN");
+                break;
+            case LogicSequence::NoteLogicMode::Max:
+                str("MAX");
+                break;
+            case LogicSequence::NoteLogicMode::Op1:
+                str("OP1");
+                break;
+            case LogicSequence::NoteLogicMode::Op2:
+                str("OP2");
+                break;
+            case LogicSequence::NoteLogicMode::NRandomInput:
+                str("RND INPUT");
+                break;
+            case LogicSequence::NoteLogicMode::NRandomLogic:
+                str("RND LOGIC");
+                break;
+            default:
+                break;
+        }
+        canvas.setFont(Font::Small);
+        canvas.drawTextCentered(64 + 64, 32 - 4, 32, 8, str);
+        break;
+
+
+
+        break;
+    case Layer::NoteVariationRange:
+        str.reset();
+        str("%d", step.noteVariationRange());
         canvas.setFont(Font::Small);
         canvas.drawTextCentered(64 + 32, 16, 64, 32, str);
+        break;
+    case Layer::NoteVariationProbability:
+        SequencePainter::drawProbability(
+            canvas,
+            64 + 32 + 8, 32 - 4, 64 - 16, 8,
+            step.noteVariationProbability(), NoteSequence::NoteVariationProbability::Range-1
+        );
+        str.reset();
+        str("%.1f%%", 100.f * (step.noteVariationProbability()) / (NoteSequence::NoteVariationProbability::Range-1));
+        canvas.setColor(Color::Bright);
+        canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
    
     case Layer::Condition:

@@ -13,8 +13,6 @@ Types::LayerRange LogicSequence::layerRange(Layer layer) {
         return { 0, 1 };
     case Layer::Slide:
         return { 0, 1 };
-    case Layer::BypassScale:
-        return {0 ,1 };
     CASE(GateOffset)
     CASE(GateProbability)
     CASE(Retrigger)
@@ -24,6 +22,8 @@ Types::LayerRange LogicSequence::layerRange(Layer layer) {
     CASE(LengthVariationProbability)
     CASE(GateLogic)
     CASE(NoteLogic)
+    CASE(NoteVariationRange)
+    CASE(NoteVariationProbability)
     CASE(Condition)
     CASE(StageRepeats)
     CASE(StageRepeatsMode)
@@ -51,8 +51,6 @@ int LogicSequence::layerDefaultValue(Layer layer)
         return step.gateOffset();
     case Layer::Slide:
         return step.slide();
-    case Layer::BypassScale:
-        return step.bypassScale();
     case Layer::Retrigger:
         return step.retrigger();
     case Layer::RetriggerProbability:
@@ -64,7 +62,11 @@ int LogicSequence::layerDefaultValue(Layer layer)
     case Layer::LengthVariationProbability:
         return step.lengthVariationProbability();
     case Layer::NoteLogic:
-        return step.note();
+        return step.noteLogic();
+    case Layer::NoteVariationRange:
+        return step.noteVariationRange();
+    case Layer::NoteVariationProbability:
+        return step.noteVariationProbability();
     case Layer::Condition:
         return int(step.condition());
     case Layer::StageRepeats:
@@ -86,8 +88,6 @@ int LogicSequence::Step::layerValue(Layer layer) const {
         return gateLogic();
     case Layer::Slide:
         return slide() ? 1 : 0;
-    case Layer::BypassScale:
-        return bypassScale() ? 1 : 0;
     case Layer::GateProbability:
         return gateProbability();
     case Layer::GateOffset:
@@ -103,7 +103,11 @@ int LogicSequence::Step::layerValue(Layer layer) const {
     case Layer::LengthVariationProbability:
         return lengthVariationProbability();
     case Layer::NoteLogic:
-        return note();
+        return noteLogic();
+    case Layer::NoteVariationRange:
+        return noteVariationRange();
+    case Layer::NoteVariationProbability:
+        return noteVariationProbability();
     case Layer::Condition:
         return int(condition());
     case Layer::StageRepeats:
@@ -124,9 +128,6 @@ void LogicSequence::Step::setLayerValue(Layer layer, int value) {
         break;
     case Layer::Slide:
         setSlide(value);
-        break;
-    case Layer::BypassScale:
-        setBypassScale(value);
         break;
     case Layer::GateProbability:
         setGateProbability(value);
@@ -153,7 +154,13 @@ void LogicSequence::Step::setLayerValue(Layer layer, int value) {
         setGateLogic(static_cast<LogicSequence::GateLogicMode>(value));
         break;
     case Layer::NoteLogic:
-        setNote(value);
+        setNoteLogic(static_cast<LogicSequence::NoteLogicMode>(value));
+        break;
+    case Layer::NoteVariationRange:
+        setNoteVariationRange(value);
+        break;
+    case Layer::NoteVariationProbability:
+        setNoteVariationProbability(value);
         break;
     case Layer::Condition:
         setCondition(Types::Condition(value));
@@ -177,14 +184,14 @@ void LogicSequence::Step::clear() {
     setGateOffset(0);
     setGateLogic(GateLogicMode::One);
     setSlide(false);
-    setBypassScale(false);
     setRetrigger(0);
     setRetriggerProbability(RetriggerProbability::Max);
     setLength(Length::Max / 2);
     setLengthVariationRange(0);
     setLengthVariationProbability(LengthVariationProbability::Max);
-    setNote(0);
+    setNoteLogic(NoteLogicMode::NOne);
     setNoteVariationRange(0);
+    setNoteVariationProbability(NoteVariationProbability::Max);
     setCondition(Types::Condition::Off);
     setStageRepeats(0);
     setStageRepeatsMode(Types::StageRepeatMode::Each);

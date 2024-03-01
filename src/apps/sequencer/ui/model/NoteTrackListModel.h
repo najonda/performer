@@ -217,6 +217,7 @@ private:
 
                 if (value == -1 && _selectedTrack[_track->trackIndex()] == _availableLogicTracks.front()) {
                     _track->setLogicTrack(-1);
+                    _track->setLogicTrackInput(-1);
                     _selectedTrack[_track->trackIndex()] = -1;
                     break;
                 }
