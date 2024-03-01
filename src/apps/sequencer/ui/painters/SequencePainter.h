@@ -19,8 +19,7 @@ public:
     static void drawSlide(Canvas &canvas, int x, int y, int w, int h, bool active);
     static void drawBypassScale(Canvas &canvas, int x, int y, int w, int h, bool active);
 
-    static void drawStageRepeatMode(Canvas &canvas, int x, int y, int w, int h, NoteSequence::StageRepeatMode mode);
-    static void drawStageRepeatMode(Canvas &canvas, int x, int y, int w, int h, StochasticSequence::StageRepeatMode mode);
+    static void drawStageRepeatMode(Canvas &canvas, int x, int y, int w, int h, Types::StageRepeatMode mode);
 
     static void drawGateLogicMode(Canvas &canvas, int x, int y, int w, int h, LogicSequence::GateLogicMode mode);
 

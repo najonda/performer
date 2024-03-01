@@ -182,10 +182,18 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
             );
             break;
         case Layer::Retrigger:
-            
+            SequencePainter::drawRetrigger(
+                canvas,
+                x, y + 18, stepWidth, 2,
+                step.retrigger() + 1, NoteSequence::Retrigger::Range
+            );
             break;
         case Layer::RetriggerProbability:
-            
+            SequencePainter::drawProbability(
+                canvas,
+                x + 2, y + 18, stepWidth - 4, 2,
+                step.retriggerProbability() + 1, NoteSequence::RetriggerProbability::Range
+            );
             break;
         case Layer::Length:
             SequencePainter::drawLength(
