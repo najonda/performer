@@ -632,7 +632,7 @@ void LaunchpadController::manageStochasticCircuitKeyboard(const Button &button) 
                 fullSelectedNote = noteIndex + (bypasssScale.notesPerOctave()*selectedOctave);                         
                     
                 break;
-            } else if (button.row >= 0 && button.row <= 2) {
+            } else if (button.row >= 0 && button.row < 2) {
                 auto &sequence = _project.selectedStochasticSequence();
                 int linearIndex = button.col  + (button.row*8);
 
