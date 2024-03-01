@@ -33,7 +33,7 @@ public:
     typedef UnsignedValue<4> Length;
     typedef SignedValue<4> LengthVariationRange;
     typedef UnsignedValue<4> LengthVariationProbability;
-    typedef SignedValue<4> GateLogic;
+    typedef SignedValue<3> GateLogic;
     typedef SignedValue<4> NoteLogic;
     typedef UnsignedValue<4> NoteVariationProbability;
     typedef UnsignedValue<7> Condition;
@@ -91,17 +91,6 @@ public:
     static Types::LayerRange layerRange(Layer layer);
     static int layerDefaultValue(Layer layer);
 
-    enum StageRepeatMode {
-        Each,
-        First,
-        Middle,
-        Last,
-        Odd,
-        Even,
-        Triplets,
-        Random,
-
-    };
 
     enum GateLogicMode {
         One,
@@ -130,13 +119,13 @@ public:
         }
         unsigned int stageRepeats() const { return _data1.stageRepeats; }
 
-        void setStageRepeatsMode(StageRepeatMode mode) {
+        void setStageRepeatsMode(Types::StageRepeatMode mode) {
             _data1.stageRepeatMode = mode;
         }
 
-        StageRepeatMode stageRepeatMode() const {
+        Types::StageRepeatMode stageRepeatMode() const {
             int value = _data1.stageRepeatMode;
-            return static_cast<StageRepeatMode>(value);
+            return static_cast<Types::StageRepeatMode>(value);
         }
 
         // gate
@@ -161,12 +150,12 @@ public:
 
         // gateLogic
 
-        const GateLogicMode gateLogic() const { 
+        GateLogicMode gateLogic() const { 
             int value = _data0.gateLogic;
             return static_cast<GateLogicMode>(value); 
         }
-        void setGateLogic(int gateLogic) {
-            _data0.gateLogic = GateLogic::clamp(gateLogic);
+        void setGateLogic(GateLogicMode gateLogic) {
+            _data0.gateLogic = gateLogic;
         }
 
         // slide
@@ -285,7 +274,7 @@ public:
             BitField<uint32_t, 6, LengthVariationRange::Bits> lengthVariationRange;
             BitField<uint32_t, 10, LengthVariationProbability::Bits> lengthVariationProbability;
             BitField<uint32_t, 14, GateLogic::Bits> gateLogic;
-            BitField<uint32_t, 18, NoteVariationProbability::Bits> noteVariationRange;
+            BitField<uint32_t, 17, NoteVariationProbability::Bits> noteVariationRange;
         } _data0;
         union {
             uint32_t raw;

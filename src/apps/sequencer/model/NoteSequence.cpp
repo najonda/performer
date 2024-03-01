@@ -2,6 +2,7 @@
 #include "ProjectVersion.h"
 
 #include "ModelUtils.h"
+#include "Types.h"
 
 Types::LayerRange NoteSequence::layerRange(Layer layer) {
     #define CASE(_layer_) \
@@ -170,7 +171,7 @@ void NoteSequence::Step::setLayerValue(Layer layer, int value) {
         setStageRepeats(value);
         break;
     case Layer::StageRepeatsMode:
-        setStageRepeatsMode(static_cast<NoteSequence::StageRepeatMode>(value));
+        setStageRepeatsMode(static_cast<Types::StageRepeatMode>(value));
         break;
     case Layer::Last:
         break;
@@ -195,7 +196,7 @@ void NoteSequence::Step::clear() {
     setNoteVariationProbability(NoteVariationProbability::Max);
     setCondition(Types::Condition::Off);
     setStageRepeats(0);
-    setStageRepeatsMode(StageRepeatMode::Each);
+    setStageRepeatsMode(Types::StageRepeatMode::Each);
 }
 
 void NoteSequence::Step::write(VersionedSerializedWriter &writer) const {

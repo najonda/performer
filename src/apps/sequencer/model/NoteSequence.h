@@ -88,18 +88,6 @@ public:
     static Types::LayerRange layerRange(Layer layer);
     static int layerDefaultValue(Layer layer);
 
-    enum StageRepeatMode {
-        Each,
-        First,
-        Middle,
-        Last,
-        Odd,
-        Even,
-        Triplets,
-        Random,
-
-    };
-
     static constexpr size_t NameLength = FileHeader::NameLength;
 
 
@@ -116,13 +104,13 @@ public:
         }
         unsigned int stageRepeats() const { return _data1.stageRepeats; }
 
-        void setStageRepeatsMode(StageRepeatMode mode) {
+        void setStageRepeatsMode(Types::StageRepeatMode mode) {
             _data1.stageRepeatMode = mode;
         }
 
-        StageRepeatMode stageRepeatMode() const {
+        Types::StageRepeatMode stageRepeatMode() const {
             int value = _data1.stageRepeatMode;
-            return static_cast<StageRepeatMode>(value);
+            return static_cast<Types::StageRepeatMode>(value);
         }
 
         // gate

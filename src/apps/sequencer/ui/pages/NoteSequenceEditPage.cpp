@@ -614,7 +614,7 @@ void NoteSequenceEditPage::encoder(EncoderEvent &event) {
                 break;
             case Layer::StageRepeatsMode:
                 step.setStageRepeatsMode(
-                    static_cast<NoteSequence::StageRepeatMode>(
+                    static_cast<Types::StageRepeatMode>(
                         step.stageRepeatMode() + event.value()
                     )
                 );
@@ -939,28 +939,28 @@ void NoteSequenceEditPage::drawDetail(Canvas &canvas, const NoteSequence::Step &
      case Layer::StageRepeatsMode:
         str.reset();
         switch (step.stageRepeatMode()) {
-            case NoteSequence::Each:
+            case Types::Each:
                 str("EACH");
                 break;
-            case NoteSequence::First:
+            case Types::First:
                 str("FIRST");
                 break;
-            case NoteSequence::Middle:
+            case Types::Middle:
                 str("MIDDLE");
                 break;
-            case NoteSequence::Last:
+            case Types::Last:
                 str("LAST");
                 break;
-            case NoteSequence::Odd:
+            case Types::Odd:
                 str("ODD");
                 break;
-            case NoteSequence::Even:
+            case Types::Even:
                 str("EVEN");
                 break;
-            case NoteSequence::Triplets:
+            case Types::Triplets:
                 str("TRIPLET");
                 break;
-            case NoteSequence::Random:
+            case Types::Random:
                 str("RANDOM");
                 break;
 

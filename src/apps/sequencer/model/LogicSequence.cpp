@@ -43,6 +43,8 @@ int LogicSequence::layerDefaultValue(Layer layer)
     switch (layer) {
     case Layer::Gate:
         return step.gate();
+    case Layer::GateLogic:
+        return step.gateLogic();
     case Layer::GateProbability:
         return step.gateProbability();
     case Layer::GateOffset:
@@ -61,8 +63,6 @@ int LogicSequence::layerDefaultValue(Layer layer)
         return step.lengthVariationRange();
     case Layer::LengthVariationProbability:
         return step.lengthVariationProbability();
-    case Layer::GateLogic:
-        return step.gateLogic();
     case Layer::NoteLogic:
         return step.note();
     case Layer::Condition:
@@ -82,6 +82,8 @@ int LogicSequence::Step::layerValue(Layer layer) const {
     switch (layer) {
     case Layer::Gate:
         return gate() ? 1 : 0;
+    case Layer::GateLogic:
+        return gateLogic();
     case Layer::Slide:
         return slide() ? 1 : 0;
     case Layer::BypassScale:
@@ -100,8 +102,6 @@ int LogicSequence::Step::layerValue(Layer layer) const {
         return lengthVariationRange();
     case Layer::LengthVariationProbability:
         return lengthVariationProbability();
-    case Layer::GateLogic:
-        return gateLogic();
     case Layer::NoteLogic:
         return note();
     case Layer::Condition:
@@ -150,7 +150,7 @@ void LogicSequence::Step::setLayerValue(Layer layer, int value) {
         setLengthVariationProbability(value);
         break;
     case Layer::GateLogic:
-        setGateLogic(value);
+        setGateLogic(static_cast<LogicSequence::GateLogicMode>(value));
         break;
     case Layer::NoteLogic:
         setNote(value);
@@ -162,7 +162,7 @@ void LogicSequence::Step::setLayerValue(Layer layer, int value) {
         setStageRepeats(value);
         break;
     case Layer::StageRepeatsMode:
-        setStageRepeatsMode(static_cast<LogicSequence::StageRepeatMode>(value));
+        setStageRepeatsMode(static_cast<Types::StageRepeatMode>(value));
         break;
     case Layer::Last:
         break;
@@ -176,7 +176,6 @@ void LogicSequence::Step::clear() {
     setGateProbability(GateProbability::Max);
     setGateOffset(0);
     setGateLogic(GateLogicMode::One);
-
     setSlide(false);
     setBypassScale(false);
     setRetrigger(0);
@@ -188,7 +187,7 @@ void LogicSequence::Step::clear() {
     setNoteVariationRange(0);
     setCondition(Types::Condition::Off);
     setStageRepeats(0);
-    setStageRepeatsMode(StageRepeatMode::Each);
+    setStageRepeatsMode(Types::StageRepeatMode::Each);
     setInputGate1(false);
     setInputGate2(false);
 }

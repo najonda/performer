@@ -372,27 +372,27 @@ void NoteTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextS
         stepGate = evalStepCondition(step, _sequenceState.iteration(), useFillCondition, _prevCondition);
     }
     switch (step.stageRepeatMode()) {
-        case NoteSequence::StageRepeatMode::Each:
+        case Types::StageRepeatMode::Each:
             break;
-        case NoteSequence::StageRepeatMode::First:
+        case Types::StageRepeatMode::First:
             stepGate = stepGate && _currentStageRepeat == 1;
             break;
-        case NoteSequence::StageRepeatMode::Last:
+        case Types::StageRepeatMode::Last:
             stepGate = stepGate && _currentStageRepeat == step.stageRepeats()+1;
             break;
-        case NoteSequence::StageRepeatMode::Middle:
+        case Types::StageRepeatMode::Middle:
             stepGate = stepGate && _currentStageRepeat == (step.stageRepeats()+1)/2;
             break;
-        case NoteSequence::StageRepeatMode::Odd:
+        case Types::StageRepeatMode::Odd:
             stepGate = stepGate && _currentStageRepeat % 2 != 0;
             break;
-        case NoteSequence::StageRepeatMode::Even:
+        case Types::StageRepeatMode::Even:
             stepGate = stepGate && _currentStageRepeat % 2 == 0;
             break;
-        case NoteSequence::StageRepeatMode::Triplets:
+        case Types::StageRepeatMode::Triplets:
             stepGate = stepGate && (_currentStageRepeat - 1) % 3 == 0;
             break;
-        case NoteSequence::StageRepeatMode::Random:
+        case Types::StageRepeatMode::Random:
                 srand((unsigned int)time(NULL));
                 int rndMode = rng.nextRange(6);
                 switch (rndMode) {

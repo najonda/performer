@@ -408,27 +408,27 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         stepGate = evalStepCondition(step, _sequenceState.iteration(), false, _prevCondition);
     }
     switch (step.stageRepeatMode()) {
-        case LogicSequence::StageRepeatMode::Each:
+        case Types::StageRepeatMode::Each:
             break;
-        case LogicSequence::StageRepeatMode::First:
+        case Types::StageRepeatMode::First:
             stepGate = stepGate && _currentStageRepeat == 1;
             break;
-        case LogicSequence::StageRepeatMode::Last:
+        case Types::StageRepeatMode::Last:
             stepGate = stepGate && _currentStageRepeat == step.stageRepeats()+1;
             break;
-        case LogicSequence::StageRepeatMode::Middle:
+        case Types::StageRepeatMode::Middle:
             stepGate = stepGate && _currentStageRepeat == (step.stageRepeats()+1)/2;
             break;
-        case LogicSequence::StageRepeatMode::Odd:
+        case Types::StageRepeatMode::Odd:
             stepGate = stepGate && _currentStageRepeat % 2 != 0;
             break;
-        case LogicSequence::StageRepeatMode::Even:
+        case Types::StageRepeatMode::Even:
             stepGate = stepGate && _currentStageRepeat % 2 == 0;
             break;
-        case LogicSequence::StageRepeatMode::Triplets:
+        case Types::StageRepeatMode::Triplets:
             stepGate = stepGate && (_currentStageRepeat - 1) % 3 == 0;
             break;
-        case LogicSequence::StageRepeatMode::Random:
+        case Types::StageRepeatMode::Random:
                 srand((unsigned int)time(NULL));
                 int rndMode = rng.nextRange(6);
                 switch (rndMode) {

@@ -237,6 +237,20 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
             canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
             break;
         }
+        case Layer::StageRepeats: {
+            canvas.setColor(Bright);
+            FixedStringBuilder<8> str("x%d", step.stageRepeats()+1);
+            canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
+            break;
+        }
+        case Layer::StageRepeatsMode: {
+            SequencePainter::drawStageRepeatMode(
+                canvas,
+                x + 2, y + 18, stepWidth - 4, 6,
+                step.stageRepeatMode()
+            );
+            break;
+        }
         case Layer::Last:
             break;
         }
@@ -460,7 +474,7 @@ void LogicSequenceEditPage::encoder(EncoderEvent &event) {
         switch (layer())
         {
         case Layer::Gate:
-            setLayer(event.value() > 0 ? Layer::GateOffset : Layer::GateProbability);
+            setLayer(event.value() > 0 ? Layer::GateLogic : Layer::GateProbability);
             break;
         case Layer::GateLogic:
             setLayer(event.value() > 0 ? Layer::GateOffset : Layer::Gate);
@@ -520,11 +534,7 @@ void LogicSequenceEditPage::encoder(EncoderEvent &event) {
                 step.setGate(event.value() > 0);
                 break;
             case Layer::GateLogic:
-                step.setGateLogic(
-                    static_cast<LogicSequence::GateLogicMode>(
-                        step.gateLogic() + event.value()
-                    )
-                );
+                step.setGateLogic(static_cast<LogicSequence::GateLogicMode>(step.gateLogic() + event.value()));
                 break;
             case Layer::GateProbability:
                 step.setGateProbability(step.gateProbability() + event.value());
@@ -565,7 +575,7 @@ void LogicSequenceEditPage::encoder(EncoderEvent &event) {
                 break;
             case Layer::StageRepeatsMode:
                 step.setStageRepeatsMode(
-                    static_cast<LogicSequence::StageRepeatMode>(
+                    static_cast<Types::StageRepeatMode>(
                         step.stageRepeatMode() + event.value()
                     )
                 );
@@ -771,6 +781,40 @@ void LogicSequenceEditPage::drawDetail(Canvas &canvas, const LogicSequence::Step
     case Layer::Slide:
     case Layer::BypassScale:
         break;
+
+    case Layer::GateLogic:
+        str.reset();
+        switch (step.gateLogic()) {
+            case LogicSequence::GateLogicMode::And:
+                str("AND");
+                break;
+            case LogicSequence::GateLogicMode::Or:
+                str("OR");
+                break;
+            case LogicSequence::GateLogicMode::Xor:
+                str("XOR");
+                break;
+            case LogicSequence::GateLogicMode::Nor:
+                str("NOR");
+                break;
+            case LogicSequence::GateLogicMode::Nand:
+                str("NAND");
+                break;
+            case LogicSequence::GateLogicMode::One:
+                str("INPUT 1");
+                break;
+            case LogicSequence::GateLogicMode::Two:
+                str("INPUT 2");
+                break;
+            case LogicSequence::GateLogicMode::Xnor:
+                str("XNOR");
+                break;
+            default:
+                break;
+        }
+        canvas.setFont(Font::Small);
+        canvas.drawTextCentered(64 + 64, 32 - 4, 32, 8, str);
+        break;
     case Layer::GateProbability:
         SequencePainter::drawProbability(
             canvas,
@@ -854,28 +898,28 @@ void LogicSequenceEditPage::drawDetail(Canvas &canvas, const LogicSequence::Step
      case Layer::StageRepeatsMode:
         str.reset();
         switch (step.stageRepeatMode()) {
-            case LogicSequence::Each:
+            case Types::Each:
                 str("EACH");
                 break;
-            case LogicSequence::First:
+            case Types::First:
                 str("FIRST");
                 break;
-            case LogicSequence::Middle:
+            case Types::Middle:
                 str("MIDDLE");
                 break;
-            case LogicSequence::Last:
+            case Types::Last:
                 str("LAST");
                 break;
-            case LogicSequence::Odd:
+            case Types::Odd:
                 str("ODD");
                 break;
-            case LogicSequence::Even:
+            case Types::Even:
                 str("EVEN");
                 break;
-            case LogicSequence::Triplets:
+            case Types::Triplets:
                 str("TRIPLET");
                 break;
-            case LogicSequence::Random:
+            case Types::Random:
                 str("RANDOM");
                 break;
 
@@ -929,6 +973,7 @@ bool LogicSequenceEditPage::contextActionEnabled(int index) const {
         return true;
     }
     */
+    return true;
 }
 
 void LogicSequenceEditPage::initSequence() {

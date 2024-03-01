@@ -217,6 +217,8 @@ void OverviewPage::draw(Canvas &canvas) {
             break;
         case Track::TrackMode::MidiCv:
             break;
+        case Track::TrackMode::Logic:
+            break;
         case Track::TrackMode::Last:
             break;
         }

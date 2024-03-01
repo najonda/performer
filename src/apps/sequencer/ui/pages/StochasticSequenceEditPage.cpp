@@ -292,17 +292,9 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
             break;
         }
         case Layer::StageRepeats: {
-            canvas.setColor(Bright);
-            FixedStringBuilder<8> str("x%d", step.stageRepeats()+1);
-            canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
             break;
         }
         case Layer::StageRepeatsMode: {
-            SequencePainter::drawStageRepeatMode(
-                canvas,
-                x + 2, y + 18, stepWidth - 4, 6,
-                step.stageRepeatMode()
-            );
             break;
         }
         case Layer::Last:
