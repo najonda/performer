@@ -986,8 +986,39 @@ void StochasticSequenceEditPage::initSequence() {
 }
 
 void StochasticSequenceEditPage::copySequence() {
-    _model.clipBoard().copyStochasticSequenceSteps(_project.selectedStochasticSequence(), _stepSelection.selected());
-    showMessage("STEPS COPIED");
+    
+
+    if (_project.selectedStochasticSequence().useLoop()) {
+        auto lockedSteps = _engine.selectedTrackEngine().as<StochasticEngine>().lockedSteps();
+
+        const auto &scale = _project.selectedStochasticSequence().selectedScale(_model.project().scale());
+        int rootNote = _project.selectedStochasticSequence().selectedRootNote(_model.project().rootNote());
+
+
+        auto sequence = NoteSequence();
+        for (int i=0; i<int(lockedSteps.size()); ++i) {
+            auto lockedStep = lockedSteps.at(i);
+            auto &step = sequence.step(i);
+            step.setGate(lockedStep.gate());
+            step.setGateProbability(lockedStep.step().gateProbability());
+            step.setGateOffset(lockedStep.step().gateOffset());
+            step.setRetrigger(lockedStep.step().retrigger());
+            step.setRetriggerProbability(lockedStep.step().retriggerProbability());
+            step.setLength(lockedStep.step().length());
+            step.setLengthVariationRange(lockedStep.step().lengthVariationRange());
+            step.setLengthVariationProbability(lockedStep.step().lengthVariationProbability());
+
+            step.setNote(scale.noteFromVolts(lockedStep.noteValue()));
+            step.setCondition(lockedStep.step().condition());
+            
+            
+        }
+        _model.clipBoard().copyNoteSequenceSteps(sequence, _stepSelection.selected());
+        showMessage("LOOP COPIED");
+    } else {
+        _model.clipBoard().copyStochasticSequenceSteps(_project.selectedStochasticSequence(), _stepSelection.selected());
+        showMessage("STEPS COPIED");
+    }
 }
 
 void StochasticSequenceEditPage::pasteSequence() {
