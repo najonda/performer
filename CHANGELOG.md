@@ -1,9 +1,10 @@
 # Changelog
 
-# v0.2.1 (1 March 2024)
+# v0.2.1 (4 March 2024)
 - issue #80 - Repeat Function Issue - Metropolix Mode 
 - issue #82 - Fatal error when pressing STEP button and turning encoder
 - issue #83 - Restart when loop is on 64 steps
+- issue #88 - Copy Loop from STOCHASTIC channel to a NOTE channel
 
 # v0.2.0 (29 Febrary 2024)
 - Stochastic Track
