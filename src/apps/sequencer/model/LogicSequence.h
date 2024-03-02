@@ -112,7 +112,7 @@ public:
         NTwo,
         Min,
         Max,
-        Op1,
+        Sum,
         Op2,
         NRandomInput,
         NRandomLogic

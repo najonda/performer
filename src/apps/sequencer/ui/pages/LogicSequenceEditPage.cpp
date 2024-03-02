@@ -932,8 +932,8 @@ void LogicSequenceEditPage::drawDetail(Canvas &canvas, const LogicSequence::Step
             case LogicSequence::NoteLogicMode::Max:
                 str("MAX");
                 break;
-            case LogicSequence::NoteLogicMode::Op1:
-                str("OP1");
+            case LogicSequence::NoteLogicMode::Sum:
+                str("SUM");
                 break;
             case LogicSequence::NoteLogicMode::Op2:
                 str("OP2");

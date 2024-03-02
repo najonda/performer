@@ -90,7 +90,8 @@ static float evalStepNote(const LogicSequence::Step &step, int probabilityBias, 
         case LogicSequence::Max:
             stepNote = std::max(note1, note2);
             break;
-        case LogicSequence::Op1:
+        case LogicSequence::Sum:
+            stepNote = note1 + note2;
             break;
         case LogicSequence::Op2:
             break;
@@ -120,7 +121,7 @@ static float evalStepNote(const LogicSequence::Step &step, int probabilityBias, 
                         stepNote = std::max(note1, note2);
                         break;
                     case 4:
-                        
+                        stepNote = note1 + note2;
                         break;
                     case 5:
                         
