@@ -450,7 +450,7 @@ void NoteTrackEngine::triggerStep(uint32_t tick, uint32_t divisor) {
 }
 
 void NoteTrackEngine::recordStep(uint32_t tick, uint32_t divisor) {
-    if (!_engine.state().recording() || _model.project().recordMode() == Types::RecordMode::StepRecord ) {
+    if (!_engine.state().recording() || _model.project().recordMode() == Types::RecordMode::StepRecord) {
         return;
     }
 
