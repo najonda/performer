@@ -143,7 +143,7 @@ static const RangeMap *curveSequenceLayerRangeMap[] = {
     [int(CurveSequence::Layer::GateProbability)]            = nullptr,
 };
 
-LaunchpadSettings _userSettings;
+UserSettings _userSettings;
 int _style = 0;
 int _patternChangeDefault = 0;
 int _noteStyle = 0;
@@ -196,7 +196,7 @@ LaunchpadController::LaunchpadController(ControllerManager &manager, Model &mode
 
     setMode(Mode::Sequence);
 
-    _userSettings = model.settings().launchpadSettings();
+    _userSettings = model.settings().userSettings();
 }
 
 LaunchpadController::~LaunchpadController() {
@@ -632,7 +632,7 @@ void LaunchpadController::manageStochasticCircuitKeyboard(const Button &button) 
                 fullSelectedNote = noteIndex + (bypasssScale.notesPerOctave()*selectedOctave);                         
                     
                 break;
-            } else if (button.row >= 0 && button.row <= 2) {
+            } else if (button.row >= 0 && button.row < 2) {
                 auto &sequence = _project.selectedStochasticSequence();
                 int linearIndex = button.col  + (button.row*8);
 
@@ -2049,10 +2049,20 @@ void LaunchpadController::drawStochasticSequenceNotes(const StochasticSequence &
         auto stochasticEngine = _engine.selectedTrackEngine().as<StochasticEngine>();
         for (int col = 0; col < 8; ++col) {
             if (col == stochasticEngine.currentIndex()%8) {
-                if (stochasticEngine.currentIndex()<=8) {
+                if (stochasticEngine.currentIndex()<8) {
+                    setCustomGridLed(2, col, Color(1,0));
+                } else if (stochasticEngine.currentIndex() >=8 && stochasticEngine.currentIndex() <16) {
+                    setCustomGridLed(2, col, Color(1,1));
+                } else if (stochasticEngine.currentIndex() >=16 && stochasticEngine.currentIndex() <24) {
+                    setCustomGridLed(2, col, Color(1,2));
+                } else if (stochasticEngine.currentIndex() >=24 && stochasticEngine.currentIndex() <32) { 
                     setCustomGridLed(2, col, Color(1,3));
-                } else {
+                } else if (stochasticEngine.currentIndex() >=40 && stochasticEngine.currentIndex() <48) {
                     setCustomGridLed(2, col, Color(2,0));
+                } else if (stochasticEngine.currentIndex() >=48 && stochasticEngine.currentIndex() <56) {
+                    setCustomGridLed(2, col, Color(2,1));
+                } else {
+                    setCustomGridLed(2, col, Color(2,2));
                 }
             } else {
                 setGridLed(2, col, colorOff());

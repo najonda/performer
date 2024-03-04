@@ -604,7 +604,7 @@ public:
 
     int bufferLoopLength() {
         int bufferLoopLength = 16;
-        if (_sequenceLastStep.base > 16) {
+        if (_sequenceLastStep.base > 15) {
             bufferLoopLength = _sequenceLastStep.base+1;
         } 
         return bufferLoopLength;

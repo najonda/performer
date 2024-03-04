@@ -202,6 +202,9 @@ public:
         addSetting(new PatternChange());
         
         addSetting(new SyncSong());
+
+        addSetting(new LaunchpadStyleSetting());
+        addSetting(new LaunchpadNoteStyle());
     }
 
     //----------------------------------------
@@ -228,12 +231,4 @@ protected:
     }
     BaseSetting *_get(const std::string &key);
 
-};
-
-class LaunchpadSettings : public UserSettings{
-    public: 
-        LaunchpadSettings() {
-            addSetting(new LaunchpadStyleSetting());
-            addSetting(new LaunchpadNoteStyle());
-        }
 };

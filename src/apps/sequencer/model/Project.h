@@ -403,6 +403,26 @@ public:
             str("%d", stepsToStop());
         }
     }
+
+    const int recordDelay() const { return _recordDelay;}
+          int recordDelay()       { return _recordDelay; }
+
+    void setRecordDelay(int steps) {
+        _recordDelay = clamp(steps, 0 , CONFIG_STEP_COUNT);
+    }
+
+    void editRecordDelay(int steps) {
+        setRecordDelay(steps + recordDelay());
+    }
+
+    void printRecordDelay(StringBuilder &str) const {
+        if (_recordDelay == 0) {
+            str("Off");
+        } else {
+            str("%d", recordDelay());
+        }
+    }
+
     // selectedTrackIndex
 
     int selectedTrackIndex() const { return _selectedTrackIndex; }
@@ -576,6 +596,7 @@ private:
     MidiOutput _midiOutput;
 
     uint8_t _stepsToStop;
+    uint8_t _recordDelay;
 
     int _selectedTrackIndex = 0;
     int _selectedPatternIndex = 0;

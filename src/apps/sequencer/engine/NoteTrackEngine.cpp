@@ -113,7 +113,7 @@ void NoteTrackEngine::reset() {
     _slideActive = false;
     _gateQueue.clear();
     _cvQueue.clear();
-    _recordHistory.clear();
+    //_recordHistory.clear();
 
     changePattern();
 }
@@ -134,7 +134,11 @@ TrackEngine::TickResult NoteTrackEngine::tick(uint32_t tick) {
         _sequenceState = *linkData->sequenceState;
 
         if (linkData->relativeTick % linkData->divisor == 0) {
-            recordStep(tick, linkData->divisor);
+            int abstoluteStep = int(linkData->relativeTick / linkData->divisor);
+            recordStep(tick+1, linkData->divisor);
+            if (abstoluteStep == 0 ||abstoluteStep >= _model.project().recordDelay()+1) {
+                    recordStep(tick+1, linkData->divisor);
+                }
             triggerStep(tick, linkData->divisor);
         }
     } else {
@@ -157,8 +161,12 @@ TrackEngine::TickResult NoteTrackEngine::tick(uint32_t tick) {
         switch (_noteTrack.playMode()) {
         case Types::PlayMode::Aligned:
             if (relativeTick % divisor == 0) {
-                _sequenceState.advanceAligned(relativeTick / divisor, sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
-                recordStep(tick, divisor);
+                int abstoluteStep = int(relativeTick / divisor);
+                _sequenceState.advanceAligned(abstoluteStep, sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
+
+                if (abstoluteStep == 0 ||abstoluteStep >= _model.project().recordDelay()+1) {
+                    recordStep(tick+1, divisor);
+                }
                 triggerStep(tick, divisor);
 
                 _sequenceState.calculateNextStepAligned(
@@ -177,34 +185,23 @@ TrackEngine::TickResult NoteTrackEngine::tick(uint32_t tick) {
                 _freeRelativeTick = 0;
             }
             if (relativeTick == 0) {
+
                 if (_currentStageRepeat == 1) {
                      _sequenceState.advanceFree(sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
-                     _sequenceState.calculateNextStepFree(
-                        sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
                 }
 
                 recordStep(tick, divisor);
                 const auto &step = sequence.step(_sequenceState.step());
-                bool isLastStageStep = ((int) step.stageRepeats() - (int) _currentStageRepeat) <= 0;
-            
-                if (step.gateOffset() >= 0) {
-                    triggerStep(tick, divisor);
-                }
+                bool isLastStageStep = ((int) (step.stageRepeats()+1) - (int) _currentStageRepeat) <= 0;
 
-                if (!isLastStageStep && step.gateOffset() < 0) {
-                    triggerStep(tick + divisor, divisor, false);
-                }
+                triggerStep(tick+divisor, divisor);
 
-                if (isLastStageStep 
-                        && sequence.step(_sequenceState.nextStep()).gateOffset() < 0) {
-                    triggerStep(tick + divisor, divisor, true);
-                }
-               
                 if (isLastStageStep) {
-                   _currentStageRepeat = 1; 
+                   _currentStageRepeat = 1;
                 } else {
                     _currentStageRepeat++;
                 }
+
             }
             break;
         case Types::PlayMode::Last:
@@ -461,7 +458,8 @@ void NoteTrackEngine::triggerStep(uint32_t tick, uint32_t divisor) {
 }
 
 void NoteTrackEngine::recordStep(uint32_t tick, uint32_t divisor) {
-    if (!_engine.state().recording() || _model.project().recordMode() == Types::RecordMode::StepRecord || _sequenceState.prevStep() < 0) {
+
+    if (!_engine.state().recording() || _model.project().recordMode() == Types::RecordMode::StepRecord || _sequenceState.prevStep()==-1) {
         return;
     }
 

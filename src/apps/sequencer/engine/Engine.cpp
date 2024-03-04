@@ -428,7 +428,6 @@ void Engine::updateTrackSetups() {
                     track.curveTrack().setName(str);
                 }
                 break;
-                break;
             case Track::TrackMode::MidiCv:
                 trackEngine = trackContainer.create<MidiCvTrackEngine>(*this, _model, track, linkedTrackEngine);
                 if (sizeof(track.noteTrack().name()==0)) {

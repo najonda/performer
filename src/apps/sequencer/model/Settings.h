@@ -18,9 +18,6 @@ public:
     const UserSettings &userSettings() const { return _userSettings; }
           UserSettings &userSettings()       { return _userSettings; }
 
-    
-    const LaunchpadSettings &launchpadSettings() const { return _launchpadSettings; }
-          LaunchpadSettings &launchpadSettings()       { return _launchpadSettings; }
 
     void clear();
 
@@ -33,5 +30,4 @@ public:
 private:
     Calibration _calibration;
     UserSettings _userSettings;
-    LaunchpadSettings _launchpadSettings;
 };

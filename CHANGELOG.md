@@ -1,5 +1,11 @@
 # Changelog
 
+# v0.2.1 (4 March 2024)
+- issue #80 - Repeat Function Issue - Metropolix Mode 
+- issue #82 - Fatal error when pressing STEP button and turning encoder
+- issue #83 - Restart when loop is on 64 steps
+- issue #88 - Copy Loop from STOCHASTIC channel to a NOTE channel
+
 # v0.2.0 (29 Febrary 2024)
 - Stochastic Track
     - global octave modifier
@@ -20,7 +26,6 @@
 - quick gate accent launchpad control on gate page and circuit page (`7`+`GRID`)
 - add steps to stop feature in project page. Once started when the engine reaches the steps to stop value the clock will stop.
 - improved overview page. quick edit tracks
--
 
 > **testers** :
 >  

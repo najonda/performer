@@ -11,13 +11,11 @@ Settings::Settings() {
 void Settings::clear() {
     _calibration.clear();
     _userSettings.clear();
-    _launchpadSettings.clear();
 }
 
 void Settings::write(VersionedSerializedWriter &writer) const {
     _calibration.write(writer);
     _userSettings.write(writer);
-    _launchpadSettings.write(writer);
 
     writer.writeHash();
 }
@@ -27,7 +25,6 @@ bool Settings::read(VersionedSerializedReader &reader) {
 
     _calibration.read(reader);
     _userSettings.read(reader);
-    _launchpadSettings.read(reader);
 
     bool success = reader.checkHash();
     if (!success) {
