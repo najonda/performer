@@ -992,8 +992,6 @@ void StochasticSequenceEditPage::copySequence() {
         auto lockedSteps = _engine.selectedTrackEngine().as<StochasticEngine>().lockedSteps();
 
         const auto &scale = _project.selectedStochasticSequence().selectedScale(_model.project().scale());
-        int rootNote = _project.selectedStochasticSequence().selectedRootNote(_model.project().rootNote());
-
 
         auto sequence = NoteSequence();
         for (int i=0; i<int(lockedSteps.size()); ++i) {
