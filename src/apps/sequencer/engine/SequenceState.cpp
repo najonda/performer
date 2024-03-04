@@ -10,7 +10,7 @@ static int randomStep(int firstStep, int lastStep, Random &rng) {
 void SequenceState::reset() {
     _nextStep = -1;
     _step = -1;
-    _prevStep = 0;
+    _prevStep = -1;
     _direction = 1;
     _iteration = 0;
     _nextIteration = 0;

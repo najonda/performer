@@ -71,6 +71,7 @@ private:
         MidiPgmChange,
         CvGateInput,
         StepsToStop,
+        RecordDelay,
         //CurveCvInput,
         Last
     };
@@ -90,6 +91,7 @@ private:
         case MidiPgmChange:     return "MIDI Pgm Chng";
         case CvGateInput:       return "CV/Gate Input";
         case StepsToStop:       return "Steps to stop";
+        case RecordDelay:       return "Record Delay";
         //case CurveCvInput:      return "Curve CV Input";
         case Last:              break;
         }
@@ -143,6 +145,9 @@ private:
         case StepsToStop:
             _project.printStepsToStop(str);
             break;
+        case RecordDelay:
+            _project.printRecordDelay(str);
+            break;
         //case CurveCvInput:
         //    _project.printCurveCvInput(str);
         //    break;
@@ -190,6 +195,9 @@ private:
             break;
         case StepsToStop: {
             _project.editStepsToStop(value);
+            break;
+        case RecordDelay:
+            _project.editRecordDelay(value);
             break;
         }
         //case CurveCvInput:
