@@ -5,6 +5,8 @@
 - issue #82 - Fatal error when pressing STEP button and turning encoder
 - issue #83 - Restart when loop is on 64 steps
 - issue #88 - Copy Loop from STOCHASTIC channel to a NOTE channel
+- issue #90 - the first note is never recorded
+- fix user settings
 
 # v0.2.0 (29 Febrary 2024)
 - Stochastic Track
