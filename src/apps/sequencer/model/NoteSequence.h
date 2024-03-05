@@ -8,6 +8,7 @@
 #include "Scale.h"
 #include "Routing.h"
 #include "FileDefs.h"
+#include "os/os.h"
 
 #include "core/math/Math.h"
 #include "core/utils/StringBuilder.h"
@@ -607,7 +608,8 @@ private:
 
     int _section = 0;
     uint32_t _lastGateOff;
-    //static constexpr uint32_t GateOnDelay = os::time::ms(1);
+    uint8_t _gate;
+    static constexpr uint32_t GateOnDelay = os::time::ms(5);
 
     friend class NoteTrack;
 };

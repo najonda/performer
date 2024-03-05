@@ -68,6 +68,7 @@ void NoteSequenceEditPage::enter() {
     updateMonitorStep();
 
     _inMemorySequence = _project.selectedNoteSequence();
+
     _showDetail = false;
 }
 
@@ -480,7 +481,11 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
     if (key.isLeft()) {
         if (key.shiftModifier()) {
             if (trackEngine.currentRecordStep()!=-1) {
-                sequence.setCurrentRecordStep(sequence.currentRecordStep()-1);
+                if (Routing::isRouted(Routing::Target::CurrentRecordStep, _model.project().selectedTrackIndex())) {
+                    sequence.setCurrentRecordStep(sequence.currentRecordStep()-1, true);
+                } else {
+                    sequence.setCurrentRecordStep(sequence.currentRecordStep()-1, false);
+                }
             } else {
                 _inMemorySequence = _project.selectedNoteSequence();
                 sequence.shiftSteps(_stepSelection.selected(), -1);
@@ -495,7 +500,12 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
     if (key.isRight()) {
         if (key.shiftModifier()) {
             if (trackEngine.currentRecordStep()!=-1) {
-                sequence.setCurrentRecordStep(sequence.currentRecordStep()+1);
+                if (Routing::isRouted(Routing::Target::CurrentRecordStep, _model.project().selectedTrackIndex())) {
+                    sequence.setCurrentRecordStep(sequence.currentRecordStep()+1, true);
+                } else {
+                    sequence.setCurrentRecordStep(sequence.currentRecordStep()+1, false);
+                }
+                
             } else {
                 _inMemorySequence = _project.selectedNoteSequence();
                 sequence.shiftSteps(_stepSelection.selected(), 1);

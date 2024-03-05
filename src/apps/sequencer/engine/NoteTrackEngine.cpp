@@ -329,7 +329,12 @@ void NoteTrackEngine::monitorMidi(uint32_t tick, const MidiMessage &message) {
 
     if (_engine.recording() && _model.project().recordMode() == Types::RecordMode::StepRecord) {
         _stepRecorder.process(message, *_sequence, [this] (int midiNote) { return noteFromMidiNote(midiNote); });
-        _sequence->setCurrentRecordStep(_stepRecorder.stepIndex(), true);
+        std::cerr << _stepRecorder.stepIndex() << "\n";
+        if (Routing::isRouted(Routing::Target::CurrentRecordStep, _model.project().selectedTrackIndex())) {
+            _sequence->setCurrentRecordStep(_stepRecorder.stepIndex(), true);
+        } else {
+            _sequence->setCurrentRecordStep(_stepRecorder.stepIndex(), false);
+        }
     }
 }
 

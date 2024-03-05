@@ -3,7 +3,9 @@
 
 #include "ModelUtils.h"
 #include "Routing.h"
-#include <iostream>
+
+#include "os/os.h"
+#include <cstdint>
 
 Types::LayerRange NoteSequence::layerRange(Layer layer) {
     #define CASE(_layer_) \
@@ -261,11 +263,23 @@ void NoteSequence::writeRouted(Routing::Target target, int intValue, float float
         setLastStep(intValue, true);
         break;
     case Routing::Target::CurrentRecordStep:
-        std::cerr << floatValue << "\n";
-        if (floatValue >3.f) {
-            
-            setCurrentRecordStep(currentRecordStep()+1, true);
-        } 
+        if (_gate) {
+            if (floatValue < 2.f) {
+                // gate off
+                _gate = 0;
+                _lastGateOff = os::ticks();
+            }
+        } else {
+            if (floatValue > 3.f) {
+                if (os::ticks() - _lastGateOff >= GateOnDelay) {
+                    // gate on
+                    _gate = 1;
+                    setCurrentRecordStep(currentRecordStep()+1,true);
+                }
+            } else {
+                _lastGateOff = os::ticks();
+            }
+        }
         break;
     default:
         break;
