@@ -25,6 +25,7 @@ public:
     void copyTrack(const Track &track);
     void copyNoteSequence(const NoteSequence &noteSequence);
     void copyNoteSequenceSteps(const NoteSequence &noteSequence, const SelectedSteps &selectedSteps);
+    void copyNoteSequenceSteps(NoteSequence &noteSequence, const SelectedSteps &selectedSteps);
     void copyCurveSequence(const CurveSequence &curveSequence);
     void copyCurveSequenceSteps(const CurveSequence &curveSequence, const SelectedSteps &selectedSteps);
     void copyStochasticSequence(const StochasticSequence &noteSequence);

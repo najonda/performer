@@ -124,6 +124,12 @@ public:
     int getNextWeightedPitch(std::vector<StochasticStep> distr, int notesPerOctave = 12);
     int evalRestProbability(StochasticSequence &sequence);
 
+    std::vector<StochasticLoopStep> lockedSteps() {
+        return _lockedSteps;
+    }
+
+
+
 
 private:
     void triggerStep(uint32_t tick, uint32_t divisor, bool nextStep);

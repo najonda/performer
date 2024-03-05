@@ -32,6 +32,13 @@ void ClipBoard::copyNoteSequenceSteps(const NoteSequence &noteSequence, const Se
     noteSequenceSteps.selected = selectedSteps;
 }
 
+void ClipBoard::copyNoteSequenceSteps(NoteSequence &noteSequence, const SelectedSteps &selectedSteps) {
+    _type = Type::NoteSequenceSteps;
+    auto &noteSequenceSteps = _container.as<NoteSequenceSteps>();
+    noteSequenceSteps.sequence = noteSequence;
+    noteSequenceSteps.selected = selectedSteps;
+}
+
 void ClipBoard::copyCurveSequence(const CurveSequence &curveSequence) {
     _type = Type::CurveSequence;
     _container.as<CurveSequence>() = curveSequence;
