@@ -33,7 +33,7 @@
 >  
 > mebitek, Guillaume Libersat, Nick Ansell, XponentOne, dblu2000, hales2488, XQSTKRPS, KittenVillage, Andreas Hieninger
 
-# v0.1.4.48 (30 January 2024)
+# v0.1.48 (30 January 2024)
 - Moving steps in a sequence
 - INIT by step selected
 - smart cycling on patter follow modes (check if launchpad is connected)
@@ -45,7 +45,7 @@
 - Curve mode backward run modes play reverse playback
 - Bypass the Voltage Table in specific steps of the sequence
 
-# v0.1.4.47 (24 January 2024)
+# v0.1.47 (24 January 2024)
 - launchpad circuit mode improvements
 - random generator: random seed just on init method
 - patter follow [@glibersat](https://github.com/glibersat)
