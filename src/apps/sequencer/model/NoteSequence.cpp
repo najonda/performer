@@ -2,6 +2,8 @@
 #include "ProjectVersion.h"
 
 #include "ModelUtils.h"
+#include "Routing.h"
+#include <iostream>
 
 Types::LayerRange NoteSequence::layerRange(Layer layer) {
     #define CASE(_layer_) \
@@ -258,6 +260,13 @@ void NoteSequence::writeRouted(Routing::Target target, int intValue, float float
     case Routing::Target::LastStep:
         setLastStep(intValue, true);
         break;
+    case Routing::Target::CurrentRecordStep:
+        std::cerr << floatValue << "\n";
+        if (floatValue >3.f) {
+            
+            setCurrentRecordStep(currentRecordStep()+1, true);
+        } 
+        break;
     default:
         break;
     }
@@ -272,6 +281,7 @@ void NoteSequence::clear() {
     setRunMode(Types::RunMode::Forward);
     setFirstStep(0);
     setLastStep(15);
+    setCurrentRecordStep(0);
 
     clearSteps();
 }

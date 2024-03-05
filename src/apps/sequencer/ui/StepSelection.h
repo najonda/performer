@@ -109,20 +109,20 @@ public:
         _first = 0;
     }
 
-    void shiftLeft() {
-        rotateL(_selected, 1);
+    void shiftLeft(int lastStep = N) {
+        rotateL(_selected, 1, lastStep);
     }
 
-    void shiftRight() {
-        rotateR(_selected, 1);
+    void shiftRight(int lastStep = N) {
+        rotateR(_selected, 1, lastStep);
 
     }
 
-    inline void rotateR(std::bitset<N>& b, unsigned m) {
+    inline void rotateR(std::bitset<N>& b, unsigned m, int lastStep) {
         b = b << m | b >> (N-m);
     }
 
-    inline void rotateL(std::bitset<N>& b, unsigned m) {
+    inline void rotateL(std::bitset<N>& b, unsigned m, int lastStep) {
         b = b >> m | b << (N-m);
     }
 

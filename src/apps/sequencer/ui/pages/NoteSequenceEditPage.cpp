@@ -68,7 +68,6 @@ void NoteSequenceEditPage::enter() {
     updateMonitorStep();
 
     _inMemorySequence = _project.selectedNoteSequence();
-
     _showDetail = false;
 }
 
@@ -90,11 +89,14 @@ void NoteSequenceEditPage::draw(Canvas &canvas) {
     WindowPainter::drawActiveFunction(canvas, NoteSequence::layerName(layer()));
     WindowPainter::drawFooter(canvas, functionNames, pageKeyState(), activeFunctionKey());
 
-    const auto &trackEngine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
+    auto &trackEngine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
 
     auto &sequence = _project.selectedNoteSequence();
     const auto &scale = sequence.selectedScale(_project.scale());
     int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
+    if (trackEngine.currentRecordStep()!=-1) {
+        trackEngine.setCurrentRecordStep(sequence.currentRecordStep());
+    }
     int currentRecordStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentRecordStep() : -1;
 
     const int stepWidth = Width / StepCount;
@@ -351,6 +353,8 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
     auto &sequence = _project.selectedNoteSequence();
     auto &track = _project.selectedTrack().noteTrack();
 
+    auto &trackEngine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
+
     if (key.isContextMenu()) {
         contextShow();
         event.consume();
@@ -475,20 +479,28 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
 
     if (key.isLeft()) {
         if (key.shiftModifier()) {
-            _inMemorySequence = _project.selectedNoteSequence();
-            sequence.shiftSteps(_stepSelection.selected(), -1);
-            _stepSelection.shiftLeft();
+            if (trackEngine.currentRecordStep()!=-1) {
+                sequence.setCurrentRecordStep(sequence.currentRecordStep()-1);
+            } else {
+                _inMemorySequence = _project.selectedNoteSequence();
+                sequence.shiftSteps(_stepSelection.selected(), -1);
+                _stepSelection.shiftLeft(sequence.lastStep()+1);
+            }
         } else {
-            track.setPatternFollowDisplay(false);
+             track.setPatternFollowDisplay(false);
              sequence.setSecion(std::max(0, sequence.section() - 1));
         }
         event.consume();
     }
     if (key.isRight()) {
         if (key.shiftModifier()) {
-            _inMemorySequence = _project.selectedNoteSequence();
-            sequence.shiftSteps(_stepSelection.selected(), 1);
-            _stepSelection.shiftRight();
+            if (trackEngine.currentRecordStep()!=-1) {
+                sequence.setCurrentRecordStep(sequence.currentRecordStep()+1);
+            } else {
+                _inMemorySequence = _project.selectedNoteSequence();
+                sequence.shiftSteps(_stepSelection.selected(), 1);
+                _stepSelection.shiftRight(sequence.lastStep()+1);
+            }
         } else {
             track.setPatternFollowDisplay(false);
             sequence.setSecion(std::min(3, sequence.section() + 1));
@@ -1060,7 +1072,6 @@ void NoteSequenceEditPage::tieNotes() {
                 showMessage("NOTES TIED");
             }
             sequence.step(i).setNote(sequence.step(first).note());
-            std::cerr << _stepSelection[i];
         }
     }
 }
