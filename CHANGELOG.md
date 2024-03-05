@@ -1,5 +1,9 @@
 # Changelog
 
+# v0.2.2 ()
+- fix shift steps feature
+- step recorder "move step forward" shortcuts
+
 # v0.2.1 (4 March 2024)
 - issue #80 - Repeat Function Issue - Metropolix Mode 
 - issue #82 - Fatal error when pressing STEP button and turning encoder
