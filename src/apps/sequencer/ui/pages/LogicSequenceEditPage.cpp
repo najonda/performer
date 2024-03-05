@@ -935,8 +935,8 @@ void LogicSequenceEditPage::drawDetail(Canvas &canvas, const LogicSequence::Step
             case LogicSequence::NoteLogicMode::Sum:
                 str("SUM");
                 break;
-            case LogicSequence::NoteLogicMode::Op2:
-                str("OP2");
+            case LogicSequence::NoteLogicMode::Avg:
+                str("AVG");
                 break;
             case LogicSequence::NoteLogicMode::NRandomInput:
                 str("RND INPUT");

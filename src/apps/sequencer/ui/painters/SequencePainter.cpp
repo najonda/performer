@@ -216,8 +216,8 @@ void SequencePainter::drawNoteLogicMode(Canvas &canvas, int x, int y, int w, int
         case LogicSequence::NoteLogicMode::Sum:
             canvas.drawTextCentered(x, y+4, 8, -8, "+");
             break;
-        case LogicSequence::NoteLogicMode::Op2:
-            canvas.drawTextCentered(x, y+4, 8, -8, "o2");
+        case LogicSequence::NoteLogicMode::Avg:
+            canvas.drawTextCentered(x, y+4, 8, -8, "~");
             break;
         case LogicSequence::NoteLogicMode::NRandomInput:
             canvas.drawTextCentered(x, y+4, 8, -8, "1?2");

@@ -113,7 +113,7 @@ public:
         Min,
         Max,
         Sum,
-        Op2,
+        Avg,
         NRandomInput,
         NRandomLogic
     };

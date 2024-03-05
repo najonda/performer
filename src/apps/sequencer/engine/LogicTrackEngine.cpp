@@ -93,7 +93,8 @@ static float evalStepNote(const LogicSequence::Step &step, int probabilityBias, 
         case LogicSequence::Sum:
             stepNote = note1 + note2;
             break;
-        case LogicSequence::Op2:
+        case LogicSequence::Avg:
+            stepNote = int((note1+note2)/2);
             break;
         case LogicSequence::NRandomInput:  {
                 int rnd = rng.nextRange(2);
@@ -124,7 +125,7 @@ static float evalStepNote(const LogicSequence::Step &step, int probabilityBias, 
                         stepNote = note1 + note2;
                         break;
                     case 5:
-                        
+                        stepNote = int((note1+note2)/2);
                         break;
                     case 6:
                         int rnd = rng.nextRange(2);
