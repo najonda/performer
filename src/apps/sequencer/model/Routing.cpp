@@ -325,6 +325,8 @@ static const TargetInfo targetInfos[int(Routing::Target::Last)] = {
     [int(Routing::Target::Divisor)]                         = { 1,      768,    6,      24,     1       },
     [int(Routing::Target::Scale)]                           = { 0,      23,     0,      23,     1       },
     [int(Routing::Target::RootNote)]                        = { 0,      11,     0,      11,     1       },
+    [int(Routing::Target::CurrentRecordStep)]               = { 0,      63,     0,      63,     16      },
+
     [int(Routing::Target::Reseed)]                          = { 0,      1,      0,      1,      1       },
     [int(Routing::Target::RestProbability2)]                = { -8,     8,      -8,     8,      8       },
     [int(Routing::Target::RestProbability4)]                = { -8,     8,      -8,     8,      8       },

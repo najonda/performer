@@ -109,21 +109,28 @@ public:
         _first = 0;
     }
 
-    void shiftLeft() {
-        rotateL(_selected, 1);
+    void shiftLeft(int lastStep = N) {
+        rotateL(_selected, lastStep);
     }
 
-    void shiftRight() {
-        rotateR(_selected, 1);
-
+    void shiftRight(int lastStep = N) {
+        rotateR(_selected, lastStep);
     }
 
-    inline void rotateR(std::bitset<N>& b, unsigned m) {
-        b = b << m | b >> (N-m);
+    inline void rotateR(std::bitset<N> &x, int r) {
+        const std::bitset<N> m = (1u << r) - 1;     // the r low bits set
+
+        x =  (x & ~m) |                             // return the high bits unchanged
+            ((x << 1) & m) |                        // left shift & mask
+            ((x >> (r - 1)) & std::bitset<N>(1u));  // right shift  & 1
     }
 
-    inline void rotateL(std::bitset<N>& b, unsigned m) {
-        b = b >> m | b << (N-m);
+     inline void rotateL(std::bitset<N> &x, int r) {
+        const std::bitset<N> m = (1u << r) - 1;     // the r low bits set
+
+        x = (x & ~m) |                              // return the high bits unchanged
+            ((x & m) >> 1) |                        // mask & right shift
+            ((x & std::bitset<N>(1u)) << (r - 1));  // & 1 and left shift
     }
 
     void selectEqualSteps(int stepIndex) {

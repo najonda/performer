@@ -3,6 +3,10 @@
 
 #include "ModelUtils.h"
 #include "Types.h"
+#include "Routing.h"
+
+#include "os/os.h"
+#include <cstdint>
 
 Types::LayerRange NoteSequence::layerRange(Layer layer) {
     #define CASE(_layer_) \
@@ -259,6 +263,25 @@ void NoteSequence::writeRouted(Routing::Target target, int intValue, float float
     case Routing::Target::LastStep:
         setLastStep(intValue, true);
         break;
+    case Routing::Target::CurrentRecordStep:
+        if (_gate) {
+            if (floatValue < 2.f) {
+                // gate off
+                _gate = 0;
+                _lastGateOff = os::ticks();
+            }
+        } else {
+            if (floatValue > 3.f) {
+                if (os::ticks() - _lastGateOff >= GateOnDelay) {
+                    // gate on
+                    _gate = 1;
+                    setCurrentRecordStep(currentRecordStep()+1,true);
+                }
+            } else {
+                _lastGateOff = os::ticks();
+            }
+        }
+        break;
     default:
         break;
     }
@@ -273,6 +296,7 @@ void NoteSequence::clear() {
     setRunMode(Types::RunMode::Forward);
     setFirstStep(0);
     setLastStep(15);
+    setCurrentRecordStep(0);
 
     clearSteps();
 }
@@ -325,9 +349,9 @@ void NoteSequence::setNotes(std::initializer_list<int> notes) {
 
 void NoteSequence::shiftSteps(const std::bitset<CONFIG_STEP_COUNT> &selected, int direction) {
     if (selected.any()) {
-        ModelUtils::shiftSteps(_steps, selected, firstStep(), lastStep(), direction);
+        ModelUtils::shiftSteps(_steps, selected, firstStep(), lastStep()+1, direction);
     } else {
-        ModelUtils::shiftSteps(_steps, firstStep(), lastStep(), direction);
+        ModelUtils::shiftSteps(_steps, firstStep(), lastStep()+1, direction);
     }
 }
 

@@ -6,6 +6,7 @@
 #include <array>
 #include <algorithm>
 #include <bitset>
+#include <cstddef>
 #include <iostream>
 
 namespace ModelUtils {
@@ -68,23 +69,33 @@ static void shiftSteps(std::array<Step, N> &steps, int first, int last, int dire
 template<typename Step, size_t N>
 static void shiftSteps(std::array<Step, N> &steps, const std::bitset<N> &selected, int first, int last, int direction)
 {
-    uint8_t indices[N];
+    int8_t indices[last];
     int count = 0;
-    for (size_t i = 0; i < N; ++i) {
-        if (selected[i]) indices[count++] = i;
+    for (int i = 0; i < last; ++i) {
+        if (selected[i]) {
+            indices[count++] = i;
+        } else {
+            indices[count++] = -1;
+        }
     }
     if (direction == 1) {
-        for (int i = last - 1; i >= first; --i) {
-            int index = indices[i]+1;
+        for (int i = 0; i < last; ++i) {
+            if (indices[i]==-1) {
+                continue;;
+            }
+            int8_t index = indices[i]+1;
             if (index == last) {
                 index = 0;
             }
             std::swap(steps[indices[i]], steps[index]);
         }
     } else if (direction == -1) {
-        for (int i = first; i < last; ++i) {
-            int index = indices[i]-1;
-            if (index == -1) {
+        for (int i = 0; i < last; ++i) {
+            if (indices[i]==-1) {
+                continue;;
+            }
+            int8_t index = indices[i]-1;
+            if (index < 0) {
                 index = last-1;
             }
             std::swap(steps[indices[i]], steps[index]);

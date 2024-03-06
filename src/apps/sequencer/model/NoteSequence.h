@@ -8,6 +8,7 @@
 #include "Scale.h"
 #include "Routing.h"
 #include "FileDefs.h"
+#include "os/os.h"
 
 #include "core/math/Math.h"
 #include "core/utils/StringBuilder.h"
@@ -491,6 +492,25 @@ public:
         str("%d", lastStep() + 1);
     }
 
+    int currentRecordStep() const {
+        return _currentRecordStep.get(isRouted(Routing::Target::CurrentRecordStep)); 
+    }
+    
+    void setCurrentRecordStep(int step, bool routed = false) {
+        _currentRecordStep.set(clamp(step, firstStep(), CONFIG_STEP_COUNT - 1), routed);
+    }    
+    
+    void editCurrentRecordStep(int value, bool shift) {
+        if (!isRouted(Routing::Target::CurrentRecordStep)) {
+            setCurrentRecordStep(currentRecordStep()+value);
+        }
+    }
+
+    void printCurrentRecordStep(StringBuilder &str) const {
+        printRouted(str, Routing::Target::CurrentRecordStep);
+        str("%d", currentRecordStep() + 1);
+    }
+
     // steps
 
     const StepArray &steps() const { return _steps; }
@@ -568,11 +588,16 @@ private:
     Routable<uint8_t> _firstStep;
     Routable<uint8_t> _lastStep;
 
+    Routable<uint8_t> _currentRecordStep;
+
     StepArray _steps;
 
     uint8_t _edited;
 
     int _section = 0;
+    uint32_t _lastGateOff;
+    uint8_t _gate;
+    static constexpr uint32_t GateOnDelay = os::time::ms(5);
 
     friend class NoteTrack;
 };

@@ -43,6 +43,9 @@ public:
 
     int currentStep() const { return _currentStep; }
     int currentRecordStep() const { return _stepRecorder.stepIndex(); }
+    void setCurrentRecordStep(int value) {
+        _stepRecorder.setStepIndex(value);
+    }
 
     void setMonitorStep(int index);
 
