@@ -509,7 +509,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
             } else {
                 _inMemorySequence = _project.selectedNoteSequence();
                 sequence.shiftSteps(_stepSelection.selected(), 1);
-                _stepSelection.shiftRight(sequence.lastStep()+1);
+                _stepSelection.shiftRight(16);
             }
         } else {
             track.setPatternFollowDisplay(false);

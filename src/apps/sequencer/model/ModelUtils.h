@@ -69,9 +69,9 @@ static void shiftSteps(std::array<Step, N> &steps, int first, int last, int dire
 template<typename Step, size_t N>
 static void shiftSteps(std::array<Step, N> &steps, const std::bitset<N> &selected, int first, int last, int direction)
 {
-    int8_t indices[N];
+    int8_t indices[last];
     int count = 0;
-    for (size_t i = 0; i < N; ++i) {
+    for (int i = 0; i < last; ++i) {
         if (selected[i]) {
             indices[count++] = i;
         } else {
@@ -79,24 +79,24 @@ static void shiftSteps(std::array<Step, N> &steps, const std::bitset<N> &selecte
         }
     }
     if (direction == 1) {
-        for (size_t i = 0; i < N; i++) {
+        for (int i = 0; i < last; ++i) {
             if (indices[i]==-1) {
                 continue;;
             }
             int8_t index = indices[i]+1;
-            if (index == N) {
+            if (index == last) {
                 index = 0;
             }
             std::swap(steps[indices[i]], steps[index]);
         }
     } else if (direction == -1) {
-        for (size_t i = 0; i < N; ++i) {
+        for (int i = 0; i < last; ++i) {
             if (indices[i]==-1) {
                 continue;;
             }
             int8_t index = indices[i]-1;
             if (index < 0) {
-                index = N-1;
+                index = last-1;
             }
             std::swap(steps[indices[i]], steps[index]);
         }

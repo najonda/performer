@@ -119,12 +119,36 @@ public:
     }
 
     inline void rotateR(std::bitset<N>& b, unsigned m, int lastStep) {
-        b = b << m | b >> (N-m);
+        std::bitset<64> r;
+        for (int i=0; i < lastStep; ++i) {
+            int index = i+m;
+            if (i==15) {    
+                index = 0;
+            }
+            r[index] = b[i];
+        }
+        b = r;
     }
 
     inline void rotateL(std::bitset<N>& b, unsigned m, int lastStep) {
-        b = b >> m | b << (N-m);
+        std::bitset<64> r;
+        for (int i=0; i < lastStep; ++i) {
+            int index = i-m;
+             if (index < 0) {
+                index = lastStep-1;
+            }
+            r[index] = b[i];
+        }
+        b = r;
     }
+
+    std::uint64_t lrotsome(std::uint64_t x) {
+    constexpr std::uint64_t m = (1u << 15) - 1;  // the 15 low bits set
+    
+    return (x & ~m) |                            // return the high bits unchanged
+           ((x << 1) & m) |                      // left shift & mask
+           ((x >> 14) & 1);                      // right shift  & 1
+}
 
     void selectEqualSteps(int stepIndex) {
         _mode = Mode::Persist;
