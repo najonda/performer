@@ -122,7 +122,7 @@ public:
         case Target::Divisor:                   return "Divisor";
         case Target::Scale:                     return "Scale";
         case Target::RootNote:                  return "Root Note";
-        case Target::CurrentRecordStep:         return "Current REC Step";
+        case Target::CurrentRecordStep:         return "REC Step";
 
         case Target::Reseed:                    return "Reseed";
         case Target::RestProbability2:          return "Rest Prob. 2";
