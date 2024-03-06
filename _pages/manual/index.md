@@ -546,23 +546,23 @@ This page allows to change project wide parameters as well loading and saving pr
 
 The following parameters are available:
 
-| Parameter      | Range | Description                                                                                                                                                                             |
-|:---------------| :--- |:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Name           | - | Press `ENCODER` to enter text editor for changing the project name.                                                                                                                     |
-| Tempo          | 1.0 - 1000.0 BPM | Tempo of the master clock.                                                                                                                                                              |
-| Swing          | 50% - 75% | Global swing amount.                                                                                                                                                                    |
-| Time Signature | Beats/Note | Time signature defining the musical measure/bar length for _Sync Measure_ and _Reset Measure_ on sequences. The time signature is also used to define the length of a bar in song mode. | 
-| Sync Measure   | 1 - 128 bars | Multiple of measures/bars at which to execute _syncing_ (see [Pattern](#pages-pattern) and [Performer](#pages-performer) pages).                                                        |
- page).         |
-| Scale          | [Scales](#appendix-scales) | Default scale. Can be overwritten per sequence on the [Sequence](#pages-sequence) page. The scale will bechanged on encoder press.                                                      |
+| Parameter      | Range                               | Description                                                                                                                                                                             |
+|:---------------|:------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Name           | -                                   | Press `ENCODER` to enter text editor for changing the project name.                                                                                                                     |
+| Tempo          | 1.0 - 1000.0 BPM                    | Tempo of the master clock.                                                                                                                                                              |
+| Swing          | 50% - 75%                           | Global swing amount.                                                                                                                                                                    |
+| Time Signature | Beats/Note                          | Time signature defining the musical measure/bar length for _Sync Measure_ and _Reset Measure_ on sequences. The time signature is also used to define the length of a bar in song mode. | 
+| Sync Measure   | 1 - 128 bars                        | Multiple of measures/bars at which to execute _syncing_ (see [Pattern](#pages-pattern) and [Performer](#pages-performer) pages).                                                        |
+| page).         |                                     |                                                                                                                                                                                         |
+| Scale          | [Scales](#appendix-scales)          | Default scale. Can be overwritten per sequence on the [Sequence](#pages-sequence) page. The scale will bechanged on encoder press.                                                      |
 | Root Note      | C, C#, D, D#, E, F, F#, G, G#, A, B | Default root note. Can be overwritten per sequence on the [Sequence](#pages-sequence) page.                                                                                             |
-| Monitor Mode   | Always, Stopped, Off | Live monitoring mode. _Always_ enables monitoring always, _Stopped_ only if clock is stopped and _Off_ disables it.                                                                     |
-| Record Mode    | Overdub, Overwrite, Step Record | Recording mode (see [Recording](#appendix-recording)).                                                                                                                                  |
-| MIDI Input     | Off, All, MIDI, USB | Select MIDI input for monitoring and recording.                                                                                                                                         |
-| MIDI Pgm Chgn  | Off, On | Allow send and receive program change messages                                                                                                                                          |
-| CV/Gate Input  | Off, CV1/CV2, CV3/CV4 | Enable CV/Gate input on CV inputs for monitoring and recording (emulating a MIDI keyboard).                                                                                             |
-| Steps to Stop | off, 1 - 64 | number of steps after the sequencer automatically stops - useful to record |                                                                                                             |
-| Record Delay | off, 1 -64 | number of steps after the sequencer starts recording |
+| Monitor Mode   | Always, Stopped, Off                | Live monitoring mode. _Always_ enables monitoring always, _Stopped_ only if clock is stopped and _Off_ disables it.                                                                     |
+| Record Mode    | Overdub, Overwrite, Step Record     | Recording mode (see [Recording](#appendix-recording)).                                                                                                                                  |
+| MIDI Input     | Off, All, MIDI, USB                 | Select MIDI input for monitoring and recording.                                                                                                                                         |
+| MIDI Pgm Chgn  | Off, On                             | Allow send and receive program change messages                                                                                                                                          |
+| CV/Gate Input  | Off, CV1/CV2, CV3/CV4               | Enable CV/Gate input on CV inputs for monitoring and recording (emulating a MIDI keyboard).                                                                                             |
+| Steps to Stop  | off, 1 - 64                         | number of steps after the sequencer automatically stops - useful to record                                                                                                              |                                                                                                             |
+| Record Delay   | off, 1 -64                          | number of steps after the sequencer starts recording                                                                                                                                    |
 
 > Note: _Tempo_ and _Swing_ are routable parameters.
 
@@ -786,7 +786,7 @@ If a track is in _Note_ mode, the following parameters are available:
 | Divisor | [Divisors](#appendix-divisors) | Time divisor for this sequence.                                                                                                                                                                                                                                                                                                                                        |
 | Reset Measure | off, 1 - 128 bars | Number of measures/bars at which to reset the sequence.                                                                                                                                                                                                                                                                                                                |
 | Scale | [Scales](#appendix-scales) | Scale to use for this sequence. If set to _Default_, uses the default scale set on the [Project](#pages-project) page. The scale will change on encoder press and new notes will be calculated based on the previous scale: if a note of the previous scale is present in the new scale it will be preserved. If a note is not present the nearest one will be picked. |
-| Root Note | C, C#, D, D#, E, F, F#, G, G#, A, B | Root note to use for this sequence. If set to _Default_, uses the default root note set on the [Project](#pages-project) page.                                                                                                                                                                                                                                         |
+| Root Note | C, C#, D, D#, E, F, F#, G, G#, A, B | Root note to use for this sequence. If set to ../../../src/apps/sequencer/model/Routing.h_Default_, uses the default root note set on the [Project](#pages-project) page.                                                                                                                                                                                                                                         |
 
 > Note: _First Step_, _Last Step_, _Run Mode_, _Divisor_, _Scale_ and _Root Note_ are routable parameters.
 
@@ -1454,7 +1454,7 @@ On this you can select various user settings
 
 <h3 id="appendix-recording">Recording</h3>
 
-Instead of entering note sequences one step at a time, an external MIDI keyboard can be used to speed up the process. There are two ways for recording sequences. First, sequences can be recorded live by just playing the keyboard while the sequencer is running. Secondly, step recording allows to quickly enter one note after the other using a keyboard, either when the sequencer is running or stopped. The recording mode is selected on the [Project](#pages-project) page. Recording is armed and disarmed using `PAGE` + `PLAY`.
+Instead of entering note sequences one step at a time, an external MIDI keyboard can be used to speed up the process. There are two ways for recording sequences. First, sequences can be recorded live by just playing the keyboard while the sequencer is running. Secondly, step recording allows to quickly enter one note after the other using a keyboard, either when the sequencer is running or stopped. In step recording you can use shortcuts `SHIFT`+`NEXT` to move one step forward and `SHIFT`+`PREV` to move one step backwards. The recording mode is selected on the [Project](#pages-project) page. Recording is armed and disarmed using `PAGE` + `PLAY`.
 
 <h4>Live Recording</h4>
 
@@ -1847,44 +1847,45 @@ The following arpeggiator modes are available. The example note order is based o
 
 The following routing targets are available.
 
-| Target         | Scope               | Notes |
-|:---------------|:--------------------| :- |
-| Play           | Global              | |
-| Play Toggle    | Global              | Toggle playing. Allows simultaneous use of the `PLAY` button. |
-| Record         | Global              | |
-| Record Toggle  | Global              | Toggle recording. Allows simultaneous use of the `SHIFT` + `PLAY` button combination. |
-| Tap Tempo      | Global              | |
-| Tempo          | Global              | |
-| Swing          | Global              | |
-| Mute           | Track               | |
-| Fill           | Track               | |
-| Fill Amount    | Track               | |
-| Pattern        | Track               | |
-| Slide Time     | Track               | |
-| Octave         | Track               | |
-| Transpose      | Track               | |
-| Offset         | Track               | |
-| Rotate         | Track               | |
-| Gate P. Bias   | Track               | |
-| Retrig P. Bias | Track               | |
-| Length Bias    | Track               | |
-| Note P. Bias   | Track               | |
-| Shape P. Bias  | Track               | |
-| First Step     | Sequence            | |
-| Last Step      | Sequence            | |
-| Run Mode       | Sequence            | |
-| Divisor        | Sequence            | |
-| Scale          | Sequence            | |
-| Root Note      | Sequence            | |
-| Reseed         | Stochastic Sequence | |
-| Rest Prob 2    | Stochastic Sequence | |
-| Rest Prob 4    | Stochastic Sequence | |
-| Rest Poob 8    | Stochastic Sequence | | 
-| Seq First Step | Stochastic Sequence | |
-| Seq Last Step | Stochastic Sequence | |
-| L Oct. Range | Stochastic Sequence | |
-| H Oct. Range | Stochastic Sequence | |
-| Length Mod | Stochastic Sequence | | 
+| Target         | Scope               | Notes                                                                                                       |
+|:---------------|:--------------------|:------------------------------------------------------------------------------------------------------------|
+| Play           | Global              |                                                                                                             |
+| Play Toggle    | Global              | Toggle playing. Allows simultaneous use of the `PLAY` button.                                               |
+| Record         | Global              |                                                                                                             |
+| Record Toggle  | Global              | Toggle recording. Allows simultaneous use of the `SHIFT` + `PLAY` button combination.                       |
+| Tap Tempo      | Global              |                                                                                                             |
+| Tempo          | Global              |                                                                                                             |
+| Swing          | Global              |                                                                                                             |
+| Mute           | Track               |                                                                                                             |
+| Fill           | Track               |                                                                                                             |
+| Fill Amount    | Track               |                                                                                                             |
+| Pattern        | Track               |                                                                                                             |
+| Slide Time     | Track               |                                                                                                             |
+| Octave         | Track               |                                                                                                             |
+| Transpose      | Track               |                                                                                                             |
+| Offset         | Track               |                                                                                                             |
+| Rotate         | Track               |                                                                                                             |
+| Gate P. Bias   | Track               |                                                                                                             |
+| Retrig P. Bias | Track               |                                                                                                             |
+| Length Bias    | Track               |                                                                                                             |
+| Note P. Bias   | Track               |                                                                                                             |
+| Shape P. Bias  | Track               |                                                                                                             |
+| First Step     | Sequence            |                                                                                                             |
+| Last Step      | Sequence            |                                                                                                             |
+| Run Mode       | Sequence            |                                                                                                             |
+| Divisor        | Sequence            |                                                                                                             |
+| Scale          | Sequence            |                                                                                                             |
+| Root Note      | Sequence            |                                                                                                             |
+| Rec step | Sequence | in step recording mode conltrols the current recording step. responds to gate (5ms). useful to insert rests |
+| Reseed         | Stochastic Sequence |                                                                                                             |
+| Rest Prob 2    | Stochastic Sequence |                                                                                                             |
+| Rest Prob 4    | Stochastic Sequence |                                                                                                             |
+| Rest Poob 8    | Stochastic Sequence |                                                                                                             | 
+| Seq First Step | Stochastic Sequence |                                                                                                             |
+| Seq Last Step | Stochastic Sequence |                                                                                                             |
+| L Oct. Range | Stochastic Sequence |                                                                                                             |
+| H Oct. Range | Stochastic Sequence |                                                                                                             |
+| Length Mod | Stochastic Sequence |                                                                                                             | 
 
 <!-- midi program change -->
 
