@@ -76,8 +76,6 @@ nav: 20
   - [Routing Targets](#appendix-routing-targets)
   - [MIDI Program Change](#appendix-midi-program-change)
   - [Launchpad](#appendix-launchpad)
-  - [Circuit Note Editor](#appendix-circuit)
-  - [Stochastic Note Editor](#appendix-stochastic-circuit)
   - [USB MIDI Devices](#appendix-usb-midi-devices)
   - [Calibration Procedure](#appendix-calibration-procedure)
   - [Firmware Update](#appendix-firmware-update)
