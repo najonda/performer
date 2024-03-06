@@ -110,45 +110,28 @@ public:
     }
 
     void shiftLeft(int lastStep = N) {
-        rotateL(_selected, 1, lastStep);
+        rotateL(_selected, lastStep);
     }
 
     void shiftRight(int lastStep = N) {
-        rotateR(_selected, 1, lastStep);
-
+        rotateR(_selected, lastStep);
     }
 
-    inline void rotateR(std::bitset<N>& b, unsigned m, int lastStep) {
-        std::bitset<N> r;
-        for (int i=0; i < lastStep; ++i) {
-            int index = i+m;
-            if (i==lastStep-1) {    
-                index = 0;
-            }
-            r[index] = b[i];
-        }
-        b = r;
+    inline void rotateR(std::bitset<N> &x, int r) {
+        const std::bitset<N> m = (1u << r) - 1;     // the r low bits set
+
+        x =  (x & ~m) |                             // return the high bits unchanged
+            ((x << 1) & m) |                        // left shift & mask
+            ((x >> (r - 1)) & std::bitset<N>(1u));  // right shift  & 1
     }
 
-    inline void rotateL(std::bitset<N>& b, unsigned m, int lastStep) {
-        std::bitset<N> r;
-        for (int i=0; i < lastStep; ++i) {
-            int index = i-m;
-             if (index < 0) {
-                index = lastStep-1;
-            }
-            r[index] = b[i];
-        }
-        b = r;
-    }
+     inline void rotateL(std::bitset<N> &x, int r) {
+        const std::bitset<N> m = (1u << r) - 1;     // the r low bits set
 
-    std::uint64_t lrotsome(std::uint64_t x) {
-    constexpr std::uint64_t m = (1u << 15) - 1;  // the 15 low bits set
-    
-    return (x & ~m) |                            // return the high bits unchanged
-           ((x << 1) & m) |                      // left shift & mask
-           ((x >> 14) & 1);                      // right shift  & 1
-}
+        x = (x & ~m) |                              // return the high bits unchanged
+            ((x & m) >> 1) |                        // mask & right shift
+            ((x & std::bitset<N>(1u)) << (r - 1));  // & 1 and left shift
+    }
 
     void selectEqualSteps(int stepIndex) {
         _mode = Mode::Persist;
