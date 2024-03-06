@@ -119,10 +119,10 @@ public:
     }
 
     inline void rotateR(std::bitset<N>& b, unsigned m, int lastStep) {
-        std::bitset<64> r;
+        std::bitset<N> r;
         for (int i=0; i < lastStep; ++i) {
             int index = i+m;
-            if (i==15) {    
+            if (i==lastStep-1) {    
                 index = 0;
             }
             r[index] = b[i];
@@ -131,7 +131,7 @@ public:
     }
 
     inline void rotateL(std::bitset<N>& b, unsigned m, int lastStep) {
-        std::bitset<64> r;
+        std::bitset<N> r;
         for (int i=0; i < lastStep; ++i) {
             int index = i-m;
              if (index < 0) {
