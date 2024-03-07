@@ -865,7 +865,6 @@ void OverviewPage::drawStochasticDetail(Canvas &canvas, const StochasticSequence
 
 void OverviewPage::drawLogicDetail(Canvas &canvas, const LogicSequence::Step &step) {
     const auto &sequence = _project.selectedLogicSequence();
-    const auto &scale = sequence.selectedScale(_project.scale());
 
     FixedStringBuilder<16> str;
 

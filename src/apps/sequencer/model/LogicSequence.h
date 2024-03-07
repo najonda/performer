@@ -46,6 +46,7 @@ public:
 
     enum class Layer {
         Gate,
+        GateLogic,
         GateProbability,
         GateOffset,
         Retrigger,
@@ -55,7 +56,6 @@ public:
         Length,
         LengthVariationRange,
         LengthVariationProbability,
-        GateLogic,
         NoteLogic,
         NoteVariationRange,
         NoteVariationProbability,
