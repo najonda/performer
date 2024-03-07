@@ -864,8 +864,6 @@ void OverviewPage::drawStochasticDetail(Canvas &canvas, const StochasticSequence
 }
 
 void OverviewPage::drawLogicDetail(Canvas &canvas, const LogicSequence::Step &step) {
-    const auto &sequence = _project.selectedLogicSequence();
-
     FixedStringBuilder<16> str;
 
     WindowPainter::drawFrame(canvas, 64, 16, 128, 32);
