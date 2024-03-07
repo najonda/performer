@@ -734,8 +734,14 @@ void NoteSequenceEditPage::switchLayer(int functionKey, bool shift) {
                 setLayer(Layer::StageRepeatsMode);
                 break;
             }
-
+        case Layer::StageRepeatsMode:         
+            setLayer(Layer::Retrigger);
+            break;
         default:
+            if (engine.playMode() == Types::PlayMode::Free) {
+                setLayer(Layer::StageRepeats);
+                break;
+            }
             setLayer(Layer::Retrigger);
             break;
         }
