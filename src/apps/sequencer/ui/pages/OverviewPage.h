@@ -23,6 +23,7 @@ private:
     void drawDetail(Canvas &canvas, const NoteSequence::Step &step);
     void drawStochasticDetail(Canvas &canvas, const StochasticSequence::Step &step);
     void drawCurveDetail(Canvas &canvas, const CurveSequence::Step &step);
+    void drawLogicDetail(Canvas &canvas, const LogicSequence::Step &step);
     void updateMonitorStep();
 
     static const int StepCount = 16;

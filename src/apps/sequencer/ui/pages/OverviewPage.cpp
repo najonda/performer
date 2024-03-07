@@ -38,6 +38,33 @@ static void drawNoteTrack(Canvas &canvas, int trackIndex, const NoteTrackEngine 
     }
 }
 
+static void drawLogicTrack(Canvas &canvas, int trackIndex, const LogicTrackEngine &trackEngine, LogicSequence &sequence, bool running, bool patternFollow) {
+    canvas.setBlendMode(BlendMode::Set);
+
+    int stepOffset = 16*sequence.section();
+    if (patternFollow) {
+        stepOffset = (std::max(0, trackEngine.currentStep()) / 16) * 16*sequence.section();
+        int section_no = int((trackEngine.currentStep()) / 16);
+        sequence.setSecion(section_no);
+    }
+    int y = trackIndex * 8;
+
+    for (int i = 0; i < 16; ++i) {
+        int stepIndex = stepOffset + i;
+        const auto &step = sequence.step(stepIndex);
+
+        int x = 68 + i * 8;
+
+        if (trackEngine.currentStep() == stepIndex) {
+            canvas.setColor(step.gate() ? Color::Bright : Color::MediumBright);
+            canvas.fillRect(x + 1, y + 1, 6, 6);
+        } else {
+            canvas.setColor(step.gate() ? Color::Medium : Color::Low);
+            canvas.fillRect(x + 1, y + 1, 6, 6);
+        }
+    }
+}
+
 static void drawCurve(Canvas &canvas, int x, int y, int w, int h, float &lastY, const Curve::Function function, float min, float max) {
     const int Step = 1;
 
@@ -132,6 +159,8 @@ void OverviewPage::exit() {
         _engine.selectedTrackEngine().as<NoteTrackEngine>().setMonitorStep(-1);
     } else if (_project.selectedTrack().trackMode()==Track::TrackMode::Stochastic) {
         _engine.selectedTrackEngine().as<NoteTrackEngine>().setMonitorStep(-1);
+    } else if (_project.selectedTrack().trackMode()==Track::TrackMode::Logic) {
+        _engine.selectedTrackEngine().as<LogicTrackEngine>().setMonitorStep(-1);
     }
 }
 
@@ -171,6 +200,9 @@ void OverviewPage::draw(Canvas &canvas) {
                 break;
             case Track::TrackMode::Stochastic:
                 canvas.drawText(2, y, track.stochasticTrack().name());
+                break;
+            case Track::TrackMode::Logic:
+                canvas.drawText(2, y, track.logicTrack().name());
                 break;
             default:
                 break;
@@ -215,9 +247,16 @@ void OverviewPage::draw(Canvas &canvas) {
         case Track::TrackMode::Stochastic:
             drawStochasticTrack(canvas, trackIndex, trackEngine.as<StochasticEngine>(), track.stochasticTrack().sequence(trackState.pattern()));
             break;
-        case Track::TrackMode::MidiCv:
+        case Track::TrackMode::Logic: {
+                bool patterFolow = false;
+                if (track.logicTrack().patternFollow()==Types::PatternFollow::Display || track.logicTrack().patternFollow()==Types::PatternFollow::DispAndLP) {
+                    patterFolow = true;
+                    canvas.drawText(256 - 54, y, FixedStringBuilder<8>("F"));
+                }
+                drawLogicTrack(canvas, trackIndex, trackEngine.as<LogicTrackEngine>(), track.logicTrack().sequence(trackState.pattern()), _engine.state().running(), patterFolow);  
+            }
             break;
-        case Track::TrackMode::Logic:
+        case Track::TrackMode::MidiCv:
             break;
         case Track::TrackMode::Last:
             break;
@@ -247,6 +286,11 @@ void OverviewPage::draw(Canvas &canvas) {
                 auto &sequence = _project.selectedCurveSequence();
                 drawCurveDetail(canvas, sequence.step(_stepSelection.first()));
             }
+            case Track::TrackMode::Logic: {
+                    auto &sequence = _project.selectedLogicSequence();
+                    drawLogicDetail(canvas, sequence.step(_stepSelection.first()));
+                }
+                break;
             default:
                 break;
         }
@@ -306,6 +350,22 @@ void OverviewPage::updateLeds(Leds &leds) {
             LedPainter::drawSelectedSequenceSection(leds, sequence.section());
             }
             break;
+        case Track::TrackMode::Logic: {
+            const auto &trackEngine = _engine.selectedTrackEngine().as<LogicTrackEngine>();
+            auto &sequence = _project.selectedLogicSequence();
+            int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
+
+            for (int i = 0; i < 16; ++i) {
+                int stepIndex = stepOffset() + i;
+                bool red = (stepIndex == currentStep) || _stepSelection[stepIndex];
+                bool green = (stepIndex != currentStep) && (sequence.step(stepIndex).gate() || _stepSelection[stepIndex]);
+                leds.set(MatrixMap::fromStep(i), red, green);
+            }
+
+            LedPainter::drawSelectedSequenceSection(leds, sequence.section());
+            
+            }
+            break;
         default:
             break;
     }
@@ -340,6 +400,14 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
                 break;
             case Track::TrackMode::Curve: {
                     auto &track = _project.selectedTrack().curveTrack();
+                    if (key.is(Key::Step15)) {
+                        bool lpConnected = _engine.isLaunchpadConnected();
+                        track.togglePatternFollowDisplay(lpConnected);
+                    }
+                }
+                break;
+            case Track::TrackMode::Logic: {
+                    auto &track = _project.selectedTrack().logicTrack();
                     if (key.is(Key::Step15)) {
                         bool lpConnected = _engine.isLaunchpadConnected();
                         track.togglePatternFollowDisplay(lpConnected);
@@ -382,6 +450,19 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
         }
      }
 
+    if (key.isEncoder() && _project.selectedTrack().trackMode() == Track::TrackMode::Logic) {
+        switch (_project.selectedLogicSequenceLayer()) {
+            case LogicSequence::Layer::NoteLogic:
+                showMessage("GATE LOGIC");
+                _project.setSelectedLogicSequenceLayer(LogicSequence::Layer::GateLogic);
+                break;
+
+            default:
+                 showMessage("NOTE LOGIC");
+                _project.setSelectedLogicSequenceLayer(LogicSequence::Layer::NoteLogic);
+        }
+     }
+
     if (key.isStep() && event.count() == 2) {
         switch (track.trackMode()) {
             case Track::TrackMode::Note: {
@@ -395,6 +476,13 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
             case Track::TrackMode::Stochastic: {
                     int stepIndex = stepOffset() + key.step();
                     auto &sequence = _project.selectedStochasticSequence();
+                    sequence.step(stepIndex).toggleGate();
+                    event.consume();
+                }
+                break;
+            case Track::TrackMode::Logic: {
+                    auto &sequence = _project.selectedLogicSequence();
+                    int stepIndex = stepOffset() + key.step();
                     sequence.step(stepIndex).toggleGate();
                     event.consume();
                 }
@@ -477,6 +565,12 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
                  track.curveTrack().setPatternFollowDisplay(false);
                 break;
             }
+            case Track::TrackMode::Logic: {
+                auto &sequence = _project.selectedLogicSequence();
+                sequence.setSecion(std::max(0, sequence.section() - 1));
+                track.logicTrack().setPatternFollowDisplay(false);
+                break;
+            }
             default:
                 break;        
         }
@@ -495,6 +589,12 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
                 auto &sequence = _project.selectedCurveSequence();
                 sequence.setSecion(std::min(3, sequence.section() + 1));
                 track.curveTrack().setPatternFollowDisplay(false);
+                break;
+            }
+            case Track::TrackMode::Logic: {
+                auto &sequence = _project.selectedLogicSequence();
+                sequence.setSecion(std::max(0, sequence.section() + 1));
+                track.logicTrack().setPatternFollowDisplay(false);
                 break;
             }
             default:
@@ -559,6 +659,25 @@ void OverviewPage::encoder(EncoderEvent &event) {
                                 break;
                             case CurveSequence::Layer::Gate:
                                 step.setGate(step.gate()+ event.value());
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+        }
+        case Track::TrackMode::Logic: {
+            auto &sequence = _project.selectedLogicSequence();
+                for (size_t stepIndex = 0; stepIndex < sequence.steps().size(); ++stepIndex) {
+                    if (_stepSelection[stepIndex]) {
+                        auto &step = sequence.step(stepIndex);
+                        
+                        switch (_project.selectedLogicSequenceLayer()) {
+                            case LogicSequence::Layer::GateLogic:
+                                step.setGateLogic(static_cast<LogicSequence::GateLogicMode>(step.gateLogic() + event.value()));
+                                break;
+                            case LogicSequence::Layer::NoteLogic:
+                                step.setNoteLogic(static_cast<LogicSequence::NoteLogicMode>(step.noteLogic() + event.value()));
                                 break;
                             default:
                                 break;
@@ -744,11 +863,124 @@ void OverviewPage::drawStochasticDetail(Canvas &canvas, const StochasticSequence
     canvas.setFont(Font::Tiny);
 }
 
-void OverviewPage::updateMonitorStep() {
-    auto &trackEngine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
+void OverviewPage::drawLogicDetail(Canvas &canvas, const LogicSequence::Step &step) {
+    const auto &sequence = _project.selectedLogicSequence();
+    const auto &scale = sequence.selectedScale(_project.scale());
 
-    // TODO should we monitor an all layers not just note?
-    if (_stepSelection.any()) {
-        trackEngine.setMonitorStep(_stepSelection.first());
+    FixedStringBuilder<16> str;
+
+    WindowPainter::drawFrame(canvas, 64, 16, 128, 32);
+
+    canvas.setBlendMode(BlendMode::Set);
+    canvas.setColor(Color::Bright);
+    canvas.vline(64 + 32, 16, 32);
+
+    canvas.setFont(Font::Small);
+    str("%d", _stepSelection.first() + 1);
+    if (_stepSelection.count() > 1) {
+        str("*");
     }
+    canvas.drawTextCentered(64, 16, 32, 32, str);
+
+    canvas.setFont(Font::Tiny);
+
+    str.reset();
+    switch (_project.selectedLogicSequenceLayer()) {
+        case LogicSequence::Layer::GateLogic: {
+            switch (step.gateLogic()) {
+                case LogicSequence::GateLogicMode::One:
+                    str("INPUT 1");
+                    break;
+                case LogicSequence::GateLogicMode::Two:
+                    str("INPUT 2");
+                    break;
+                case LogicSequence::GateLogicMode::And:
+                    str("AND");
+                    break;
+                case LogicSequence::GateLogicMode::Or:
+                    str("OR");
+                    break;
+                case LogicSequence::GateLogicMode::Xor:
+                    str("XOR");
+                    break;
+                case LogicSequence::GateLogicMode::Nand:
+                    str("NAND");
+                    break;
+                case LogicSequence::GateLogicMode::RandomInput:
+                    str("RND INPUT");
+                    break;
+                case LogicSequence::GateLogicMode::RandomLogic:
+                    str("RND LOGIC");
+                    break;
+                default:
+                    break;
+            }
+            canvas.setFont(Font::Small);
+            canvas.drawTextCentered(64 + 64, 32 - 4, 32, 8, str);
+        }
+            break;
+        case LogicSequence::Layer::NoteLogic: {
+                switch (step.noteLogic()) {
+                    case LogicSequence::NoteLogicMode::NOne:
+                        str("INPUT 1");
+                        break;
+                    case LogicSequence::NoteLogicMode::NTwo:
+                        str("INPUT 2");
+                        break;
+                    case LogicSequence::NoteLogicMode::Min:
+                        str("MIN");
+                        break;
+                    case LogicSequence::NoteLogicMode::Max:
+                        str("MAX");
+                        break;
+                    case LogicSequence::NoteLogicMode::Sum:
+                        str("SUM");
+                        break;
+                    case LogicSequence::NoteLogicMode::Avg:
+                        str("AVG");
+                        break;
+                    case LogicSequence::NoteLogicMode::NRandomInput:
+                        str("RND INPUT");
+                        break;
+                    case LogicSequence::NoteLogicMode::NRandomLogic:
+                        str("RND LOGIC");
+                        break;
+                    default:
+                        break;
+                }
+                canvas.setFont(Font::Small);
+                canvas.drawTextCentered(64 + 64, 32 - 4, 32, 8, str);
+            }
+            break;
+        default:
+            break;
+    }
+
+    canvas.setFont(Font::Tiny);
+
+}
+
+void OverviewPage::updateMonitorStep() {
+
+    switch (_project.selectedTrack().trackMode()) {
+        case Track::TrackMode::Note: {
+                auto &trackEngine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
+                // TODO should we monitor an all layers not just note?
+                if (_stepSelection.any()) {
+                    trackEngine.setMonitorStep(_stepSelection.first());
+                }   
+            }
+            break;
+        case Track::TrackMode::Logic: {
+            auto &trackEngine = _engine.selectedTrackEngine().as<LogicTrackEngine>();
+                // TODO should we monitor an all layers not just note?
+                if (_stepSelection.any()) {
+                    trackEngine.setMonitorStep(_stepSelection.first());
+                }   
+            }
+            break;
+        default:
+            break;
+    }
+    
 }
