@@ -424,13 +424,13 @@ void Engine::updateTrackSetups() {
                 break;
             case Track::TrackMode::Curve:
                 trackEngine = trackContainer.create<CurveTrackEngine>(*this, _model, track, linkedTrackEngine);
-                if (sizeof(track.noteTrack().name()==0)) {
+                if (sizeof(track.curveTrack().name()==0)) {
                     track.curveTrack().setName(str);
                 }
                 break;
             case Track::TrackMode::MidiCv:
                 trackEngine = trackContainer.create<MidiCvTrackEngine>(*this, _model, track, linkedTrackEngine);
-                if (sizeof(track.noteTrack().name()==0)) {
+                if (sizeof(track.midiCvTrack().name()==0)) {
                     track.midiCvTrack().setName(str);
                 }
                 break;

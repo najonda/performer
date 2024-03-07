@@ -101,6 +101,8 @@ private:
             union {
                 NoteSequence note;
                 CurveSequence curve;
+                StochasticSequence stochastic;
+                LogicSequence logic;
             } data;
         } sequences[CONFIG_TRACK_COUNT];
     };

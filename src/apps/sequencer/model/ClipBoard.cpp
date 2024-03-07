@@ -88,6 +88,12 @@ void ClipBoard::copyPattern(int patternIndex) {
         case Track::TrackMode::Curve:
             pattern.sequences[trackIndex].data.curve = track.curveTrack().sequence(patternIndex);
             break;
+        case Track::TrackMode::Stochastic:
+            pattern.sequences[trackIndex].data.stochastic = track.stochasticTrack().sequence(patternIndex);
+            break;
+        case Track::TrackMode::Logic:
+            pattern.sequences[trackIndex].data.logic = track.logicTrack().sequence(patternIndex);
+            break;
         default:
             break;
         }
@@ -177,6 +183,12 @@ void ClipBoard::pastePattern(int patternIndex) const {
                     break;
                 case Track::TrackMode::Curve:
                     track.curveTrack().sequence(patternIndex) = pattern.sequences[trackIndex].data.curve;
+                    break;
+                case Track::TrackMode::Stochastic:
+                    track.stochasticTrack().sequence(patternIndex) = pattern.sequences[trackIndex].data.stochastic;
+                    break;
+                case Track::TrackMode::Logic:
+                    track.logicTrack().sequence(patternIndex) = pattern.sequences[trackIndex].data.logic;
                     break;
                 default:
                     break;
