@@ -22,7 +22,7 @@ def process_images():
     IMAGE_INPUT_DIR = "resources"
     IMAGE_OUTPUT_DIR = "images"
 
-    COLORIZE = ["(", "-clone", "0", "-fill", "#cce500", "-colorize", "100", ")", "-compose", "multiply", "-composite"]
+    COLORIZE = ["-fill", "gray", "-fuzz", "50%", "+opaque", "#000000", "-fill", "#cce500", "-tint", "100"]
 
     def infile(filename):
         return os.path.join(IMAGE_INPUT_DIR, filename)
