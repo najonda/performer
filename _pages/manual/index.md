@@ -173,6 +173,7 @@ Each of the 8 tracks can be configured to one of the following modes:
 - Curve
 - MIDI/CV
 - Stochastic
+- Logic
 
 In _Note_ mode, the default mode, a track uses advanced step sequencing to generate rhythms and melodies. _Curve_ mode also uses step sequencing, but each step is defined as a curve shape, making this mode very versatile for generating modulation signals. In MIDI/CV mode, a track acts as a MIDI to CV converter, which can be useful when attaching a MIDI keyboard to play some voices live or sequence them from an external MIDI sequencer. In Stochastic mode the track act as a stochastic cv generator based on notes probabilities
 
