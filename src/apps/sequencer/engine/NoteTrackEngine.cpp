@@ -436,16 +436,20 @@ void NoteTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextS
 
     int logicTrackIndex = _noteTrack.logicTrack();
     if (logicTrackIndex!=-1) {
-        auto &logicTrack = _model.project().track(_noteTrack.logicTrack()).logicTrack();
-        auto &logicSequence = logicTrack.sequence(pattern());
 
-        auto &logicStep = logicSequence.step(stepIndex);
-        
+        auto track = _model.project().track(_noteTrack.logicTrack());
+        if (track.trackMode()==Track::TrackMode::Logic) {
+            auto &logicTrack = _model.project().track(_noteTrack.logicTrack()).logicTrack();
+            auto &logicSequence = logicTrack.sequence(pattern());
 
-        if (_noteTrack.logicTrackInput() == 0) {
-            logicStep.setInputGate1(stepGate);
-        } else if (_noteTrack.logicTrackInput() == 1) {
-            logicStep.setInputGate2(stepGate);
+            auto &logicStep = logicSequence.step(stepIndex);
+            
+
+            if (_noteTrack.logicTrackInput() == 0) {
+                logicStep.setInputGate1(stepGate);
+            } else if (_noteTrack.logicTrackInput() == 1) {
+                logicStep.setInputGate2(stepGate);
+            }
         }
     }
 
