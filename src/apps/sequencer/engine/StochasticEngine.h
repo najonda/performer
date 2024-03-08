@@ -138,7 +138,7 @@ private:
     int noteFromMidiNote(uint8_t midiNote) const;
 
     bool fill() const {
-        return false;
+        return (_stochasticTrack.fillMuted() || !TrackEngine::mute()) ? TrackEngine::fill() : false;
     }
 
     std::vector<StochasticLoopStep> slicing(std::vector<StochasticLoopStep> &arr, int X, int Y)

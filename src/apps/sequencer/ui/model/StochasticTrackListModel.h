@@ -61,8 +61,8 @@ private:
     enum Item {
         TrackName,
         PlayMode,
-        //FillMode,
-        //FillMuted,
+        FillMode,
+        FillMuted,
         CvUpdateMode,
         SlideTime,
         Octave,
@@ -79,8 +79,8 @@ private:
         switch (item) {
         case TrackName: return "Name";
         case PlayMode:  return "Play Mode";
-        //case FillMode:  return "Fill Mode";
-        //case FillMuted: return "Fill Muted";
+        case FillMode:  return "Fill Mode";
+        case FillMuted: return "Fill Muted";
         case CvUpdateMode:  return "CV Update Mode";
         case SlideTime: return "Slide Time";
         case Octave:    return "Octave";
@@ -107,12 +107,12 @@ private:
         case PlayMode:
             _track->printPlayMode(str);
             break;
-        /*case FillMode:
+        case FillMode:
             _track->printFillMode(str);
             break;
         case FillMuted:
             _track->printFillMuted(str);
-            break;*/
+            break;
         case CvUpdateMode:
             _track->printCvUpdateMode(str);
             break;
@@ -153,12 +153,12 @@ private:
         case PlayMode:
             //_track->editPlayMode(value, shift);
             break;
-        /*case FillMode:
+        case FillMode:
             _track->editFillMode(value, shift);
             break;
         case FillMuted:
             _track->editFillMuted(value, shift);
-            break;*/
+            break;
         case CvUpdateMode:
             _track->editCvUpdateMode(value, shift);
             break;

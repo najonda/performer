@@ -365,7 +365,13 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     int octave = _stochasticTrack.octave();
     int transpose = _stochasticTrack.transpose();
 
+    bool fillStep = fill() && (rng.nextRange(100) < uint32_t(fillAmount()));
+    bool useFillGates = fillStep && _stochasticTrack.fillMode() == StochasticTrack::FillMode::Gates;
+    bool useFillSequence = fillStep && _stochasticTrack.fillMode() == StochasticTrack::FillMode::NextPattern;
+    bool useFillCondition = fillStep && _stochasticTrack.fillMode() == StochasticTrack::FillMode::Condition;
+
     auto &sequence = *_sequence;
+    const auto &evalSequence = useFillSequence ? *_fillSequence : *_sequence;
     
     int stepIndex;
 
@@ -407,7 +413,7 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
     // fill in memory step when sequence is running or when the in memory loop is not full filled
     if (!sequence.useLoop() || int(_lockedSteps.size()) < sequence.bufferLoopLength()) { 
-        if (_skips != 0 && _index > 0) {
+        if (_skips != 0 && _index > 0 && !useFillGates) {
             --_skips;
             if (int(_lockedSteps.size()) < sequence.bufferLoopLength()) {
                 _lockedSteps.insert(_lockedSteps.end(), StochasticLoopStep(-1, false, step, 0, 0, 0));
@@ -435,15 +441,15 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         std::sort (std::begin(probability), std::end(probability), sortTaskByProbRev);
         stepIndex = getNextWeightedPitch(probability, probability.size());
 
-        step = sequence.step(stepIndex); 
+        step = evalSequence.step(stepIndex); 
         _currentStep = stepIndex;   
         
         int gateOffset = ((int) divisor * step.gateOffset()) / (StochasticSequence::GateOffset::Max + 1);
         stepTick = (int) tick + gateOffset;
 
-        stepGate = evalStepGate(step, _stochasticTrack.gateProbabilityBias());;
+        stepGate = evalStepGate(step, _stochasticTrack.gateProbabilityBias()) || useFillGates;
         if (stepGate) {
-            stepGate = evalStepCondition(step, _sequenceState.iteration(), false, _prevCondition);
+            stepGate = evalStepCondition(step, _sequenceState.iteration(), useFillCondition, _prevCondition);
         }
         const auto &scale = sequence.selectedScale(_model.project().scale());
         int rootNote = sequence.selectedRootNote(_model.project().rootNote());
