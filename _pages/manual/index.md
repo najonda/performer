@@ -29,6 +29,7 @@ nav: 20
   - [Curve Track](#concepts-curve-track)
   - [MIDI/CV Track](#concepts-midi-cv-track)
   - [Stochastic Track](#concepts-stochastic-track)
+  - [Logic Track](#concepts-logic-track)
   - [Pattern](#concepts-pattern)
   - [Snapshot](#concepts-snapshot)
   - [Fills](#concepts-fills)
@@ -74,6 +75,7 @@ nav: 20
   - [Shapes](#appendix-shapes)
   - [Arpeggiator Modes](#appendix-arpeggiator-modes)
   - [Routing Targets](#appendix-routing-targets)
+  - [Logic Operators](#appendix-logix-operators)
   - [MIDI Program Change](#appendix-midi-program-change)
   - [Launchpad](#appendix-launchpad)
   - [USB MIDI Devices](#appendix-usb-midi-devices)
@@ -271,6 +273,16 @@ The _Retrigger_ layer allows each gate signal to be retriggered multiple times w
 Inside the _Retrigger_ layer a metropolix style mode can be activated when the track is in _free_mode.
 
 The generated CV signal is controlled by the _Note Probability_ defining the probability that the stochastic generator will pick the selected note. The _Slide_ layer controls if the generate CV signal is changed immediately on the start of a gate or smoothly slides to the new voltage. The _Bypass Scale_ is already been activated for each step and cannot be disabled. The _Octave_ define the octave of each step and the _Octave Probability_ defines the probability that the step changes octave.
+
+<!-- Logic Track -->
+
+<h3 id="concepts-logic-track">Logic Track</h3>
+
+In Logic Mode, a track acts a logic operator using two Note tracks as inputs. This mode inherits all Note track features and adds two new layouts for the Gate and the Note layer.
+
+In the Gate layer there is a new Gate Logic layout defining the boolean logic operator for each step. The gate logic elaborate the evaluated gate values coming from the two track inputs.
+
+In the Note layer there is a new Note Logic layout defining the logic operation for each note step. The note logic elaborate the stored note values incoming from the two track inouts.
 
 <!-- Pattern -->
 
@@ -660,7 +672,9 @@ If a track is in _Note_ mode, the following parameters are available:
 | Retrig P. Bias | -100% - +100%                        | Retrigger probability bias that is added to the sequence.                                                                                                                                                                                                                                                                                                             |
 | Length Bias | -100% - +100%                        | Length bias bias that is added to the sequence.                                                                                                                                                                                                                                                                                                                       |
 | Note P. Bias | -100% - +100%                        | Note variation probability bias that is added to the sequence.                                                                                                                                                                                                                                                                                                        |
-| Pattern Follow | Off, Display, Launchpad, Display+LP  | Enable pattern follow Use `PAGE`+`S16` tio cycle between modes                                                                                                                                                                                                                                                                                                                                                  | 
+| Pattern Follow | Off, Display, Launchpad, Display+LP  | Enable pattern follow Use `PAGE`+`S16` tio cycle between modes                                                                                                                                                                                                                                                                                                                                                  |
+| Logic Track | 1 - 8                                | Select the _Logic_ track to outout its values |
+| Logic Track In | 1 -2 | Select the inout of the logic track |
 
 > Note: _Slide Time_, _Octave_, _Transpose_, _Rotate_, _Gate P. Bias_, _Retrig P. Bias_, _Length Bias_ and _Note P. Bias_ are routable parameters. These parameters are great for live performance, as they allow to change how the sequence is played back without actually changing the sequence itself.
 
@@ -736,6 +750,33 @@ If a track is in Stochastic mode, the following parameters are available:
 | Retrig P. Bias | -100% - +100%                        | Retrigger probability bias that is added to the sequence.                                                                                                                                                                                                                                                                              |
 | Length Bias | -100% - +100%                        | Length bias bias that is added to the sequence.                                                                                                                                                                                                                                                                                        |
 | Note P. Bias | -100% - +100%                        | Note variation probability bias that is added to the sequence.                                                                                                                                                                                                                                                                         |
+
+<h4>Logic Track</h4>
+
+![](images/page-note-track.png)
+
+If a track is in _Logic_ mode, the following parameters are available:
+
+| Parameter      | Range                                | Description                                                                                                                                                                                                                                                                                                                                                           |
+|:---------------|:-------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Track Name     | -                                    | Press `ENCODER` to enter text editor for changing the project name.                                                                                                                                                                                                                                                                                                   |
+| Play Mode      | [Play Modes](#appendix-play-modes)   | Mode used for playing sequences in this track.                                                                                                                                                                                                                                                                                                                        |
+| Fill Mode      | None, Gates, Next Pattern, Condition | Mode used when fill is activated for the track. _None_ does nothing. _Gates_ plays each step of the sequence independent of whether the step gate is active or not. _Next Pattern_ uses the step data of the next pattern on the same track. _Condition_ plays steps that have the _Fill_ condition set, and does not play steps that have the _!Fill_ condition set. |
+| CV Update Mode | Gate, Always                         | Mode used for updating the CV output of this track. _Gate_ only updates the CV output if the step gate is active, _Always_ always updates the CV output independent of the step gate.                                                                                                                                                                                 |
+| Slide Time     | 0% - 100%                            | Duration of pitch slides for steps that have _Slide_ enabled.                                                                                                                                                                                                                                                                                                         |
+| Octave         | -10 - +10                            | Number of octaves to transpose the sequence up or down.                                                                                                                                                                                                                                                                                                               |
+| Transpose      | -100 - +100                          | Number of notes to transpose the sequence up or down. Note that this depends on the current [Scale](#appendix-scales) of the sequence.                                                                                                                                                                                                                                
+| Rotate         | [Rotation](#appendix-rotation)       | Amount of rotation applied to the sequence.                                                                                                                                                                                                                                                                                                                           |
+| Gate P. Bias   | -100% - +100%                        | Gate probability bias that is added to the sequence.                                                                                                                                                                                                                                                                                                                  |
+| Retrig P. Bias | -100% - +100%                        | Retrigger probability bias that is added to the sequence.                                                                                                                                                                                                                                                                                                             |
+| Length Bias    | -100% - +100%                        | Length bias bias that is added to the sequence.                                                                                                                                                                                                                                                                                                                       |
+| Note P. Bias   | -100% - +100%                        | Note variation probability bias that is added to the sequence.                                                                                                                                                                                                                                                                                                        |
+| Pattern Follow | Off, Display, Launchpad, Display+LP  | Enable pattern follow Use `PAGE`+`S16` tio cycle between modes                                                                                                                                                                                                                                                                                                        |
+| Input Track 1  | not selectable                       | Show the related _Note_ track as inout 1                                                                                                                                                                                                                                                                                                                              |
+| Input Track 2  | not selectable                       | Show the related _Note_ track as inout 2                                                                                                                                                                                                                                                                                                                              |
+
+> Note: _Slide Time_, _Octave_, _Transpose_, _Rotate_, _Gate P. Bias_, _Retrig P. Bias_, _Length Bias_ and _Note P. Bias_ are routable parameters. These parameters are great for live performance, as they allow to change how the sequence is played back without actually changing the sequence itself.
+
 
 <!-- Sequence -->
 
@@ -827,6 +868,10 @@ If a track is in _Stochastic_ mode, the following parameters are available:
 | Length Mod | -200 - 200 % | Stochastic length modifier added to the step length                                                                                                                                                                                                                                                                                                                    |
 
 
+<h4>Logic Track</h4>
+
+All available options in the _Note_ sequence page are also available on the _Logic_ sequence page
+
 <!-- Steps -->
 
 <h3 id="pages-steps">Steps</h3>
@@ -836,6 +881,7 @@ The _Steps_ page is entered using `PAGE` + `STEPS`.
 ![](images/page-note-steps.png)
 ![](images/page-curve-steps.png)
 ![](images/page-stochastic-steps.png)
+![](images/page-logic-steps.png)
 
 This page allows editing the currently selected sequence on the currently selected track. Depending on the track mode of the selected track, this page shows a different graphical representation of the sequence. If track mode is set to _MIDI/CV_, the page is not available and selecting it will jump to the [Track](#pages-track) page.
 
@@ -877,6 +923,17 @@ The following layers are available in _Stochastic_ mode:
 | `F4` | Note Probability, Octave, Octave Probability, Slide          |
 | `F5` | Condition                                                    |
 
+The following layers are available in _Logic_ mode:
+
+
+| Button | Layers                                                                            |
+| :--- |:----------------------------------------------------------------------------------|
+| `F1` | Gate, Gate Logic Gate Probability, Gate Offset                                    |
+| `F2` | Retrigger, Retrigger Probability, Repeat, Repeat Mode                             |
+| `F3` | Length, Length Variation Range, Length Variation Probability                      |
+| `F4` | Note Logic, Note Variation Range, Note Variation Probability, Slide |
+| `F5` | Condition                                                                         |
+
 <h4>Section Selection</h4>
 
 Sequences contain up to 64 steps, of which only 16 are shown on the page. Press `PREV` and `NEXT` to select one of the 4 available sections (1-16, 17-32, 33-48, 49-64). The currently selected section is indicated by the 4 LEDs in the bottom left corner as well as with the step indices above each step on the page.
@@ -903,7 +960,7 @@ To adjust the values of the currently selected layer, hold `S[1-16]` and rotate 
 - When editing a _Stochastic_ track pressing `PAGE`+`S7` will loop the sequence (length is calculated by Sequence First Step and Sequence Last Step parameters)
 - When editing a _Stochastic_ track pressing `PAGE`+`S6` will clear the loop and enter a new one
 - When editing a _Stochastic_ track pressing `PAGE`+`S5` will reseed the stochastic generator and pick a random value for the Note Probability BIAS parameter
-
+- When editing a _Logic_ track all _Note_ track features and shortcuts are still available.
 <h4>Advanced Step Selection</h4>
 
 When holding `SHIFT` and pressing any of the step buttons, steps are selected in a _persistent_ mode. This means that steps are kept selected even when the step buttons are released. This allows to select multiple steps across different sections. Steps can also be removed from the selection by holding `SHIFT` and pressing step buttons corresponding to selected steps again. To clear the entire selection, simply press any step button without holding `SHIFT` or quickly press `SHIFT` twice (double tap). When the selection is empty, double tap `SHIFT` to select all 64 steps.
@@ -1313,7 +1370,7 @@ The _Overview_ page is entered using `PAGE` + `PREV`.
 
 ![](images/page-overview.png)
 
-On this page you can see an overall representation of all currently running sequences. In the left section, the currently playing pattern for each track is indicated. In the middle section, a dense representation of the sequence is shown (steps or curves). In the right section, the current state of the gate and CV outputs is visualized. You can enter gates in this view by selecting a track, then double clicking the desired `STEP[1-16]` button. If the track is a _Note_ track, `STEP[1-16]`+`ENCODER` will change the step note. If the track is a _Stochastic_ track, `STEP[1-16]`+`ENCODER` will change the note probability. It's also possible to activate per track follow mode hitting `PAGE`+`S16` and navigate the sequence with `NEXT` and `PREV` buttons. If the track is a Curve track, double clicking a step button (STEP[1-16]) will show the current gate configuration. Pressing the `ENCODER` will select cycling through shape, min, max, gate layers and then turning the encoder will change the selected layer value. 
+On this page you can see an overall representation of all currently running sequences. In the left section, the currently playing pattern for each track is indicated. In the middle section, a dense representation of the sequence is shown (steps or curves). In the right section, the current state of the gate and CV outputs is visualized. You can enter gates in this view by selecting a track, then double clicking the desired `STEP[1-16]` button. If the track is a _Note_ track, `STEP[1-16]`+`ENCODER` will change the step note. If the track is a _Stochastic_ track, `STEP[1-16]`+`ENCODER` will change the note probability. It's also possible to activate per track follow mode hitting `PAGE`+`S16` and navigate the sequence with `NEXT` and `PREV` buttons. If the track is a Curve track, double clicking a step button (STEP[1-16]) will show the current gate configuration. Pressing the `ENCODER` will select cycling through shape, min, max, gate layers and then turning the encoder will change the selected layer value. If the track is a Logic track, pressing the `ENCODE` will select cycling gate logic and note logic and then turning the encoder will change the selected layer value. 
 
 <!-- Monitor -->
 
@@ -1883,6 +1940,26 @@ The following routing targets are available.
 | L Oct. Range | Stochastic Sequence |                                                                                                             |
 | H Oct. Range | Stochastic Sequence |                                                                                                             |
 | Length Mod | Stochastic Sequence |                                                                                                             | 
+
+<!-- Logic Operators -->
+
+<h3 id="appendix-logix-operators">Logic Operators</h3>
+
+| Operator     | TYpe                                       | Description                                         |
+|:-------------|:-------------------------------------------|:----------------------------------------------------|
+| 1            | Gate/Note                                  | Select the first input value                        |
+| 2            | Gate/Note                                  | Select the sedond input value                       |
+| AND          | Gate                                       | logic and between input 1 and 2                     |
+| OR           | Gate                                       | logic or between input 1 and 2                      |
+| XOR          | Gate                                       | logic exclusive or between input 1 and 2            |
+| NAND         | Gate                                       | logic not and between input 1 and 2                 |
+| RANDOM INPUT | Gate/Logic                                 | select 1 or 2 randomly                              |
+| RANDOM LOGIC | Gate/Logic | select available logic randomly                     |
+| MIN          | Note | Select the min note value between input 1 and 2     |
+| MAX | Note | Select the max note value between input 1 and 2     |
+| SUM | Note | sum note input 1 with note input 2                  |
+| AVG | Note | calculate avarage value between input 1 and input 2 |
+
 
 <!-- midi program change -->
 
