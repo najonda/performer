@@ -1945,20 +1945,20 @@ The following routing targets are available.
 
 <h3 id="appendix-logic-operators">Logic Operators</h3>
 
-| Operator     | TYpe                                       | Description                                         |
-|:-------------|:-------------------------------------------|:----------------------------------------------------|
-| 1            | Gate/Note                                  | Select the first input value                        |
-| 2            | Gate/Note                                  | Select the sedond input value                       |
-| AND          | Gate                                       | logic and between input 1 and 2                     |
-| OR           | Gate                                       | logic or between input 1 and 2                      |
-| XOR          | Gate                                       | logic exclusive or between input 1 and 2            |
-| NAND         | Gate                                       | logic not and between input 1 and 2                 |
-| RANDOM INPUT | Gate/Logic                                 | select 1 or 2 randomly                              |
-| RANDOM LOGIC | Gate/Logic | select available logic randomly                     |
-| MIN          | Note | Select the min note value between input 1 and 2     |
-| MAX | Note | Select the max note value between input 1 and 2     |
-| SUM | Note | sum note input 1 with note input 2                  |
-| AVG | Note | calculate avarage value between input 1 and input 2 |
+| Operator     | TYpe      | Description                                         |
+|:-------------|:----------|:----------------------------------------------------|
+| 1            | Gate/Note | Select the first input value                        |
+| 2            | Gate/Note | Select the sedond input value                       |
+| AND          | Gate      | logic and between input 1 and 2                     |
+| OR           | Gate      | logic or between input 1 and 2                      |
+| XOR          | Gate      | logic exclusive or between input 1 and 2            |
+| NAND         | Gate      | logic not and between input 1 and 2                 |
+| RANDOM INPUT | Gate/Note | select 1 or 2 randomly                              |
+| RANDOM LOGIC | Gate/Note | select available logic randomly                     |
+| MIN          | Note      | Select the min note value between input 1 and 2     |
+| MAX | Note      | Select the max note value between input 1 and 2     |
+| SUM | Note      | sum note input 1 with note input 2                  |
+| AVG | Note      | calculate avarage value between input 1 and input 2 |
 
 
 <!-- midi program change -->
