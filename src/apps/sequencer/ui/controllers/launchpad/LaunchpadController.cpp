@@ -461,6 +461,7 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
                             } else {
                                 sequenceEditStep(button.row, button.col);
                             }
+                            break;
                          }
                          case Track::TrackMode::Logic:
                             sequenceEditStep(button.row, button.col);
