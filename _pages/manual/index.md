@@ -886,6 +886,9 @@ The _Steps_ page is entered using `PAGE` + `STEPS`.
 
 This page allows editing the currently selected sequence on the currently selected track. Depending on the track mode of the selected track, this page shows a different graphical representation of the sequence. If track mode is set to _MIDI/CV_, the page is not available and selecting it will jump to the [Track](#pages-track) page.
 
+In a _Logic_ track a visual representation of the inputs track is visible for each step: a dot means input track 1 has gate on, an empty square means inout track 2 has gate on, a combination of dot and empty square means both input tracks has gate on and finally the full square means logic gate is on. A visual feedback will be visualized when the logic gate out is on.
+
+
 <h4>Layer Selection</h4>
 
 Sequence data is organized in layers (see [Note Track](#concepts-note-track) and [Curve Track](#concepts-curve-track)). Press `F1`, `F2`, `F3`, `F4` or `F5` to select different layers. The currently selected layer is shown in the header and the graphical representation of the sequence will change accordingly. Note that each function button can represent a group of layers, in which case pressing the same function button repeatedly will cycle through the layers contained in the group. Press `SHIFT` + `F[1-5]` to quickly switch to the first layer of a group.
@@ -962,6 +965,7 @@ To adjust the values of the currently selected layer, hold `S[1-16]` and rotate 
 - When editing a _Stochastic_ track pressing `PAGE`+`S6` will clear the loop and enter a new one
 - When editing a _Stochastic_ track pressing `PAGE`+`S5` will reseed the stochastic generator and pick a random value for the Note Probability BIAS parameter
 - When editing a _Logic_ track all _Note_ track features and shortcuts are still available.
+
 <h4>Advanced Step Selection</h4>
 
 When holding `SHIFT` and pressing any of the step buttons, steps are selected in a _persistent_ mode. This means that steps are kept selected even when the step buttons are released. This allows to select multiple steps across different sections. Steps can also be removed from the selection by holding `SHIFT` and pressing step buttons corresponding to selected steps again. To clear the entire selection, simply press any step button without holding `SHIFT` or quickly press `SHIFT` twice (double tap). When the selection is empty, double tap `SHIFT` to select all 64 steps.
