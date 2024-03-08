@@ -378,7 +378,7 @@ void LogicTrackEngine::update(float dt) {
 
 void LogicTrackEngine::changePattern() {
     _sequence = &_logicTrack.sequence(pattern());
-    //_fillSequence = &_logicTrack.sequence(std::min(pattern() + 1, CONFIG_PATTERN_COUNT - 1));
+    _fillSequence = &_logicTrack.sequence(std::min(pattern() + 1, CONFIG_PATTERN_COUNT - 1));
 }
 
 void LogicTrackEngine::monitorMidi(uint32_t tick, const MidiMessage &message) {
@@ -406,9 +406,13 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     int octave = _logicTrack.octave();
     int transpose = _logicTrack.transpose();
     int rotate = _logicTrack.rotate();
+    bool fillStep = fill() && (rng.nextRange(100) < uint32_t(fillAmount()));
+    bool useFillGates = fillStep && _logicTrack.fillMode() == LogicTrack::FillMode::Gates;
+    bool useFillSequence = fillStep && _logicTrack.fillMode() == LogicTrack::FillMode::NextPattern;
+    bool useFillCondition = fillStep && _logicTrack.fillMode() == LogicTrack::FillMode::Condition;
 
     const auto &sequence = *_sequence;
-    const auto &evalSequence = *_sequence;
+    const auto &evalSequence = useFillSequence ? *_fillSequence : *_sequence;
 
     // TODO do we need to encounter rotate?
     _currentStep = SequenceUtils::rotateStep(_sequenceState.step(), sequence.firstStep(), sequence.lastStep(), rotate);
@@ -497,7 +501,10 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     }
 
     if (stepGate) {
-        stepGate = evalStepCondition(step, _sequenceState.iteration(), false, _prevCondition);
+        stepGate = evalStepCondition(step, _sequenceState.iteration(), useFillCondition, _prevCondition);
+    }
+    if (stepGate) {
+        stepGate = stepGate || useFillGates;
     }
     switch (step.stageRepeatMode()) {
         case Types::StageRepeatMode::Each:

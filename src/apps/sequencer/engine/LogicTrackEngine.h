@@ -63,6 +63,7 @@ private:
     TrackLinkData _linkData;
 
     LogicSequence *_sequence;
+    const LogicSequence *_fillSequence;
 
     uint32_t _freeRelativeTick;
     SequenceState _sequenceState;
