@@ -11,7 +11,6 @@ static void drawNoteTrack(Canvas &canvas, int trackIndex, const NoteTrackEngine 
 
     int stepOffset = 16*sequence.section();
     if (patternFollow) {
-        stepOffset = (std::max(0, trackEngine.currentStep()) / 16) * 16*sequence.section();
         int section_no = int((trackEngine.currentStep()) / 16);
         sequence.setSecion(section_no);
     }
@@ -43,7 +42,6 @@ static void drawLogicTrack(Canvas &canvas, int trackIndex, const LogicTrackEngin
 
     int stepOffset = 16*sequence.section();
     if (patternFollow) {
-        stepOffset = (std::max(0, trackEngine.currentStep()) / 16) * 16*sequence.section();
         int section_no = int((trackEngine.currentStep()) / 16);
         sequence.setSecion(section_no);
     }
@@ -116,7 +114,6 @@ static void drawCurveTrack(Canvas &canvas, int trackIndex, const CurveTrackEngin
 
     int stepOffset = 16*sequence.section();
     if (patternFollow) {
-        stepOffset = (std::max(0, trackEngine.currentStep()) / 16) * 16*sequence.section();
         int section_no = int((trackEngine.currentStep()) / 16);
         sequence.setSecion(section_no);
     }
