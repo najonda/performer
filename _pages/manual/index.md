@@ -75,7 +75,7 @@ nav: 20
   - [Shapes](#appendix-shapes)
   - [Arpeggiator Modes](#appendix-arpeggiator-modes)
   - [Routing Targets](#appendix-routing-targets)
-  - [Logic Operators](#appendix-logix-operators)
+  - [Logic Operators](#appendix-logic-operators)
   - [MIDI Program Change](#appendix-midi-program-change)
   - [Launchpad](#appendix-launchpad)
   - [USB MIDI Devices](#appendix-usb-midi-devices)
@@ -1943,7 +1943,7 @@ The following routing targets are available.
 
 <!-- Logic Operators -->
 
-<h3 id="appendix-logix-operators">Logic Operators</h3>
+<h3 id="appendix-logic-operators">Logic Operators</h3>
 
 | Operator     | TYpe                                       | Description                                         |
 |:-------------|:-------------------------------------------|:----------------------------------------------------|
