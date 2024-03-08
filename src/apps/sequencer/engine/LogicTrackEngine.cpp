@@ -500,12 +500,12 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
             break;
     }
 
+
+    stepGate = stepGate || useFillGates;
     if (stepGate) {
         stepGate = evalStepCondition(step, _sequenceState.iteration(), useFillCondition, _prevCondition);
     }
-    if (stepGate) {
-        stepGate = stepGate || useFillGates;
-    }
+    
     switch (step.stageRepeatMode()) {
         case Types::StageRepeatMode::Each:
             break;
