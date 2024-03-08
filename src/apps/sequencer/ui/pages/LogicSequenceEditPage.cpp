@@ -141,7 +141,17 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
         canvas.drawRect(x + 2, y + 2, stepWidth - 4, stepWidth - 4);
         if (step.gate()) {
             canvas.setColor(_context.model.settings().userSettings().get<DimSequenceSetting>(SettingDimSequence)->getValue() ? Color::Low : Color::Bright);
-            canvas.fillRect(x + 4, y + 4, stepWidth - 8, stepWidth - 8);
+            if (trackEngine.gateOutput(stepIndex) && stepIndex == currentStep) {
+                canvas.fillRect(x + 6, y + 6, stepWidth - 12, stepWidth - 12);
+                canvas.setColor(Color::Medium);
+                canvas.hline(x + 7, y + 5, 2);
+                canvas.hline(x + 7, y + 10, 2);
+                canvas.vline(x + 5, y + 7, 2);
+                canvas.vline(x + 10, y + 7, 2);
+               
+            } else {
+                canvas.fillRect(x + 4, y + 4, stepWidth - 8, stepWidth - 8);
+            }
         }
 
         // record step

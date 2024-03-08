@@ -55,7 +55,13 @@ static void drawLogicTrack(Canvas &canvas, int trackIndex, const LogicTrackEngin
 
         if (trackEngine.currentStep() == stepIndex) {
             canvas.setColor(step.gate() ? Color::Bright : Color::MediumBright);
-            canvas.fillRect(x + 1, y + 1, 6, 6);
+
+            if (trackEngine.gateOutput(stepIndex)) {
+                canvas.fillRect(x + 3, y + 3, 3, 3);
+                canvas.setColor(Color::Medium);
+            } else {
+                canvas.fillRect(x + 1, y + 1, 6, 6);
+            }
         } else {
             canvas.setColor(step.gate() ? Color::Medium : Color::Low);
             canvas.fillRect(x + 1, y + 1, 6, 6);

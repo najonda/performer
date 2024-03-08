@@ -2412,7 +2412,7 @@ void LaunchpadController::drawStochasticSequenceNotes(const StochasticSequence &
 }
 
 void LaunchpadController::drawLogicSequenceBits(const LogicSequence &sequence, LogicSequence::Layer layer, int currentStep) {
-
+     const auto &trackEngine = _engine.selectedTrackEngine().as<LogicTrackEngine>();
     for (int row = 0; row < 8; ++row) {
         for (int col = 0; col < 8; ++col) {
             int stepIndex = row * 8 + col;
@@ -2426,7 +2426,11 @@ void LaunchpadController::drawLogicSequenceBits(const LogicSequence &sequence, L
                 color = colorGreen(2);
             }
             if (stepIndex == currentStep) {
-                color = colorRed();
+                if (trackEngine.gateOutput(stepIndex)) {
+                    color = colorYellow();
+                } else {
+                    color = colorRed();
+                }
             }
             
             setGridLed(row, col, color);
