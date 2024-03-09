@@ -212,8 +212,12 @@ TrackEngine::TickResult LogicTrackEngine::tick(uint32_t tick) {
         switch (_logicTrack.playMode()) {
         case Types::PlayMode::Aligned:
             if (relativeTick % divisor == 0) {
-                _sequenceState.advanceAligned(relativeTick / divisor, sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
-                recordStep(tick, divisor);
+                int abstoluteStep = int(relativeTick / divisor);
+                _sequenceState.advanceAligned(abstoluteStep, sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
+
+                if (abstoluteStep == 0 ||abstoluteStep >= _model.project().recordDelay()+1) {
+                    recordStep(tick+1, divisor);
+                }
                 triggerStep(tick, divisor);
 
                 _sequenceState.calculateNextStepAligned(
@@ -232,34 +236,23 @@ TrackEngine::TickResult LogicTrackEngine::tick(uint32_t tick) {
                 _freeRelativeTick = 0;
             }
             if (relativeTick == 0) {
+
                 if (_currentStageRepeat == 1) {
                      _sequenceState.advanceFree(sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
-                     _sequenceState.calculateNextStepFree(
-                        sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
                 }
 
                 recordStep(tick, divisor);
                 const auto &step = sequence.step(_sequenceState.step());
-                bool isLastStageStep = ((int) step.stageRepeats() - (int) _currentStageRepeat) <= 0;
-            
-                if (step.gateOffset() >= 0) {
-                    triggerStep(tick, divisor);
-                }
+                bool isLastStageStep = ((int) (step.stageRepeats()+1) - (int) _currentStageRepeat) <= 0;
 
-                if (!isLastStageStep && step.gateOffset() < 0) {
-                    triggerStep(tick + divisor, divisor, false);
-                }
+                triggerStep(tick+divisor, divisor);
 
-                if (isLastStageStep 
-                        && sequence.step(_sequenceState.nextStep()).gateOffset() < 0) {
-                    triggerStep(tick + divisor, divisor, true);
-                }
-               
                 if (isLastStageStep) {
-                   _currentStageRepeat = 1; 
+                   _currentStageRepeat = 1;
                 } else {
                     _currentStageRepeat++;
                 }
+
             }
             break;
         case Types::PlayMode::Last:
@@ -583,7 +576,17 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         const auto inputSequence1 = _model.project().track(_logicTrack.inputTrack1()).noteTrack().sequence(pattern());
         const auto inputSequence2 = _model.project().track(_logicTrack.inputTrack2()).noteTrack().sequence(pattern());
 
-        _cvQueue.push({ Groove::applySwing(stepTick, swing()), evalStepNote(step, _logicTrack.noteProbabilityBias(), scale, rootNote, octave, transpose, inputSequence1.step(stepIndex).note(), inputSequence2.step(stepIndex).note()), step.slide() });
+        auto idx1 = stepIndex;
+        if (sequence.lastStep() - inputSequence1.lastStep() > 0 && stepIndex > inputSequence1.lastStep()) {
+            idx1 = (stepIndex - (inputSequence1.lastStep()+1));
+        }
+        auto idx2 = stepIndex;
+        if (sequence.lastStep() - inputSequence2.lastStep() > 0 && stepIndex > inputSequence2.lastStep()) {
+            idx2 = (stepIndex - (inputSequence2.lastStep()+1));
+        }
+
+
+        _cvQueue.push({ Groove::applySwing(stepTick, swing()), evalStepNote(step, _logicTrack.noteProbabilityBias(), scale, rootNote, octave, transpose, inputSequence1.step(idx1).note(), inputSequence2.step(idx2).note()), step.slide() });
     }
 }
 

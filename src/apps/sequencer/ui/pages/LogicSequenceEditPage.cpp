@@ -155,12 +155,21 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
         } else {
             if (track.inputTrack1() != -1) {
                 auto inpoutSeq1 = _project.track(track.inputTrack1()).noteTrack().sequence(_project.selectedPatternIndex());
-                auto inpoutSeq2 = _project.track(track.inputTrack2()).noteTrack().sequence(_project.selectedPatternIndex());
-                if (inpoutSeq1.step(stepIndex).gate()) {
+                auto idx = stepIndex;
+                if (sequence.lastStep() - inpoutSeq1.lastStep() > 0 && stepIndex > inpoutSeq1.lastStep()) {
+                    idx = (stepIndex - (inpoutSeq1.lastStep()+1));
+                }
+                if (inpoutSeq1.step(idx).gate()) {
                     canvas.fillRect(x + 6, y + 6, 4, 4);
                 }
-                
-                if (inpoutSeq2.step(stepIndex).gate()) {
+            }
+            if (track.inputTrack2() != -1) {
+                auto inpoutSeq2 = _project.track(track.inputTrack2()).noteTrack().sequence(_project.selectedPatternIndex());
+                auto idx = stepIndex;
+                if (sequence.lastStep() - inpoutSeq2.lastStep() > 0 && stepIndex > inpoutSeq2.lastStep()) {
+                    idx = (stepIndex - (inpoutSeq2.lastStep()+1));
+                }
+                if (inpoutSeq2.step(idx).gate()) {
                     canvas.hline(x + 4, y + 4, 8);
                     canvas.hline(x + 4, y + 11, 8);
                     canvas.vline(x + 4, y + 4, 8);
