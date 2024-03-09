@@ -9,6 +9,7 @@
 #include "Routing.h"
 #include "FileDefs.h"
 #include "core/utils/StringUtils.h"
+#include <cstdint>
 
 class CurveTrack : public BaseTrack, public BaseTrackPatternFollow {
 public:
@@ -213,6 +214,44 @@ public:
         str(Types::curveCvInput(_curveCvInput));
     }
 
+    // min
+
+    int min() const { return _min.get(isRouted(Routing::Target::CurveMin)); }
+    void setMin(int min, bool routed = false) {
+        _min.set(clamp(min, 0, max()), routed);
+        //_max.set(std::max(max(), this->min()), routed);
+    }
+
+    void editMin(int value, bool shift) {
+        if (!isRouted(Routing::Target::CurveMin)) {
+            setMin(min() + value);
+        }
+    }
+
+    void printMin(StringBuilder &str) const {
+        printRouted(str, Routing::Target::CurveMin);
+        str("%d", min());
+    }
+
+    // max
+
+    int max() const { return _max.get(isRouted(Routing::Target::CurveMax)); }
+    void setMax(int max, bool routed = false) {
+        _max.set(clamp(max, min(), 127), routed);
+        //_min.set(std::min(min(), this->max()), routed);
+    }
+
+    void editMax(int value, bool shift) {
+        if (!isRouted(Routing::Target::CurveMax)) {
+            setMax(max() + value);
+        }
+    }
+
+    void printMax(StringBuilder &str) const {
+        printRouted(str, Routing::Target::CurveMax);
+        str("%d", max() );
+    }
+
     // sequences
 
     const CurveSequenceArray &sequences() const { return _sequences; }
@@ -262,7 +301,10 @@ private:
     Routable<int8_t> _shapeProbabilityBias;
     Routable<int8_t> _gateProbabilityBias;
 
-     Types::CurveCvInput _curveCvInput;
+    Routable<int8_t> _min;
+    Routable<int8_t> _max;
+
+    Types::CurveCvInput _curveCvInput;
 
     CurveSequenceArray _sequences;
 

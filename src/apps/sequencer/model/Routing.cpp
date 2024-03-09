@@ -318,6 +318,8 @@ static const TargetInfo targetInfos[int(Routing::Target::Last)] = {
     [int(Routing::Target::LengthBias)]                      = { -8,     8,      -8,     8,      8       },
     [int(Routing::Target::NoteProbabilityBias)]             = { -8,     8,      -8,     8,      8       },
     [int(Routing::Target::ShapeProbabilityBias)]            = { -8,     8,      -8,     8,      8       },
+    [int(Routing::Target::CurveMin)]                        = { 0,      127,    0,      127,    1       },
+    [int(Routing::Target::CurveMax)]                        = { 0,      127,    0,      127,    1       },
     // Sequence targets
     [int(Routing::Target::FirstStep)]                       = { 0,      63,     0,      63,     16      },
     [int(Routing::Target::LastStep)]                        = { 0,      63,     0,      63,     16      },

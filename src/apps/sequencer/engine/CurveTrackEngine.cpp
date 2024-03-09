@@ -228,7 +228,12 @@ void CurveTrackEngine::updateOutput(uint32_t relativeTick, uint32_t divisor) {
 
         float value = evalStepShape(step, _shapeVariation || fillVariation, fillInvert, _currentStepFraction, _sequenceState.direction());
         value = range.denormalize(value);
-        _cvOutputTarget = value;
+
+        float min = float(_curveTrack.min()) / CurveSequence::Min::Max;
+        float max = float(_curveTrack.max()) / CurveSequence::Max::Max;
+
+
+        _cvOutputTarget = min + value * (max - min);
     }
 
     _engine.midiOutputEngine().sendCv(_track.trackIndex(), _cvOutputTarget);

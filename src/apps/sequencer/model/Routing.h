@@ -62,7 +62,9 @@ public:
         LengthBias,
         NoteProbabilityBias,
         ShapeProbabilityBias,
-        TrackLast = ShapeProbabilityBias,
+        CurveMin,
+        CurveMax,
+        TrackLast = CurveMax,
 
         // Sequence targets
         SequenceFirst,
@@ -115,6 +117,8 @@ public:
         case Target::LengthBias:                return "Length Bias";
         case Target::NoteProbabilityBias:       return "Note P. Bias";
         case Target::ShapeProbabilityBias:      return "Shape P. Bias";
+        case Target::CurveMin:                  return "Curve Min";
+        case Target::CurveMax:                  return "Curve Max";
 
         case Target::FirstStep:                 return "First Step";
         case Target::LastStep:                  return "Last Step";
@@ -187,6 +191,8 @@ public:
         case Target::RestProbability8:          return 36;
         case Target::LengthModifier:            return 37;    
         case Target::CurrentRecordStep:         return 38;    
+        case Target::CurveMin:                  return 39;
+        case Target::CurveMax:                  return 40;
 
         case Target::Last:                      break;
         }

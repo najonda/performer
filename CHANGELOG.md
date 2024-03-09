@@ -1,9 +1,11 @@
 # Changelog
 
 # v0.2.2 ()
+- Logic Track
 - fix shift steps feature
 - step recorder "move step forward" shortcuts
 - step recorder "current step" cv routable, respond to gate (5ms)
+- curve track cv contrallable min and max
 
 # v0.2.1 (4 March 2024)
 - issue #80 - Repeat Function Issue - Metropolix Mode 
