@@ -106,7 +106,6 @@ static float evalStepNote(const LogicSequence::Step &step, int probabilityBias, 
             }
             break;
         case LogicSequence::NRandomLogic: {
-                rng = Random(time(NULL));
                 int rndMode = rng.nextRange(6);
                 switch (rndMode) {
                     case 0:
@@ -520,7 +519,6 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
             stepGate = stepGate && (_currentStageRepeat - 1) % 3 == 0;
             break;
         case Types::StageRepeatMode::Random:
-                rng = Random(time(NULL));
                 int rndMode = rng.nextRange(6);
                 switch (rndMode) {
                     case 0:
