@@ -1,5 +1,6 @@
 #include "OverviewPage.h"
 
+#include "TopPage.h"
 #include "model/NoteTrack.h"
 
 #include "ui/painters/WindowPainter.h"
@@ -474,28 +475,9 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
         }
      }
 
-     if (key.isTrack() && event.count() == 2) {
-
-         switch (_project.selectedTrack().trackMode()) {
-            case Track::TrackMode::Note:
-                _manager.pages().noteSequenceEdit.show();
-                break;
-            case Track::TrackMode::Curve:
-                 _manager.pages().curveSequenceEdit.show();
-                break;
-            case Track::TrackMode::MidiCv:
-                break;
-            case Track::TrackMode::Stochastic:
-                _manager.pages().stochasticSequenceEdit.show();
-                break;
-            case Track::TrackMode::Logic:
-                _manager.pages().logicSequenceEdit.show();
-                break;
-            default:
-                break;
-         }
-
-     }
+    if (key.isTrack() && event.count() == 2) {
+        _manager.pages().top.setMode(TopPage::Mode::SequenceEdit);
+    }
 
     if (key.isStep() && event.count() == 2) {
         switch (track.trackMode()) {
