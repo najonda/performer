@@ -456,7 +456,6 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
             }
             break;
         case LogicSequence::GateLogicMode::RandomLogic: {
-                    rng = Random(time(NULL));
                     int rndMode = rng.nextRange(6);
                     switch (rndMode) {
                         case 0:

@@ -406,7 +406,6 @@ void NoteTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextS
             stepGate = stepGate && (_currentStageRepeat - 1) % 3 == 0;
             break;
         case Types::StageRepeatMode::Random:
-                srand((unsigned int)time(NULL));
                 int rndMode = rng.nextRange(6);
                 switch (rndMode) {
                     case 0:
