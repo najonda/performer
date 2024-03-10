@@ -409,7 +409,6 @@ void Engine::updateTrackSetups() {
         auto &track = _project.track(trackIndex);
         int linkTrack = track.linkTrack();
         const TrackEngine *linkedTrackEngine = linkTrack >= 0 ? &trackEngine(linkTrack) : nullptr;
-        FixedStringBuilder<16> str("TRACK %d", trackIndex+1);
        
         if (!_trackEngines[trackIndex] || _trackEngines[trackIndex]->trackMode() != track.trackMode()) {
             auto &trackEngine = _trackEngines[trackIndex];
