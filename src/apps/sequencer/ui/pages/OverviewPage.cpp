@@ -5,6 +5,7 @@
 #include "ui/painters/WindowPainter.h"
 #include "ui/LedPainter.h"
 #include "ui/painters/SequencePainter.h"
+#include "Pages.h"
 
 static void drawNoteTrack(Canvas &canvas, int trackIndex, const NoteTrackEngine &trackEngine, NoteSequence &sequence, bool running, bool patternFollow) {
     canvas.setBlendMode(BlendMode::Set);
@@ -471,6 +472,29 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
                  showMessage("NOTE LOGIC");
                 _project.setSelectedLogicSequenceLayer(LogicSequence::Layer::NoteLogic);
         }
+     }
+
+     if (key.isTrack() && event.count() == 2) {
+
+         switch (_project.selectedTrack().trackMode()) {
+            case Track::TrackMode::Note:
+                _manager.pages().noteSequenceEdit.show();
+                break;
+            case Track::TrackMode::Curve:
+                 _manager.pages().curveSequenceEdit.show();
+                break;
+            case Track::TrackMode::MidiCv:
+                break;
+            case Track::TrackMode::Stochastic:
+                _manager.pages().stochasticSequenceEdit.show();
+                break;
+            case Track::TrackMode::Logic:
+                _manager.pages().logicSequenceEdit.show();
+                break;
+            default:
+                break;
+         }
+
      }
 
     if (key.isStep() && event.count() == 2) {
