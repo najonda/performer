@@ -20,7 +20,7 @@ static void drawNoteTrack(Canvas &canvas, int trackIndex, const NoteTrackEngine 
         int stepIndex = stepOffset + i;
         const auto &step = sequence.step(stepIndex);
 
-        int x = 68 + i * 8;
+        int x = 76 + i * 8;
 
         if (trackEngine.currentStep() == stepIndex) {
             canvas.setColor(step.gate() ? Color::Bright : Color::MediumBright);
@@ -29,11 +29,6 @@ static void drawNoteTrack(Canvas &canvas, int trackIndex, const NoteTrackEngine 
             canvas.setColor(step.gate() ? Color::Medium : Color::Low);
             canvas.fillRect(x + 1, y + 1, 6, 6);
         }
-
-        // if (trackEngine.currentStep() == stepIndex) {
-        //     canvas.setColor(Color::Bright);
-        //     canvas.drawRect(x + 1, y + 1, 6, 6);
-        // }
     }
 }
 
@@ -51,7 +46,7 @@ static void drawLogicTrack(Canvas &canvas, int trackIndex, const LogicTrackEngin
         int stepIndex = stepOffset + i;
         const auto &step = sequence.step(stepIndex);
 
-        int x = 68 + i * 8;
+        int x = 76 + i * 8;
 
         if (trackEngine.currentStep() == stepIndex) {
             canvas.setColor(step.gate() ? Color::Bright : Color::MediumBright);
@@ -101,7 +96,7 @@ static void drawStochasticTrack(Canvas &canvas, int trackIndex, const Stochastic
         int stepIndex = stepOffset + i;
         const auto &step = sequence.step(stepIndex);
 
-        int x = 16 + (68 + i * 8);
+        int x = 16 + (76+ i * 8);
 
         if (trackEngine.currentStep() == stepIndex) {
             canvas.setColor(step.gate() ? Color::Bright : Color::MediumBright);
@@ -134,13 +129,13 @@ static void drawCurveTrack(Canvas &canvas, int trackIndex, const CurveTrackEngin
         float max = step.maxNormalized();
         const auto function = Curve::function(Curve::Type(std::min(Curve::Last - 1, step.shape())));
 
-        int x = 68 + i * 8;
+        int x = 76 + i * 8;
 
         drawCurve(canvas, x, y + 1, 8, 6, lastY, function, min, max);
     }
 
     if (trackEngine.currentStep() >= 0) {
-        int x = 64 + ((trackEngine.currentStep() - stepOffset) + trackEngine.currentStepFraction()) * 8;
+        int x = 76 + ((trackEngine.currentStep() - stepOffset) + trackEngine.currentStepFraction()) * 8;
         canvas.setBlendMode(BlendMode::Set);
         canvas.setColor(Color::Bright);
         canvas.vline(x, y + 1, 7);
@@ -174,10 +169,10 @@ void OverviewPage::draw(Canvas &canvas) {
     canvas.setBlendMode(BlendMode::Set);
     canvas.setColor(Color::Medium);
 
-    canvas.vline(68 - 3, 0, 68);
-    canvas.vline(68 - 2, 0, 68);
-    canvas.vline(196 + 1, 0, 68);
-    canvas.vline(196 + 2, 0, 68);
+    canvas.vline(76 - 3, 0, 68);
+    canvas.vline(76 - 2, 0, 68);
+    canvas.vline(204 + 1, 0, 68);
+    canvas.vline(204 + 2, 0, 68);
 
     for (int trackIndex = 0; trackIndex < 8; trackIndex++) {
         auto &track = _project.track(trackIndex);
@@ -191,49 +186,61 @@ void OverviewPage::draw(Canvas &canvas) {
 
         // track number / pattern number
         canvas.setColor(trackState.mute() ? Color::Medium : Color::Bright);
+        
         switch (track.trackMode()) {
-            case Track::TrackMode::Note:
-                canvas.drawText(2, y, track.noteTrack().name());
+            case Track::TrackMode::Note: {
+                    FixedStringBuilder<16> str("%s%s", _project.selectedTrackIndex() == trackIndex ? "+" : "", track.noteTrack().name());
+                    canvas.drawText(2, y, str);
+                }
                 break;
-            case Track::TrackMode::Curve:
-                canvas.drawText(2, y, track.curveTrack().name());
+            case Track::TrackMode::Curve: {
+                    FixedStringBuilder<16> str("%s%s", _project.selectedTrackIndex() == trackIndex ? "+" : "", track.curveTrack().name());
+                    canvas.drawText(2, y, str);
+                }
                 break;
-            case Track::TrackMode::MidiCv:
-                canvas.drawText(2, y, track.midiCvTrack().name());
+            case Track::TrackMode::MidiCv: {
+                    FixedStringBuilder<16> str("%s%s", _project.selectedTrackIndex() == trackIndex ? "+" : "", track.midiCvTrack().name());
+                    canvas.drawText(2, y, str);
+                }
                 break;
-            case Track::TrackMode::Stochastic:
-                canvas.drawText(2, y, track.stochasticTrack().name());
+            case Track::TrackMode::Stochastic: {
+                    FixedStringBuilder<16> str("%s%s", _project.selectedTrackIndex() == trackIndex ? "+" : "", track.stochasticTrack().name());
+                    canvas.drawText(2, y, str);
+                }
                 break;
-            case Track::TrackMode::Logic:
-                canvas.drawText(2, y, track.logicTrack().name());
+            case Track::TrackMode::Logic: {
+                    FixedStringBuilder<16> str("%s%s", _project.selectedTrackIndex() == trackIndex ? "+" : "", track.logicTrack().name());
+                    canvas.drawText(2, y, str);
+                }
                 break;
             default:
                 break;
         }  
 
-        std::string s = std::to_string(trackState.pattern() + 1);
-        char const *pchar = s.c_str(); 
-        char const p[] = {'P'};
-
-        canvas.fillRect(46 - 1, y - 5, canvas.textWidth(p)+canvas.textWidth(pchar) + 1, 7);
+        if (trackState.pattern()>9) {
+            canvas.fillRect(56 - 1, y - 5, 16,7);
+        } else {
+            canvas.fillRect(56 - 1, y - 5, 12,7);
+        }
+        
         canvas.setBlendMode(BlendMode::Sub);
-        canvas.drawText(46, y, FixedStringBuilder<8>("P%d", trackState.pattern() + 1));
+        canvas.drawText(56, y, FixedStringBuilder<8>("P%d", trackState.pattern() + 1));
         canvas.setBlendMode(BlendMode::Set);
 
         bool gate = _engine.gateOutput() & (1 << trackIndex);
         canvas.setColor(gate ? Color::Bright : Color::Medium);
-        canvas.fillRect(256 - 48 + 1, trackIndex * 8 + 1, 6, 6);
+        canvas.fillRect(256 - 40 + 1, trackIndex * 8 + 1, 6, 6);
 
         // cv output
         canvas.setColor(Color::Bright);
-        canvas.drawText(256 - 32, y, FixedStringBuilder<8>("%.2fV", _engine.cvOutput().channel(trackIndex)));
+        canvas.drawText(256 - 28, y, FixedStringBuilder<8>("%.2fV", _engine.cvOutput().channel(trackIndex)));
 
         switch (track.trackMode()) {
         case Track::TrackMode::Note: {
                 bool patterFolow = false;
                 if (track.noteTrack().patternFollow()==Types::PatternFollow::Display || track.noteTrack().patternFollow()==Types::PatternFollow::DispAndLP) {
                     patterFolow = true;
-                    canvas.drawText(256 - 54, y, FixedStringBuilder<8>("F"));
+                    canvas.drawText(256 - 46, y, FixedStringBuilder<8>("F"));
                 }
                 drawNoteTrack(canvas, trackIndex, trackEngine.as<NoteTrackEngine>(), track.noteTrack().sequence(trackState.pattern()), _engine.state().running(), patterFolow);    
             }
@@ -242,7 +249,7 @@ void OverviewPage::draw(Canvas &canvas) {
                 bool patterFolow = false;
                 if (track.curveTrack().patternFollow()==Types::PatternFollow::Display || track.curveTrack().patternFollow()==Types::PatternFollow::DispAndLP) {
                     patterFolow = true;
-                    canvas.drawText(256 - 54, y, FixedStringBuilder<8>("F"));
+                    canvas.drawText(256 - 46, y, FixedStringBuilder<8>("F"));
                 }
                 drawCurveTrack(canvas, trackIndex, trackEngine.as<CurveTrackEngine>(), track.curveTrack().sequence(trackState.pattern()), _engine.state().running(), patterFolow);
             }
@@ -254,7 +261,7 @@ void OverviewPage::draw(Canvas &canvas) {
                 bool patterFolow = false;
                 if (track.logicTrack().patternFollow()==Types::PatternFollow::Display || track.logicTrack().patternFollow()==Types::PatternFollow::DispAndLP) {
                     patterFolow = true;
-                    canvas.drawText(256 - 54, y, FixedStringBuilder<8>("F"));
+                    canvas.drawText(256 - 46, y, FixedStringBuilder<8>("F"));
                 }
                 drawLogicTrack(canvas, trackIndex, trackEngine.as<LogicTrackEngine>(), track.logicTrack().sequence(trackState.pattern()), _engine.state().running(), patterFolow);  
             }
