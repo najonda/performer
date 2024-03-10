@@ -216,13 +216,13 @@ public:
 
     // min
 
-    int min() const { return _min.get(isRouted(Routing::Target::CurveMin)); }
-    void setMin(int min, bool routed = false) {
-        _min.set(clamp(min, 0, max()), routed);
-        //_max.set(std::max(max(), this->min()), routed);
+    float min() const { return _min.get(isRouted(Routing::Target::CurveMin)); }
+    void setMin(float min, bool routed = false) {
+        _min.set(CurveSequence::Min::clamp(min), routed);
+        _max.set(std::max(max(), this->min()), routed);
     }
 
-    void editMin(int value, bool shift) {
+    void editMin(float value, bool shift) {
         if (!isRouted(Routing::Target::CurveMin)) {
             setMin(min() + value);
         }
@@ -230,18 +230,18 @@ public:
 
     void printMin(StringBuilder &str) const {
         printRouted(str, Routing::Target::CurveMin);
-        str("%d", min());
+        str("%+.1f%%", (100*min())/CurveSequence::Min::Max);
     }
 
     // max
 
-    int max() const { return _max.get(isRouted(Routing::Target::CurveMax)); }
-    void setMax(int max, bool routed = false) {
-        _max.set(clamp(max, min(), 127), routed);
-        //_min.set(std::min(min(), this->max()), routed);
+    float max() const { return _max.get(isRouted(Routing::Target::CurveMax)); }
+    void setMax(float max, bool routed = false) {
+        _max.set(CurveSequence::Max::clamp(max), routed);
+        _min.set(std::min(min(), this->max()), routed);
     }
 
-    void editMax(int value, bool shift) {
+    void editMax(float value, bool shift) {
         if (!isRouted(Routing::Target::CurveMax)) {
             setMax(max() + value);
         }
@@ -249,7 +249,7 @@ public:
 
     void printMax(StringBuilder &str) const {
         printRouted(str, Routing::Target::CurveMax);
-        str("%d", max() );
+        str("%+.1f%%", (100*max()/CurveSequence::Max::Max));
     }
 
     // sequences
@@ -301,8 +301,8 @@ private:
     Routable<int8_t> _shapeProbabilityBias;
     Routable<int8_t> _gateProbabilityBias;
 
-    Routable<int8_t> _min;
-    Routable<int8_t> _max;
+    Routable<float> _min;
+    Routable<float> _max;
 
     Types::CurveCvInput _curveCvInput;
 

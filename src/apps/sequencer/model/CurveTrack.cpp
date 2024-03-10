@@ -23,7 +23,7 @@ void CurveTrack::writeRouted(Routing::Target target, int intValue, float floatVa
         setMin(floatValue, true);
         break;
     case Routing::Target::CurveMax:
-        setMax(intValue, true);
+        setMax(floatValue, true);
         break;
     default:
         break;
@@ -41,7 +41,7 @@ void CurveTrack::clear() {
     setGateProbabilityBias(0);
     setCurveCvInput(Types::CurveCvInput::Off);
     setMin(0);
-    setMax(127);
+    setMax(CurveSequence::Max::max());
 
     for (auto &sequence : _sequences) {
         sequence.clear();
