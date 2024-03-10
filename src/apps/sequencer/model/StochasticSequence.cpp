@@ -360,6 +360,8 @@ void StochasticSequence::write(VersionedSerializedWriter &writer) const {
     writer.write(_lengthModifier);
     writer.write(_lowOctaveRange);
     writer.write(_highOctaveRange);
+    writer.write(_sequenceFirstStep);
+    writer.write(_sequenceLastStep);
 
     writeArray(writer, _steps);
 }
@@ -382,6 +384,8 @@ void StochasticSequence::read(VersionedSerializedReader &reader) {
     reader.read(_lengthModifier, ProjectVersion::Version36);
     reader.read(_lowOctaveRange, ProjectVersion::Version36);
     reader.read(_highOctaveRange, ProjectVersion::Version36);
+    reader.read(_sequenceFirstStep, ProjectVersion::Version37);
+    reader.read(_sequenceLastStep, ProjectVersion::Version37);
     
 
 

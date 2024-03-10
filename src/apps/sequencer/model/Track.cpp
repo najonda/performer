@@ -178,21 +178,27 @@ void Track::setTrackIndex(int trackIndex) {
 }
 
 void Track::setContainerTrackIndex(int trackIndex) {
+    FixedStringBuilder<16> str("TRACK %d", trackIndex+1);
     switch (_trackMode) {
     case TrackMode::Note:
         _track.note->setTrackIndex(trackIndex);
+        _track.note->setName(str);
         break;
     case TrackMode::Curve:
         _track.curve->setTrackIndex(trackIndex);
+        _track.curve->setName(str);
         break;
     case TrackMode::MidiCv:
         _track.midiCv->setTrackIndex(trackIndex);
+        _track.midiCv->setName(str);
         break;
     case TrackMode::Stochastic:
         _track.stochastic->setTrackIndex(trackIndex);
+        _track.stochastic->setName(str);
         break;
     case TrackMode::Logic:
         _track.logic->setTrackIndex(trackIndex);
+        _track.logic->setName(str);
         break;
     case TrackMode::Last:
         break;

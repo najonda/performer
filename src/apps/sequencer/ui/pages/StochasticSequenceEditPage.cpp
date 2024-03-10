@@ -43,8 +43,8 @@ enum class Function {
 static const char *functionNames[] = { "GATE", "RETRIG", "LENGTH", "NOTE", "COND" };
 
 static const StochasticSequenceListModel::Item quickEditItems[8] = {
-    StochasticSequenceListModel::Item::Last,
-    StochasticSequenceListModel::Item::Last,
+    StochasticSequenceListModel::Item::SequenceFirstStep,
+    StochasticSequenceListModel::Item::SequenceLastStep,
     StochasticSequenceListModel::Item::RunMode,
     StochasticSequenceListModel::Item::Divisor,
     StochasticSequenceListModel::Item::ResetMeasure,

@@ -818,6 +818,7 @@ void LaunchpadController::sequenceSetFirstStep(int step) {
         break;
     case Track::TrackMode::Stochastic:
         _project.selectedStochasticSequence().setSequenceFirstStep(step);
+        break;
     case Track::TrackMode::Logic:
         _project.selectedLogicSequence().setFirstStep(step);
         break;
@@ -837,6 +838,7 @@ void LaunchpadController::sequenceSetLastStep(int step) {
         break;
     case Track::TrackMode::Stochastic:
         _project.selectedStochasticSequence().setSequenceLastStep(step);
+        break;
     case Track::TrackMode::Logic:
         _project.selectedLogicSequence().setLastStep(step);
         break;
@@ -1741,6 +1743,7 @@ void LaunchpadController::performerButton(const Button &button, ButtonAction act
                         if (stepIndex<12) {  
                             track.stochasticTrack().sequence(_project.selectedPatternIndex()).step(stepIndex).toggleGate();
                         }
+                        break;
                     }
                     case Track::TrackMode::Logic: {
                             const auto &trackEngine = _engine.trackEngine(button.row).as<LogicTrackEngine>();

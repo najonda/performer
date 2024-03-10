@@ -418,33 +418,18 @@ void Engine::updateTrackSetups() {
             switch (track.trackMode()) {
             case Track::TrackMode::Note:
                 trackEngine = trackContainer.create<NoteTrackEngine>(*this, _model, track, linkedTrackEngine);
-                if (sizeof(track.noteTrack().name()==0)) {
-                    track.noteTrack().setName(str);
-                }
                 break;
             case Track::TrackMode::Curve:
                 trackEngine = trackContainer.create<CurveTrackEngine>(*this, _model, track, linkedTrackEngine);
-                if (sizeof(track.curveTrack().name()==0)) {
-                    track.curveTrack().setName(str);
-                }
                 break;
             case Track::TrackMode::MidiCv:
                 trackEngine = trackContainer.create<MidiCvTrackEngine>(*this, _model, track, linkedTrackEngine);
-                if (sizeof(track.midiCvTrack().name()==0)) {
-                    track.midiCvTrack().setName(str);
-                }
                 break;
             case Track::TrackMode::Stochastic:
                 trackEngine = trackContainer.create<StochasticEngine>(*this, _model, track, linkedTrackEngine);
-                if (sizeof(track.stochasticTrack().name()==0)) {
-                    track.stochasticTrack().setName(str);
-                }
                 break;
             case Track::TrackMode::Logic:
                 trackEngine = trackContainer.create<LogicTrackEngine>(*this, _model, track, linkedTrackEngine);
-                if (sizeof(track.logicTrack().name()==0)) {
-                    track.logicTrack().setName(str);
-                }
                 break;
             case Track::TrackMode::Last:
                 break;
