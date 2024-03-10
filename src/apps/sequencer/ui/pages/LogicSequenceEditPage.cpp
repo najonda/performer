@@ -7,6 +7,7 @@
 #include "ui/LedPainter.h"
 #include "ui/painters/SequencePainter.h"
 #include "ui/painters/WindowPainter.h"
+#include "engine/SequenceUtils.h"
 
 #include "model/Scale.h"
 
@@ -155,20 +156,14 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
         } else {
             if (track.inputTrack1() != -1) {
                 auto inpoutSeq1 = _project.track(track.inputTrack1()).noteTrack().sequence(_project.selectedPatternIndex());
-                auto idx = stepIndex;
-                if (sequence.lastStep() - inpoutSeq1.lastStep() > 0 && stepIndex > inpoutSeq1.lastStep()) {
-                    idx = (stepIndex - (inpoutSeq1.lastStep()+1));
-                }
+                auto idx = SequenceUtils::rotateStep(stepIndex, inpoutSeq1.firstStep(), inpoutSeq1.lastStep(), 0);
                 if (inpoutSeq1.step(idx).gate()) {
                     canvas.fillRect(x + 6, y + 6, 4, 4);
                 }
             }
             if (track.inputTrack2() != -1) {
                 auto inpoutSeq2 = _project.track(track.inputTrack2()).noteTrack().sequence(_project.selectedPatternIndex());
-                auto idx = stepIndex;
-                if (sequence.lastStep() - inpoutSeq2.lastStep() > 0 && stepIndex > inpoutSeq2.lastStep()) {
-                    idx = (stepIndex - (inpoutSeq2.lastStep()+1));
-                }
+                auto idx = SequenceUtils::rotateStep(stepIndex, inpoutSeq2.firstStep(), inpoutSeq2.lastStep(), 0);
                 if (inpoutSeq2.step(idx).gate()) {
                     canvas.hline(x + 4, y + 4, 8);
                     canvas.hline(x + 4, y + 11, 8);

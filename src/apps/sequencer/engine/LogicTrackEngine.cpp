@@ -576,15 +576,8 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         const auto inputSequence1 = _model.project().track(_logicTrack.inputTrack1()).noteTrack().sequence(pattern());
         const auto inputSequence2 = _model.project().track(_logicTrack.inputTrack2()).noteTrack().sequence(pattern());
 
-        auto idx1 = stepIndex;
-        if (sequence.lastStep() - inputSequence1.lastStep() > 0 && stepIndex > inputSequence1.lastStep()) {
-            idx1 = (stepIndex - (inputSequence1.lastStep()+1));
-        }
-        auto idx2 = stepIndex;
-        if (sequence.lastStep() - inputSequence2.lastStep() > 0 && stepIndex > inputSequence2.lastStep()) {
-            idx2 = (stepIndex - (inputSequence2.lastStep()+1));
-        }
-
+        auto idx1 = SequenceUtils::rotateStep(stepIndex, inputSequence1.firstStep(), inputSequence1.lastStep(), 0);
+        auto idx2 = SequenceUtils::rotateStep(stepIndex, inputSequence2.firstStep(), inputSequence2.lastStep(), 0);
 
         _cvQueue.push({ Groove::applySwing(stepTick, swing()), evalStepNote(step, _logicTrack.noteProbabilityBias(), scale, rootNote, octave, transpose, inputSequence1.step(idx1).note(), inputSequence2.step(idx2).note()), step.slide() });
     }
