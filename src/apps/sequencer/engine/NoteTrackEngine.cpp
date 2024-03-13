@@ -188,13 +188,26 @@ TrackEngine::TickResult NoteTrackEngine::tick(uint32_t tick) {
 
                 if (_currentStageRepeat == 1) {
                      _sequenceState.advanceFree(sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
+                      _sequenceState.calculateNextStepFree(
+                        sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
                 }
 
                 recordStep(tick, divisor);
                 const auto &step = sequence.step(_sequenceState.step());
                 bool isLastStageStep = ((int) (step.stageRepeats()+1) - (int) _currentStageRepeat) <= 0;
 
-                triggerStep(tick+divisor, divisor);
+                if (step.gateOffset() >= 0) {
+                    triggerStep(tick, divisor);
+                }
+
+                if (!isLastStageStep && step.gateOffset() < 0) {
+                    triggerStep(tick + divisor, divisor, false);
+                }
+
+                if (isLastStageStep 
+                        && sequence.step(_sequenceState.nextStep()).gateOffset() < 0) {
+                    triggerStep(tick + divisor, divisor, true);
+                }
 
                 if (isLastStageStep) {
                    _currentStageRepeat = 1;
