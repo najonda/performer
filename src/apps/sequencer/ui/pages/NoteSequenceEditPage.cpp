@@ -72,15 +72,14 @@ void NoteSequenceEditPage::enter() {
     _showDetail = false;
 
     if (_project.selectedTrack().noteTrack().playMode() == Types::PlayMode::Aligned) {
-        if (_project.selectedNoteSequenceLayer() == NoteSequence::Layer::StageRepeats || _project.selectedNoteSequenceLayer() == NoteSequence::Layer::StageRepeatsMode ) {
-            _project.setSelectedNoteSequenceLayer(NoteSequence::Layer::Retrigger);
-        } 
+            if (_project.selectedNoteSequenceLayer() == NoteSequence::Layer::StageRepeats || _project.selectedNoteSequenceLayer() == NoteSequence::Layer::StageRepeatsMode ) {
+                _project.setSelectedNoteSequenceLayer(NoteSequence::Layer::Retrigger); 
+            }
         } else {
             if (_project.selectedNoteSequenceLayer() == NoteSequence::Layer::Retrigger) {
                 _project.setSelectedNoteSequenceLayer(NoteSequence::Layer::StageRepeats);
             }
         }
-
     }
 
 void NoteSequenceEditPage::exit() {
