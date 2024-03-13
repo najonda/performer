@@ -764,15 +764,15 @@ void OverviewPage::encoder(EncoderEvent &event) {
             }   
             break;
         case Track::TrackMode::Stochastic: {
-             auto &sequence = _project.selectedStochasticSequence();
+                auto &sequence = _project.selectedStochasticSequence();
                 for (size_t stepIndex = 0; stepIndex < sequence.steps().size(); ++stepIndex) {
                     if (_stepSelection[stepIndex]) {
                         auto &step = sequence.step(stepIndex);
                         step.setNoteVariationProbability(step.noteVariationProbability() + event.value());
                     }
                 }
-        }
-        break;
+            }
+            break;
         case Track::TrackMode::Curve: {
             auto &sequence = _project.selectedCurveSequence();
                 for (size_t stepIndex = 0; stepIndex < sequence.steps().size(); ++stepIndex) {
@@ -797,7 +797,8 @@ void OverviewPage::encoder(EncoderEvent &event) {
                         }
                     }
                 }
-        }
+            }
+            break;
         case Track::TrackMode::Logic: {
             auto &sequence = _project.selectedLogicSequence();
                 for (size_t stepIndex = 0; stepIndex < sequence.steps().size(); ++stepIndex) {
@@ -816,7 +817,8 @@ void OverviewPage::encoder(EncoderEvent &event) {
                         }
                     }
                 }
-        }
+            }
+            break;
         default:
             break;
         }
