@@ -672,9 +672,8 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
                     str("||||");
                     break;
             }
-
-                showMessage(str);
-
+            showMessage(str);
+            break;
             }
             default:
                 break;
