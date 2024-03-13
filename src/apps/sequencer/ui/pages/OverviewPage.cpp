@@ -736,11 +736,21 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
     }
 }
 
+static int wrap(int value, int const lowerBound, int const upperBound)
+{
+    int rangeSize = upperBound - lowerBound + 1;
+    if (value < lowerBound)
+        value += rangeSize * ((lowerBound - value) / rangeSize + 1);
+    return lowerBound + (value - lowerBound) % rangeSize;
+}
+
 void OverviewPage::encoder(EncoderEvent &event) {
 
     auto &track = _project.selectedTrack();
 
     if (!_stepSelection.any()) {
+        const auto val = wrap(_project.selectedTrackIndex()+event.value(), 0, 7);
+        _project.setSelectedTrackIndex(val);
         return;
     }
 
