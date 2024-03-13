@@ -149,6 +149,11 @@ void ProjectPage::initProject() {
             _engine.suspend();
             _project.clear();
             showMessage("PROJECT INITIALIZED");
+
+            if (_project.selectedNoteSequenceLayer() == NoteSequence::Layer::StageRepeats || _project.selectedNoteSequenceLayer() == NoteSequence::Layer::StageRepeatsMode ) {
+                _project.setSelectedNoteSequenceLayer(NoteSequence::Layer::Retrigger);
+            }
+
             _engine.resume();
         }
     });
