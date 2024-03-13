@@ -13,7 +13,7 @@
 
 > **testers** :
 >  
-> mebitek, Jil, Nick Ansell, dblu2000, Andreas Hieninger
+> mebitek, Jil, blu2000, Andreas Hieninger
 
 # v0.2.1 (4 March 2024)
 - issue #80 - Repeat Function Issue - Metropolix Mode 
@@ -25,7 +25,7 @@
 
 > **testers** :
 >  
-> mebitek, Guillaume Libersat, Nick Ansell, XponentOne, Jil, XQSTKRPS, Andreas Hieninger
+> mebitek, Jil, Andreas Hieninger
 
 # v0.2.0 (29 Febrary 2024)
 - Stochastic Track
