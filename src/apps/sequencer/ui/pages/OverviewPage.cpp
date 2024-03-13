@@ -8,6 +8,50 @@
 #include "ui/painters/SequencePainter.h"
 #include "Pages.h"
 
+static const NoteSequenceListModel::Item noteQuickEditItems[8] = {
+    NoteSequenceListModel::Item::FirstStep,
+    NoteSequenceListModel::Item::LastStep,
+    NoteSequenceListModel::Item::RunMode,
+    NoteSequenceListModel::Item::Divisor,
+    NoteSequenceListModel::Item::ResetMeasure,
+    NoteSequenceListModel::Item::Scale,
+    NoteSequenceListModel::Item::RootNote,
+    NoteSequenceListModel::Item::Last
+};
+
+static const CurveSequenceListModel::Item curveQuickEditItems[8] = {
+    CurveSequenceListModel::Item::FirstStep,
+    CurveSequenceListModel::Item::LastStep,
+    CurveSequenceListModel::Item::RunMode,
+    CurveSequenceListModel::Item::Divisor,
+    CurveSequenceListModel::Item::ResetMeasure,
+    CurveSequenceListModel::Item::Range,
+    CurveSequenceListModel::Item::Last,
+    CurveSequenceListModel::Item::Last
+};
+
+static const LogicSequenceListModel::Item logicQuickEditItems[8] = {
+    LogicSequenceListModel::Item::FirstStep,
+    LogicSequenceListModel::Item::LastStep,
+    LogicSequenceListModel::Item::RunMode,
+    LogicSequenceListModel::Item::Divisor,
+    LogicSequenceListModel::Item::ResetMeasure,
+    LogicSequenceListModel::Item::Scale,
+    LogicSequenceListModel::Item::RootNote,
+    LogicSequenceListModel::Item::Last
+};
+
+static const StochasticSequenceListModel::Item stochasticQuickEditItems[8] = {
+    StochasticSequenceListModel::Item::SequenceFirstStep,
+    StochasticSequenceListModel::Item::SequenceLastStep,
+    StochasticSequenceListModel::Item::RunMode,
+    StochasticSequenceListModel::Item::Divisor,
+    StochasticSequenceListModel::Item::ResetMeasure,
+    StochasticSequenceListModel::Item::Scale,
+    StochasticSequenceListModel::Item::RootNote,
+    StochasticSequenceListModel::Item::Last
+};
+
 static void drawNoteTrack(Canvas &canvas, int trackIndex, const NoteTrackEngine &trackEngine, NoteSequence &sequence, bool running, bool patternFollow) {
     canvas.setBlendMode(BlendMode::Set);
 
@@ -88,13 +132,15 @@ static void drawCurve(Canvas &canvas, int x, int y, int w, int h, float &lastY, 
     lastY = fy0;
 }
 
-static void drawStochasticTrack(Canvas &canvas, int trackIndex, const StochasticEngine &trackEngine, const StochasticSequence &sequence) {
+static void drawStochasticTrack(Canvas &canvas, int trackIndex, const StochasticEngine &trackEngine, const StochasticSequence &sequence, const Scale &scale) {
+
     canvas.setBlendMode(BlendMode::Set);
 
     int stepOffset = (std::max(0, trackEngine.currentStep()) / 12) * 12;
     int y = trackIndex * 8;
 
     for (int i = 0; i < 12; ++i) {
+        
         int stepIndex = stepOffset + i;
         const auto &step = sequence.step(stepIndex);
 
@@ -103,9 +149,15 @@ static void drawStochasticTrack(Canvas &canvas, int trackIndex, const Stochastic
         if (trackEngine.currentStep() == stepIndex) {
             canvas.setColor(step.gate() ? Color::Bright : Color::MediumBright);
             canvas.fillRect(x + 1, y + 1, 6, 6);
+            
         } else {
             canvas.setColor(step.gate() ? Color::Medium : Color::Low);
             canvas.fillRect(x + 1, y + 1, 6, 6);
+        }
+        if (step.gate() && scale.isNotePresent(step.note())) {
+            canvas.setBlendMode(BlendMode::Sub);
+            canvas.fillRect(x + 3, y + 3, 3, 3);
+            canvas.setBlendMode(BlendMode::Set);
         }
     }
 
@@ -256,8 +308,15 @@ void OverviewPage::draw(Canvas &canvas) {
                 drawCurveTrack(canvas, trackIndex, trackEngine.as<CurveTrackEngine>(), track.curveTrack().sequence(trackState.pattern()), _engine.state().running(), patterFolow);
             }
             break;
-        case Track::TrackMode::Stochastic:
-            drawStochasticTrack(canvas, trackIndex, trackEngine.as<StochasticEngine>(), track.stochasticTrack().sequence(trackState.pattern()));
+        case Track::TrackMode::Stochastic: {
+                const auto &sequence = track.stochasticTrack().sequence(trackState.pattern());
+                const auto &scale = sequence.selectedScale(_project.scale());
+
+                if (sequence.useLoop()) {
+                    canvas.drawText(256 - 46, y, FixedStringBuilder<8>("L"));
+                }
+                drawStochasticTrack(canvas, trackIndex, trackEngine.as<StochasticEngine>(), sequence, scale);
+            }
             break;
         case Track::TrackMode::Logic: {
                 bool patterFolow = false;
@@ -381,6 +440,34 @@ void OverviewPage::updateLeds(Leds &leds) {
         default:
             break;
     }
+
+        if (globalKeyState()[Key::Page] && !globalKeyState()[Key::Shift]) {
+        for (int i = 0; i < 8; ++i) {
+            int index = MatrixMap::fromStep(i + 8);
+            leds.unmask(index);
+            switch (_project.selectedTrack().trackMode()) {
+                case Track::TrackMode::Note:
+                    leds.set(index, false, noteQuickEditItems[i] != NoteSequenceListModel::Item::Last);
+                    break;
+                case Track::TrackMode::Curve:
+                    leds.set(index, false, curveQuickEditItems[i] != CurveSequenceListModel::Item::Last);
+                    break;
+                case Track::TrackMode::Stochastic:
+                    leds.set(index, false, stochasticQuickEditItems[i] != StochasticSequenceListModel::Item::Last);
+                    break;
+                case Track::TrackMode::Logic:
+                    leds.set(index, false, logicQuickEditItems[i] != LogicSequenceListModel::Item::Last);
+                    break;
+                default:
+                    break;
+            }
+            leds.mask(index);
+        }
+        int index = MatrixMap::fromStep(15);
+        leds.unmask(index);
+        leds.set(index, false, true);
+        leds.mask(index);
+    }
 }
 
 void OverviewPage::keyDown(KeyEvent &event) {
@@ -407,6 +494,8 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
                     if (key.is(Key::Step15)) {
                         bool lpConnected = _engine.isLaunchpadConnected();
                         track.togglePatternFollowDisplay(lpConnected);
+                    } else {
+                        quickEdit(key.quickEdit());
                     }
                 }
                 break;
@@ -415,6 +504,8 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
                     if (key.is(Key::Step15)) {
                         bool lpConnected = _engine.isLaunchpadConnected();
                         track.togglePatternFollowDisplay(lpConnected);
+                    }  else {
+                        quickEdit(key.quickEdit());
                     }
                 }
                 break;
@@ -423,12 +514,20 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
                     if (key.is(Key::Step15)) {
                         bool lpConnected = _engine.isLaunchpadConnected();
                         track.togglePatternFollowDisplay(lpConnected);
+                    }  else {
+                        quickEdit(key.quickEdit());
                     }
+                }
+            case Track::TrackMode::Stochastic: {
+                quickEdit(key.quickEdit());
+                    
                 }
                 break;
             default:
                 break;
-         }
+        }
+        event.consume();
+        return;
     }
 
     if (key.pageModifier()) {
@@ -460,6 +559,8 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
             default:
                 break;
         }
+        event.consume();
+        return;
      }
 
     if (key.isEncoder() && _project.selectedTrack().trackMode() == Track::TrackMode::Logic) {
@@ -473,10 +574,23 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
                  showMessage("NOTE LOGIC");
                 _project.setSelectedLogicSequenceLayer(LogicSequence::Layer::NoteLogic);
         }
-     }
+        event.consume();
+        return;
+    }
+
+    if (key.isEncoder() && _project.selectedTrack().trackMode() == Track::TrackMode::Stochastic) {
+        auto loop = _project.selectedStochasticSequence().useLoop();
+        _project.selectedStochasticSequence().setUseLoop(!loop);
+        event.consume();
+        return;;
+
+    }
+
 
     if (key.isTrack() && event.count() == 2) {
         _manager.pages().top.setMode(TopPage::Mode::SequenceEdit);
+        event.consume();
+        return;
     }
 
     if (key.isStep() && event.count() == 2) {
@@ -565,6 +679,8 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
             default:
                 break;
         }
+        event.consume();
+        return;
     }
 
      if (key.isLeft()) {
@@ -984,8 +1100,24 @@ void OverviewPage::updateMonitorStep() {
                 }   
             }
             break;
+        case Track::TrackMode::Curve: {
+                auto &trackEngine = _engine.selectedTrackEngine().as<CurveTrackEngine>();
+                if ( _stepSelection.any()) {
+                    trackEngine.setMonitorStep(_stepSelection.first());
+                    trackEngine.setMonitorStepLevel(_project.selectedCurveSequenceLayer() == CurveSequence::Layer::Min ? CurveTrackEngine::MonitorLevel::Min : CurveTrackEngine::MonitorLevel::Max);
+                }
+            }
+            break;
+        case Track::TrackMode::Stochastic: {
+                auto &trackEngine = _engine.selectedTrackEngine().as<StochasticEngine>();
+                // TODO should we monitor an all layers not just note?
+                if (_stepSelection.any()) {
+                    trackEngine.setMonitorStep(_stepSelection.first());
+                }   
+            }
+            break;
         case Track::TrackMode::Logic: {
-            auto &trackEngine = _engine.selectedTrackEngine().as<LogicTrackEngine>();
+                auto &trackEngine = _engine.selectedTrackEngine().as<LogicTrackEngine>();
                 // TODO should we monitor an all layers not just note?
                 if (_stepSelection.any()) {
                     trackEngine.setMonitorStep(_stepSelection.first());
@@ -996,4 +1128,45 @@ void OverviewPage::updateMonitorStep() {
             break;
     }
     
+}
+
+void OverviewPage::quickEdit(int index) {
+    switch (_project.selectedTrack().trackMode()) {
+        case Track::TrackMode::Note: {
+                _noteListModel.setSequence(&_project.selectedNoteSequence());
+                if (noteQuickEditItems[index] != NoteSequenceListModel::Item::Last) {
+                    _manager.pages().quickEdit.show(_noteListModel, int(noteQuickEditItems[index]));
+                }
+            }
+            break;
+        case Track::TrackMode::Curve: {
+                CurveSequenceListModel _listModel;
+
+                _curveListModel.setSequence(&_project.selectedCurveSequence());
+                if (curveQuickEditItems[index] != CurveSequenceListModel::Item::Last) {
+                    _manager.pages().quickEdit.show(_curveListModel, int(curveQuickEditItems[index]));
+                }
+            }
+            break;
+        case Track::TrackMode::Stochastic: {
+                StochasticSequenceListModel _listModel;
+
+                _stochasticListModel.setSequence(&_project.selectedStochasticSequence());
+                if (stochasticQuickEditItems[index] != StochasticSequenceListModel::Item::Last) {
+                    _manager.pages().quickEdit.show(_stochasticListModel, int(stochasticQuickEditItems[index]));
+                }
+            }
+            break;
+        case Track::TrackMode::Logic: {
+                LogicSequenceListModel _listModel;
+
+                _logicListModel.setSequence(&_project.selectedLogicSequence());
+                if (logicQuickEditItems[index] != LogicSequenceListModel::Item::Last) {
+                    _manager.pages().quickEdit.show(_logicListModel, int(logicQuickEditItems[index]));
+                }
+            }
+            break;
+        default:
+            break;
+    }
 }
