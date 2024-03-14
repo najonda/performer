@@ -13,7 +13,7 @@
 
 > **testers** :
 >  
-> mebitek, Jil, Andreas Hieninger
+> mebitek, Jil, Andreas Hieninger, P.M. Lenneskog
 
 # v0.2.1 (4 March 2024)
 - issue #80 - Repeat Function Issue - Metropolix Mode 
