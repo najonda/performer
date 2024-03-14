@@ -1921,45 +1921,45 @@ The following arpeggiator modes are available. The example note order is based o
 
 The following routing targets are available.
 
-| Target         | Scope               | Notes                                                                                                       |
-|:---------------|:--------------------|:------------------------------------------------------------------------------------------------------------|
-| Play           | Global              |                                                                                                             |
-| Play Toggle    | Global              | Toggle playing. Allows simultaneous use of the `PLAY` button.                                               |
-| Record         | Global              |                                                                                                             |
-| Record Toggle  | Global              | Toggle recording. Allows simultaneous use of the `SHIFT` + `PLAY` button combination.                       |
-| Tap Tempo      | Global              |                                                                                                             |
-| Tempo          | Global              |                                                                                                             |
-| Swing          | Global              |                                                                                                             |
-| Mute           | Track               |                                                                                                             |
-| Fill           | Track               |                                                                                                             |
-| Fill Amount    | Track               |                                                                                                             |
-| Pattern        | Track               |                                                                                                             |
-| Slide Time     | Track               |                                                                                                             |
-| Octave         | Track               |                                                                                                             |
-| Transpose      | Track               |                                                                                                             |
-| Offset         | Track               |                                                                                                             |
-| Rotate         | Track               |                                                                                                             |
-| Gate P. Bias   | Track               |                                                                                                             |
-| Retrig P. Bias | Track               |                                                                                                             |
-| Length Bias    | Track               |                                                                                                             |
-| Note P. Bias   | Track               |                                                                                                             |
-| Shape P. Bias  | Track               |                                                                                                             |
-| First Step     | Sequence            |                                                                                                             |
-| Last Step      | Sequence            |                                                                                                             |
-| Run Mode       | Sequence            |                                                                                                             |
-| Divisor        | Sequence            |                                                                                                             |
-| Scale          | Sequence            |                                                                                                             |
-| Root Note      | Sequence            |                                                                                                             |
-| Rec step | Sequence | in step recording mode conltrols the current recording step. responds to gate (5ms). useful to insert rests |
-| Reseed         | Stochastic Sequence |                                                                                                             |
-| Rest Prob 2    | Stochastic Sequence |                                                                                                             |
-| Rest Prob 4    | Stochastic Sequence |                                                                                                             |
-| Rest Poob 8    | Stochastic Sequence |                                                                                                             | 
-| Seq First Step | Stochastic Sequence |                                                                                                             |
-| Seq Last Step | Stochastic Sequence |                                                                                                             |
-| L Oct. Range | Stochastic Sequence |                                                                                                             |
-| H Oct. Range | Stochastic Sequence |                                                                                                             |
-| Length Mod | Stochastic Sequence |                                                                                                             | 
+| Target         | Scope               | Notes                                                                                                      |
+|:---------------|:--------------------|:-----------------------------------------------------------------------------------------------------------|
+| Play           | Global              |                                                                                                            |
+| Play Toggle    | Global              | Toggle playing. Allows simultaneous use of the `PLAY` button.                                              |
+| Record         | Global              |                                                                                                            |
+| Record Toggle  | Global              | Toggle recording. Allows simultaneous use of the `SHIFT` + `PLAY` button combination.                      |
+| Tap Tempo      | Global              |                                                                                                            |
+| Tempo          | Global              |                                                                                                            |
+| Swing          | Global              |                                                                                                            |
+| Mute           | Track               |                                                                                                            |
+| Fill           | Track               |                                                                                                            |
+| Fill Amount    | Track               |                                                                                                            |
+| Pattern        | Track               |                                                                                                            |
+| Slide Time     | Track               |                                                                                                            |
+| Octave         | Track               |                                                                                                            |
+| Transpose      | Track               |                                                                                                            |
+| Offset         | Track               |                                                                                                            |
+| Rotate         | Track               |                                                                                                            |
+| Gate P. Bias   | Track               |                                                                                                            |
+| Retrig P. Bias | Track               |                                                                                                            |
+| Length Bias    | Track               |                                                                                                            |
+| Note P. Bias   | Track               |                                                                                                            |
+| Shape P. Bias  | Track               |                                                                                                            |
+| First Step     | Sequence            |                                                                                                            |
+| Last Step      | Sequence            |                                                                                                            |
+| Run Mode       | Sequence            |                                                                                                            |
+| Divisor        | Sequence            |                                                                                                            |
+| Scale          | Sequence            |                                                                                                            |
+| Root Note      | Sequence            |                                                                                                            |
+| Rec step | Sequence | in step recording mode controls the current recording step. responds to gate (5ms). useful to insert rests |
+| Reseed         | Stochastic Sequence |                                                                                                            |
+| Rest Prob 2    | Stochastic Sequence |                                                                                                            |
+| Rest Prob 4    | Stochastic Sequence |                                                                                                            |
+| Rest Poob 8    | Stochastic Sequence |                                                                                                            | 
+| Seq First Step | Stochastic Sequence |                                                                                                            |
+| Seq Last Step | Stochastic Sequence |                                                                                                            |
+| L Oct. Range | Stochastic Sequence |                                                                                                            |
+| H Oct. Range | Stochastic Sequence |                                                                                                            |
+| Length Mod | Stochastic Sequence |                                                                                                            | 
 
 <!-- Logic Operators -->
 
