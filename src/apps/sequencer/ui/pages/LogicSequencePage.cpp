@@ -156,13 +156,13 @@ void LogicSequencePage::contextAction(int index) {
 void LogicSequencePage::saveContextAction(int index) {
     switch (SaveContextAction(index)) {
     case SaveContextAction::Load:
-        //loadSequence();
+        loadSequence();
         break;
     case SaveContextAction::Save:
-        //saveSequence();
+        saveSequence();
         break;
     case SaveContextAction::SaveAs:
-        //saveAsSequence();
+        saveAsSequence();
         break;
     case SaveContextAction::Last:
         break;
@@ -172,7 +172,7 @@ void LogicSequencePage::saveContextAction(int index) {
 bool LogicSequencePage::contextActionEnabled(int index) const {
     switch (ContextAction(index)) {
     case ContextAction::Paste:
-        //return _model.clipBoard().canPasteLogicSequence();
+        return _model.clipBoard().canPasteLogicSequence();
     case ContextAction::Route:
         return _listModel.routingTarget(selectedRow()) != Routing::Target::None;
     default:
@@ -186,12 +186,12 @@ void LogicSequencePage::initSequence() {
 }
 
 void LogicSequencePage::copySequence() {
-    //_model.clipBoard().copyLogicSequence(_project.selectedLogicSequence());
+    _model.clipBoard().copyLogicSequence(_project.selectedLogicSequence());
     showMessage("SEQUENCE COPIED");
 }
 
 void LogicSequencePage::pasteSequence() {
-    //_model.clipBoard().pasteLogicSequence(_project.selectedLogicSequence());
+    _model.clipBoard().pasteLogicSequence(_project.selectedLogicSequence());
     showMessage("SEQUENCE PASTED");
 }
 
@@ -203,6 +203,85 @@ void LogicSequencePage::duplicateSequence() {
 
 void LogicSequencePage::initRoute() {
     _manager.pages().top.editRoute(_listModel.routingTarget(selectedRow()), _project.selectedTrackIndex());
+}
+
+void LogicSequencePage::loadSequence() {
+    _manager.pages().fileSelect.show("LOAD SEQUENCE", FileType::LogicSequence, _project.selectedLogicSequence().slotAssigned() ? _project.selectedLogicSequence().slot() : 0, false, [this] (bool result, int slot) {
+        if (result) {
+            _manager.pages().confirmation.show("ARE YOU SURE?", [this, slot] (bool result) {
+                if (result) {
+                    loadSequenceFromSlot(slot);
+                }
+            });
+        }
+    });
+}
+
+void LogicSequencePage::saveSequence() {
+
+    if (!_project.selectedLogicSequence().slotAssigned() || sizeof(_project.selectedLogicSequence().name())==0) {
+        saveAsSequence();
+        return;
+    }
+
+    saveSequenceToSlot(_project.selectedLogicSequence().slot());
+
+    showMessage("SEQUENCE SAVED");
+}
+
+void LogicSequencePage::saveAsSequence() {
+    _manager.pages().fileSelect.show("SAVE SEQUENCE", FileType::LogicSequence, _project.selectedLogicSequence().slotAssigned() ? _project.selectedLogicSequence().slot() : 0, true, [this] (bool result, int slot) {
+        if (result) {
+            if (FileManager::slotUsed(FileType::LogicSequence, slot)) {
+                _manager.pages().confirmation.show("ARE YOU SURE?", [this, slot] (bool result) {
+                    if (result) {
+                        saveSequenceToSlot(slot);
+                    }
+                });
+            } else {
+                saveSequenceToSlot(slot);
+            }
+        }
+    });
+}
+
+void LogicSequencePage::saveSequenceToSlot(int slot) {
+    //_engine.suspend();
+    _manager.pages().busy.show("SAVING SEQUENCE ...");
+
+    FileManager::task([this, slot] () {
+        return FileManager::writeLogicSequence(_project.selectedLogicSequence(), slot);
+    }, [this] (fs::Error result) {
+        if (result == fs::OK) {
+            showMessage("SEQUENCE SAVED");
+        } else {
+            showMessage(FixedStringBuilder<32>("FAILED (%s)", fs::errorToString(result)));
+        }
+        // TODO lock ui mutex
+        _manager.pages().busy.close();
+        _engine.resume();
+    });
+}
+
+void LogicSequencePage::loadSequenceFromSlot(int slot) {
+    //_engine.suspend();
+    _manager.pages().busy.show("LOADING SEQUENCE ...");
+
+    FileManager::task([this, slot] () {
+        // TODO this is running in file manager thread but model notification affect ui
+        return FileManager::readLogicSequence(_project.selectedLogicSequence(), slot);
+    }, [this] (fs::Error result) {
+        if (result == fs::OK) {
+            showMessage("SEQUENCE LOADED");
+        } else if (result == fs::INVALID_CHECKSUM) {
+            showMessage("INVALID SEQUENCE FILE");
+        } else {
+            showMessage(FixedStringBuilder<32>("FAILED (%s)", fs::errorToString(result)));
+        }
+        // TODO lock ui mutex
+        _manager.pages().busy.close();
+        _engine.resume();
+    });
 }
 
 
