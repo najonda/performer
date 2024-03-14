@@ -1380,6 +1380,8 @@ The _Overview_ page is entered using `PAGE` + `PREV`.
 On this page you can see an overall representation of all currently running sequences. In the left section, the currently playing pattern for each track is indicated. In the middle section, a dense representation of the sequence is shown (steps or curves). In the right section, the current state of the gate and CV outputs is visualized. You can enter gates in this view by selecting a track, then double clicking the desired `STEP[1-16]` button.
 The quick edits shortcuts are available for each selected tracks.
 
+The `ENCODER` can be used to switch between tracks.
+
 If the track is a _Note_ track, `STEP[1-16]`+`ENCODER` will change the step note.
 
 If the track is a _Stochastic_ track, `STEP[1-16]`+`ENCODER` will change the note probability. It's also possible to activate per track follow mode hitting `PAGE`+`S16` and navigate the sequence with `NEXT` and `PREV` buttons. Pressing the `ENCODER` will engage the loop mode, an  `L` appears.
@@ -1637,6 +1639,8 @@ Step sequences can be played in two different modes. In _Aligned_ mode, the defa
 The following example illustrates the difference between the two modes: Let's assume a sequence with a length of 16 steps and the step length set to quarter notes, running in _Forward_ mode. When the sequencer is reset and started, the sequence will be played the same in both _Aligned_ and _Free_ mode, advancing to the next step at each quarter note division. Let's assume that the step length is changed to half notes while the sequencer is running and the step sequence is currently at the 9th step. In _Free_ mode, the sequence will continue from the 9th step, but advancing to the next step at each half note division. This means that the step position is not the same as if the sequencer would have been started with the step length set to half notes. This is exactly what _Aligned_ mode does, it always computes the current position based on the time that has passed since the sequencer was last reset and started. So in this example, the sequence would jump to the 5th or 13th step instead and continue playing from there.
 
 In summary, _Free_ mode behaves more like an analog sequencer, which simply advances to the next step when the current step length has passed. This may lead to sequences being played in weird ways, depending on how parameters like _Divisor_, _First Step_ and _Last Step_ are changed while the sequencer is running. While these side effects may allow for some nice happy accidents, _Aligned_ mode is generally the safer bet for most purposes.
+
+> Note: if play mode is changed during playback you can experience some misalignment with other _Free_ mode tracks. A playback restart is strongly suggested to avoid misalignment. 
 
 <!-- Rotation -->
 
