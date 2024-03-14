@@ -1,6 +1,6 @@
 # Changelog
 
-# v0.2.2 (14 March 2024)
+# v0.2.2 (15 March 2024)
 - Logic Track
     - per step gate logic operators
     - per step note logic operators
