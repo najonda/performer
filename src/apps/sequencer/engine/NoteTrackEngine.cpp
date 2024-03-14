@@ -454,9 +454,15 @@ void NoteTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextS
             auto &logicTrack = _model.project().track(_noteTrack.logicTrack()).logicTrack();
             auto &logicSequence = logicTrack.sequence(pattern());
 
-            auto &logicStep = logicSequence.step(stepIndex);
-            
 
+            auto logicTrackEngine = _engine.trackEngine(_noteTrack.logicTrack()).as<LogicTrackEngine>();
+            auto logicCurrentStep = logicTrackEngine.currentStep();
+
+            auto logicStepIndex = logicCurrentStep != -1 ? (_currentStep - logicCurrentStep) + stepIndex : stepIndex;
+            auto idx = SequenceUtils::rotateStep(logicStepIndex, logicSequence.firstStep(), logicSequence.lastStep(), 0);
+
+            auto &logicStep = logicSequence.step(idx);
+            
             if (_noteTrack.logicTrackInput() == 0) {
                 logicStep.setInputGate1(stepGate);
             } else if (_noteTrack.logicTrackInput() == 1) {

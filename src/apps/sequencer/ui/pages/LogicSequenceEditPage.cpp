@@ -155,15 +155,28 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
             }
         } else {
             if (track.inputTrack1() != -1) {
+
+                auto te = _engine.trackEngine(track.inputTrack1()).as<NoteTrackEngine>();
+                auto currentStep1 = te.currentStep();
+
+                auto stepIndex1 = stepIndex;
+                stepIndex1 = currentStep1 != -1 ? (currentStep1 - currentStep) + stepIndex : stepIndex;
+                
+
                 auto inpoutSeq1 = _project.track(track.inputTrack1()).noteTrack().sequence(_project.selectedPatternIndex());
-                auto idx = SequenceUtils::rotateStep(stepIndex, inpoutSeq1.firstStep(), inpoutSeq1.lastStep(), 0);
+                auto idx = SequenceUtils::rotateStep(stepIndex1, inpoutSeq1.firstStep(), inpoutSeq1.lastStep(), 0);
                 if (inpoutSeq1.step(idx).gate()) {
                     canvas.fillRect(x + 6, y + 6, 4, 4);
                 }
             }
             if (track.inputTrack2() != -1) {
+                auto te = _engine.trackEngine(track.inputTrack2()).as<NoteTrackEngine>();
+                auto currentStep2 = te.currentStep();
+                auto stepIndex2 = stepIndex;
+                stepIndex2 = currentStep2 != -1 ? (currentStep2 - currentStep) + stepIndex : stepIndex;
+                
                 auto inpoutSeq2 = _project.track(track.inputTrack2()).noteTrack().sequence(_project.selectedPatternIndex());
-                auto idx = SequenceUtils::rotateStep(stepIndex, inpoutSeq2.firstStep(), inpoutSeq2.lastStep(), 0);
+                auto idx = SequenceUtils::rotateStep(stepIndex2, inpoutSeq2.firstStep(), inpoutSeq2.lastStep(), 0);
                 if (inpoutSeq2.step(idx).gate()) {
                     canvas.hline(x + 4, y + 4, 8);
                     canvas.hline(x + 4, y + 11, 8);
