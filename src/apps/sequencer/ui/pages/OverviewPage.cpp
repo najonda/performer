@@ -354,9 +354,10 @@ void OverviewPage::draw(Canvas &canvas) {
                 }
                 break;
             case Track::TrackMode::Curve: {
-                auto &sequence = _project.selectedCurveSequence();
-                drawCurveDetail(canvas, sequence.step(_stepSelection.first()));
-            }
+                    auto &sequence = _project.selectedCurveSequence();
+                    drawCurveDetail(canvas, sequence.step(_stepSelection.first()));
+                }
+                break;
             case Track::TrackMode::Logic: {
                     auto &sequence = _project.selectedLogicSequence();
                     drawLogicDetail(canvas, sequence.step(_stepSelection.first()));
