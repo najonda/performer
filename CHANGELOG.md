@@ -1,6 +1,6 @@
 # Changelog
 
-# v0.2.2 ()
+# v0.2.2 (14 March 2024)
 - Logic Track
     - per step gate logic operators
     - per step note logic operators
@@ -13,7 +13,7 @@
 
 > **testers** :
 >  
-> mebitek, Jil, blu2000, Andreas Hieninger
+> mebitek, Jil, Andreas Hieninger
 
 # v0.2.1 (4 March 2024)
 - issue #80 - Repeat Function Issue - Metropolix Mode 
