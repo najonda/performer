@@ -8,6 +8,7 @@
 #include <bitset>
 #include <cstddef>
 #include <iostream>
+#include <vector>
 
 namespace ModelUtils {
 
@@ -79,7 +80,7 @@ static void shiftSteps(std::array<Step, N> &steps, const std::bitset<N> &selecte
         }
     }
     if (direction == 1) {
-        for (int i = 0; i < last; ++i) {
+        for (int i = last -1; i >= first; --i) {
             if (indices[i]==-1) {
                 continue;;
             }
@@ -90,14 +91,11 @@ static void shiftSteps(std::array<Step, N> &steps, const std::bitset<N> &selecte
             std::swap(steps[indices[i]], steps[index]);
         }
     } else if (direction == -1) {
-        for (int i = 0; i < last; ++i) {
+        for (int i = first; i < last; ++i) {
             if (indices[i]==-1) {
                 continue;;
             }
             int8_t index = indices[i]-1;
-            if (index < 0) {
-                index = last-1;
-            }
             std::swap(steps[indices[i]], steps[index]);
         }
     }
