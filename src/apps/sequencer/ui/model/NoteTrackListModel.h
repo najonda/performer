@@ -218,6 +218,10 @@ private:
             break;
         case LogicTrack: {
 
+                if (_availableLogicTracks.size() == 0) {
+                    break;
+                }
+                
                 if (_track->logicTrackInput() != -1) {
                     break;
                 }
