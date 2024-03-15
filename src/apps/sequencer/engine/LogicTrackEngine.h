@@ -48,6 +48,10 @@ public:
 
     Types::PlayMode playMode() const { return _logicTrack.playMode(); }
 
+    SequenceState sequenceState() {
+        return _sequenceState;
+    }
+
 private:
     void triggerStep(uint32_t tick, uint32_t divisor, bool nextStep);
     void triggerStep(uint32_t tick, uint32_t divisor);

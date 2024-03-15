@@ -155,7 +155,17 @@ TrackEngine::TickResult NoteTrackEngine::tick(uint32_t tick) {
             reset();
             _currentStageRepeat = 1;
         }
-        const auto &sequence = *_sequence;
+        auto &sequence = *_sequence;
+
+        if (_noteTrack.logicTrack()!=-1) {
+            const auto logicSeq = _model.project().logicSequence(_noteTrack.logicTrack(), pattern());
+            sequence.setFirstStep(logicSeq.firstStep());
+            sequence.setLastStep(logicSeq.lastStep());
+            sequence.setRunMode(logicSeq.runMode());
+            sequence.setDivisor(logicSeq.divisor());
+            sequence.setResetMeasure(logicSeq.resetMeasure());
+
+        }
 
         // advance sequence
         switch (_noteTrack.playMode()) {
@@ -454,12 +464,7 @@ void NoteTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextS
             auto &logicTrack = _model.project().track(_noteTrack.logicTrack()).logicTrack();
             auto &logicSequence = logicTrack.sequence(pattern());
 
-
-            auto logicTrackEngine = _engine.trackEngine(_noteTrack.logicTrack()).as<LogicTrackEngine>();
-            auto logicCurrentStep = logicTrackEngine.currentStep();
-
-            auto logicStepIndex = logicCurrentStep != -1 ? (_currentStep - logicCurrentStep) + stepIndex : stepIndex;
-            auto idx = SequenceUtils::rotateStep(logicStepIndex, logicSequence.firstStep(), logicSequence.lastStep(), 0);
+            auto idx = SequenceUtils::rotateStep(stepIndex, logicSequence.firstStep(), logicSequence.lastStep(), 0);
 
             auto &logicStep = logicSequence.step(idx);
             

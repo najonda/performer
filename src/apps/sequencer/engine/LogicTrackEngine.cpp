@@ -580,27 +580,14 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         const auto &scale = evalSequence.selectedScale(_model.project().scale());
         int rootNote = evalSequence.selectedRootNote(_model.project().rootNote());
 
-        if (_logicTrack.inputTrack1()== -1 || _logicTrack.inputTrack2() == -1) {
+        if (_logicTrack.inputTrack1() == -1 || _logicTrack.inputTrack2() == -1) {
             return;
         }
         const auto inputSequence1 = _model.project().track(_logicTrack.inputTrack1()).noteTrack().sequence(pattern());
         const auto inputSequence2 = _model.project().track(_logicTrack.inputTrack2()).noteTrack().sequence(pattern());
 
-
-        auto te1 = _engine.trackEngine(_logicTrack.inputTrack1()).as<NoteTrackEngine>();
-        auto currentStep1 = te1.currentStep();
-        auto stepIndex1 = stepIndex;
-        
-        stepIndex1 = currentStep1 != -1 ? (currentStep1 - _currentStep) + stepIndex : stepIndex;
-        
-        auto idx1 = SequenceUtils::rotateStep(stepIndex1, inputSequence1.firstStep(), inputSequence1.lastStep(), 0);
-        
-        auto te2 = _engine.trackEngine(_logicTrack.inputTrack2()).as<NoteTrackEngine>();
-        auto currentStep2 = te2.currentStep();
-        auto stepIndex2 = stepIndex;
-        stepIndex2 = currentStep2 != -1 ? (currentStep2 - _currentStep) + stepIndex : stepIndex;
-        
-        auto idx2 = SequenceUtils::rotateStep(stepIndex2, inputSequence2.firstStep(), inputSequence2.lastStep(), 0);
+        auto idx1 = SequenceUtils::rotateStep(stepIndex, inputSequence1.firstStep(), inputSequence1.lastStep(), 0);
+        auto idx2 = SequenceUtils::rotateStep(stepIndex, inputSequence2.firstStep(), inputSequence2.lastStep(), 0);
 
 
         _cvQueue.push({ Groove::applySwing(stepTick, swing()), evalStepNote(step, _logicTrack.noteProbabilityBias(), scale, rootNote, octave, transpose, inputSequence1.step(idx1).note(), inputSequence2.step(idx2).note()), step.slide() });

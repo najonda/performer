@@ -100,6 +100,13 @@ void NoteSequencePage::keyPress(KeyPressEvent &event) {
         return;
     }
 
+    // We lock the playback parameters when logic track is enabled 
+    if (key.is(Key::Encoder) && selectedRow() > 0 && selectedRow() < 6) {
+        if (_project.selectedTrack().noteTrack().logicTrack() != -1) {
+            return;
+        }
+    }
+
     if (!event.consumed()) {
         ListPage::keyPress(event);
     }
