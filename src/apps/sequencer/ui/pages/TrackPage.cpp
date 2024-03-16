@@ -140,6 +140,11 @@ if (key.is(Key::Encoder) && selectedRow() == 15) {
 
                 const auto tmpVal = _project.selectedTrack().noteTrack().logicTrackInput();
 
+                auto *te = &_engine.trackEngine(logicTrackIndex).as<LogicTrackEngine>();
+                
+                auto ne = &_engine.trackEngine(_project.selectedTrackIndex()).as<NoteTrackEngine>();
+                ne->setLogicTrackEngine(te);
+
                 if (tmpVal == 0 && logicTrack.inputTrack1() != -1 && logicTrack.inputTrack1() != _project.selectedTrack().trackIndex()) {
                     _project.selectedTrack().noteTrack().setLogicTrackInput(tmpVal+1);
                 } else if (tmpVal == 0 && logicTrack.inputTrack1() == -1 && logicTrack.inputTrack1() == _project.selectedTrack().trackIndex()) {

@@ -157,7 +157,7 @@ TrackEngine::TickResult NoteTrackEngine::tick(uint32_t tick) {
         }
         auto &sequence = *_sequence;
 
-        if (_noteTrack.logicTrack()!=-1) {
+        /*if (_noteTrack.logicTrack()!=-1) {
             const auto logicSeq = _model.project().logicSequence(_noteTrack.logicTrack(), pattern());
             sequence.setFirstStep(logicSeq.firstStep());
             sequence.setLastStep(logicSeq.lastStep());
@@ -165,7 +165,7 @@ TrackEngine::TickResult NoteTrackEngine::tick(uint32_t tick) {
             sequence.setDivisor(logicSeq.divisor());
             sequence.setResetMeasure(logicSeq.resetMeasure());
 
-        }
+        }*/
 
         // advance sequence
         switch (_noteTrack.playMode()) {
@@ -464,7 +464,15 @@ void NoteTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextS
             auto &logicTrack = _model.project().track(_noteTrack.logicTrack()).logicTrack();
             auto &logicSequence = logicTrack.sequence(pattern());
 
-            auto idx = SequenceUtils::rotateStep(stepIndex, logicSequence.firstStep(), logicSequence.lastStep(), 0);
+            //auto *logicTrackEngine = &_engine.trackEngine(_noteTrack.logicTrack()).as<LogicTrackEngine>();
+            auto logicCurrentStep = _logicTrackEngine->currentStep();
+
+            if (_noteTrack.trackIndex() == 0) {
+                std::cerr << "LOGIC " << logicCurrentStep << "NOTE " << _currentStep << "\n";
+            }
+
+            auto logicStepIndex = logicCurrentStep != -1 ? (_currentStep - logicCurrentStep) + stepIndex : stepIndex;
+            auto idx = SequenceUtils::rotateStep(logicStepIndex, logicSequence.firstStep(), logicSequence.lastStep(), 0);
 
             auto &logicStep = logicSequence.step(idx);
             

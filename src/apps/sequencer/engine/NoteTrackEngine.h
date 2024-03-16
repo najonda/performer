@@ -1,5 +1,6 @@
 #pragma once
 
+#include "LogicTrackEngine.h"
 #include "TrackEngine.h"
 #include "SequenceState.h"
 #include "SortedQueue.h"
@@ -55,6 +56,10 @@ public:
         return _sequenceState;
     }
 
+    void setLogicTrackEngine(LogicTrackEngine *logicTrackEngine) {
+        _logicTrackEngine = logicTrackEngine;
+    }
+
 private:
     void triggerStep(uint32_t tick, uint32_t divisor, bool nextStep);
     void triggerStep(uint32_t tick, uint32_t divisor);
@@ -71,6 +76,8 @@ private:
 
     NoteSequence *_sequence;
     const NoteSequence *_fillSequence;
+
+    const LogicTrackEngine *_logicTrackEngine;
 
     uint32_t _freeRelativeTick;
     SequenceState _sequenceState;
