@@ -190,6 +190,8 @@ TrackEngine::TickResult LogicTrackEngine::tick(uint32_t tick) {
             auto *ne = &_engine.trackEngine(_logicTrack.inputTrack1()).as<NoteTrackEngine>();
             _input1TrackEngine = ne;
         }
+    } else {
+        _input1TrackEngine = nullptr;
     }
 
 
@@ -198,6 +200,8 @@ TrackEngine::TickResult LogicTrackEngine::tick(uint32_t tick) {
             auto *ne = &_engine.trackEngine(_logicTrack.inputTrack2()).as<NoteTrackEngine>();
             _input2TrackEngine = ne;
         }
+    } else {
+        _input2TrackEngine = nullptr;
     }
 
     if (linkData) {
