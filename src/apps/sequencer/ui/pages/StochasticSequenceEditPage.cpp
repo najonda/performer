@@ -149,7 +149,18 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
         }
 
         switch (layer()) {
-        case Layer::Gate:
+        case Layer::Gate: {
+                int rootNote = sequence.selectedRootNote(_model.project().rootNote());
+                FixedStringBuilder<8> str;
+                if (step.bypassScale()) {
+                    const Scale &bypassScale = std::ref(Scale::get(0));
+                    bypassScale.noteName(str, step.note(), rootNote, Scale::Short1);
+                    canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
+                    break;
+                } 
+                scale.noteName(str, step.note(), rootNote, Scale::Short1);
+                canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
+            }
             break;
         case Layer::GateProbability:
             SequencePainter::drawProbability(

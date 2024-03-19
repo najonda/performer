@@ -70,35 +70,61 @@ static void shiftSteps(std::array<Step, N> &steps, int first, int last, int dire
 template<typename Step, size_t N>
 static void shiftSteps(std::array<Step, N> &steps, const std::bitset<N> &selected, int first, int last, int direction)
 {
-    int8_t indices[last];
-    int count = 0;
-    for (int i = 0; i < last; ++i) {
-        if (selected[i]) {
-            indices[count++] = i;
-        } else {
-            indices[count++] = -1;
+    // [first...last-1] : size=last-first
+    // direction L = -1 ; R = 1
+
+    int distance = last - first;
+    int starting_point = -1; // from where we'll swap. -1 means everything is selected
+
+    if (direction == -1) {
+        // Find a starting point (the closest step to the left that we don't shift)
+
+        for(int idx=first; idx<last;idx++) {
+            if (!selected[idx]) {
+                starting_point = idx;
+                break;;
+            }
+        }
+
+        if (starting_point == - 1) {
+            shiftSteps(steps, first, last, direction);
+            return;
+        }
+
+        // scan and swap the whole range, from left to right
+        for(int i=starting_point; i<distance; i++) {
+            int idx = (i + starting_point + last) % last;
+            int previous_idx = ((idx - 1) + last) % last;
+
+            if (selected[idx])
+                std::swap(steps[previous_idx], steps[idx]);
         }
     }
-    if (direction == 1) {
-        for (int i = last -1; i >= first; --i) {
-            if (indices[i]==-1) {
-                continue;;
+    else if (direction == 1) {
+        // Find a starting point (the closest step to the right that we don't shift)
+        for(int idx=last-1; idx>=0;idx--) {
+            if (!selected[idx]) {
+                starting_point = idx;
+                break;;
             }
-            int8_t index = indices[i]+1;
-            if (index == last) {
-                index = 0;
-            }
-            std::swap(steps[indices[i]], steps[index]);
         }
-    } else if (direction == -1) {
-        for (int i = first; i < last; ++i) {
-            if (indices[i]==-1) {
-                continue;;
-            }
-            int8_t index = indices[i]-1;
-            std::swap(steps[indices[i]], steps[index]);
+
+        if (starting_point == - 1) {
+            shiftSteps(steps, first, last, direction);
+            return;
+        }
+
+        // scan and swap the whole range, from right to left
+        for(int i=distance-1; i>=0; i--) {
+            int idx = (i + starting_point + last) % last;
+            int next_idx = ((idx + 1) + last) % last;
+
+            if (selected[idx])
+                std::swap(steps[next_idx], steps[idx]);
         }
     }
+
+    return;
 }
 
 template<typename Step, size_t N>
