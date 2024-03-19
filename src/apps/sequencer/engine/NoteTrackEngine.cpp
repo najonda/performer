@@ -169,14 +169,18 @@ TrackEngine::TickResult NoteTrackEngine::tick(uint32_t tick) {
                 }
                 triggerStep(tick, divisor);
 
-                _sequenceState.calculateNextStepAligned(
-                        (relativeTick + divisor) / divisor,
-                        sequence.runMode(),
-                        sequence.firstStep(),
-                        sequence.lastStep(),
-                        rng
-                    );
-                triggerStep(tick + divisor, divisor, true);
+                const auto &step = sequence.step(_sequenceState.step());
+                if (step.gateOffset()<0) {
+                    _sequenceState.calculateNextStepAligned(
+                            (relativeTick + divisor) / divisor,
+                            sequence.runMode(),
+                            sequence.firstStep(),
+                            sequence.lastStep(),
+                            rng
+                        );
+                        
+                    triggerStep(tick + divisor, divisor, true);
+                }
             }
             break;
         case Types::PlayMode::Free:

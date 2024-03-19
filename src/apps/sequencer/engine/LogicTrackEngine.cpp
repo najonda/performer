@@ -239,15 +239,18 @@ TrackEngine::TickResult LogicTrackEngine::tick(uint32_t tick) {
                     recordStep(tick+1, divisor);
                 }
                 triggerStep(tick, divisor);
-
-                _sequenceState.calculateNextStepAligned(
-                        (relativeTick + divisor) / divisor,
-                        sequence.runMode(),
-                        sequence.firstStep(),
-                        sequence.lastStep(),
-                        rng
-                    );
-                triggerStep(tick + divisor, divisor, true);
+                const auto &step = sequence.step(_sequenceState.step());
+                if (step.gateOffset()<0) {
+                    _sequenceState.calculateNextStepAligned(
+                            (relativeTick + divisor) / divisor,
+                            sequence.runMode(),
+                            sequence.firstStep(),
+                            sequence.lastStep(),
+                            rng
+                        );
+                        
+                    triggerStep(tick + divisor, divisor, true);
+                }
             }
             break;
         case Types::PlayMode::Free:
@@ -464,25 +467,22 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         return;
     }
 
-    const auto inputSequence1 = _model.project().track(_logicTrack.inputTrack1()).noteTrack().sequence(_model.project().selectedPatternIndex());
-    const auto inputSequence2 = _model.project().track(_logicTrack.inputTrack2()).noteTrack().sequence(_model.project().selectedPatternIndex());
+    const auto &noteTrack1 = _model.project().track(_logicTrack.inputTrack1()).noteTrack();
+    const auto &inputSequence1 = noteTrack1.sequence(_model.project().selectedPatternIndex());
 
-    auto currentStep1 = _input1TrackEngine->currentStep();
+    int currentStep1 = _input1TrackEngine->currentStep();
+    int stepIndex1 = currentStep1 != -1 ? (currentStep1 - _currentStep) + stepIndex : stepIndex;
+    int idx1 = SequenceUtils::rotateStep(stepIndex1, inputSequence1.firstStep(), inputSequence1.lastStep(), noteTrack1.rotate());
 
-    auto stepIndex1 = stepIndex;
-    stepIndex1 = currentStep1 != -1 ? (currentStep1 - _currentStep) + stepIndex : stepIndex;
-    const auto idx1 = SequenceUtils::rotateStep(stepIndex1, inputSequence1.firstStep(), inputSequence1.lastStep(), 0);
+    const auto &inputStep1 = inputSequence1.step(idx1);
 
-    const auto inputStep1 = inputSequence1.step(idx1);
+    const auto &noteTrack2 = _model.project().track(_logicTrack.inputTrack2()).noteTrack();
+    const auto &inputSequence2 = noteTrack2.sequence(_model.project().selectedPatternIndex());
+    int currentStep2 = _input2TrackEngine->currentStep();
+    int stepIndex2 = currentStep2 != -1 ? (currentStep2 - _currentStep) + stepIndex : stepIndex;
+    int idx2 = SequenceUtils::rotateStep(stepIndex2, inputSequence2.firstStep(), inputSequence2.lastStep(), noteTrack2.rotate());
 
-    auto currentStep2 = _input2TrackEngine->currentStep();
-
-
-    auto stepIndex2 = stepIndex;
-    stepIndex2 = currentStep2 != -1 ? (currentStep2 - _currentStep) + stepIndex : stepIndex;
-    const auto idx2 = SequenceUtils::rotateStep(stepIndex2, inputSequence2.firstStep(), inputSequence2.lastStep(), 0);
-
-    const auto inputStep2 = inputSequence2.step(idx2);
+    const auto &inputStep2 = inputSequence2.step(idx2);
 
     switch (step.gateLogic()) {
         case LogicSequence::GateLogicMode::One:
