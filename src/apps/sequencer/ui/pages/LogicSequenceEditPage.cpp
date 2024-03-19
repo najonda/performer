@@ -170,31 +170,25 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
             }
         } else {
             if (track.inputTrack1() != -1) {
-
-                auto currentStep1 = trackEngine.input1TrackEngine().currentStep();
-
-                auto stepIndex1 = stepIndex;
-                stepIndex1 = currentStep1 != -1 ? (currentStep1 - currentStep) + stepIndex : stepIndex;
-
-                auto inputSeq1 = _project.track(track.inputTrack1()).noteTrack().sequence(_project.selectedPatternIndex());
-                auto idx = SequenceUtils::rotateStep(stepIndex1, inputSeq1.firstStep(), inputSeq1.lastStep(), 0);
+                const auto currentStep1 = trackEngine.input1TrackEngine().currentStep();
+                auto stepIndex1 = currentStep1 != -1 ? (currentStep1 - currentStep) + stepIndex : stepIndex;
+                const auto inputSeq1 = _project.track(track.inputTrack1()).noteTrack().sequence(_project.selectedPatternIndex());
+                const auto idx = SequenceUtils::rotateStep(stepIndex1, inputSeq1.firstStep(), inputSeq1.lastStep(), 0);
                 if (inputSeq1.step(idx).gate()) {
                     canvas.fillRect(x + 6, y + 6, 4, 4);
-                }
+                } 
             }
             if (track.inputTrack2() != -1) {
-                auto currentStep2 = trackEngine.input2TrackEngine().currentStep();
-                auto stepIndex2 = stepIndex;
-                stepIndex2 = currentStep2 != -1 ? (currentStep2 - currentStep) + stepIndex : stepIndex;
-
-                auto inputSeq2 = _project.track(track.inputTrack2()).noteTrack().sequence(_project.selectedPatternIndex());
-                auto idx = SequenceUtils::rotateStep(stepIndex2, inputSeq2.firstStep(), inputSeq2.lastStep(), 0);
+                const auto currentStep2 = trackEngine.input2TrackEngine().currentStep();
+                auto stepIndex2 = currentStep2 != -1 ? (currentStep2 - currentStep) + stepIndex : stepIndex;
+                const auto inputSeq2 = _project.track(track.inputTrack2()).noteTrack().sequence(_project.selectedPatternIndex());
+                const auto idx = SequenceUtils::rotateStep(stepIndex2, inputSeq2.firstStep(), inputSeq2.lastStep(), 0);
                 if (inputSeq2.step(idx).gate()) {
                     canvas.hline(x + 4, y + 4, 8);
                     canvas.hline(x + 4, y + 11, 8);
                     canvas.vline(x + 4, y + 4, 8);
                     canvas.vline(x + 11, y + 4, 7);
-                }
+                } 
             }
            
         }
