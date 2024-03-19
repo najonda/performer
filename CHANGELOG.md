@@ -10,6 +10,7 @@
 - curve track cv contrallable min and max
 - Overview page improvements
 - add trigger curve shape
+- add filter note parameter
 
 > **testers** :
 >  
