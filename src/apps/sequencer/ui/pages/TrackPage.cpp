@@ -122,7 +122,10 @@ if (key.is(Key::Encoder) && selectedRow() == 14) {
         std::vector<int> availableLogicTracks;
         for (int i =0; i<8; ++i) {
             if (_project.track(i).trackMode() == Track::TrackMode::Logic && i > _project.selectedTrack().trackIndex()) {
-                availableLogicTracks.insert(availableLogicTracks.end(), i);
+                if ((_project.track(i).logicTrack().inputTrack1() == -1 && _project.track(i).logicTrack().inputTrack2() == -1) || 
+                    (_project.track(i).logicTrack().inputTrack1() == -1 || _project.track(i).logicTrack().inputTrack2() == -1)) {
+                        availableLogicTracks.insert(availableLogicTracks.end(), i); 
+                } 
             } 
         }
         _noteTrackListModel.setAvailableLogicTracks(availableLogicTracks);
