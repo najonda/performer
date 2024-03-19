@@ -662,6 +662,9 @@ void NoteSequenceEditPage::encoder(EncoderEvent &event) {
 
 void NoteSequenceEditPage::midi(MidiEvent &event) {
     if (!_engine.recording() && layer() == Layer::Note && _stepSelection.any()) {
+        if (_project.clockSetup().filterNote()) {
+            return;
+        }
         auto &trackEngine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
         auto &sequence = _project.selectedNoteSequence();
         const auto &scale = sequence.selectedScale(_project.scale());
