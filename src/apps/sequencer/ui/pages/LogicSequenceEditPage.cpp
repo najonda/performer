@@ -156,8 +156,8 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
         } else {
             if (track.inputTrack1() != -1) {
 
-                auto te = _engine.trackEngine(track.inputTrack1()).as<NoteTrackEngine>();
-                auto currentStep1 = te.currentStep();
+                auto *te = &_engine.trackEngine(track.inputTrack1()).as<NoteTrackEngine>();
+                auto currentStep1 = te->currentStep();
 
                 auto stepIndex1 = stepIndex;
                 stepIndex1 = currentStep1 != -1 ? (currentStep1 - currentStep) + stepIndex : stepIndex;
@@ -169,8 +169,8 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
                 }
             }
             if (track.inputTrack2() != -1) {
-                auto te = _engine.trackEngine(track.inputTrack2()).as<NoteTrackEngine>();
-                auto currentStep2 = te.currentStep();
+                auto *te = &_engine.trackEngine(track.inputTrack2()).as<NoteTrackEngine>();
+                auto currentStep2 = te->currentStep();
                 auto stepIndex2 = stepIndex;
                 stepIndex2 = currentStep2 != -1 ? (currentStep2 - currentStep) + stepIndex : stepIndex;
 

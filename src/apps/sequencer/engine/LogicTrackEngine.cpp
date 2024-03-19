@@ -464,11 +464,10 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         return;
     }
 
-    const auto inputSequence1 = _model.project().track(_logicTrack.inputTrack1()).noteTrack().sequence(pattern());
-    const auto inputSequence2 = _model.project().track(_logicTrack.inputTrack2()).noteTrack().sequence(pattern());
+    const auto inputSequence1 = _model.project().track(_logicTrack.inputTrack1()).noteTrack().sequence(_model.project().selectedPatternIndex());
+    const auto inputSequence2 = _model.project().track(_logicTrack.inputTrack2()).noteTrack().sequence(_model.project().selectedPatternIndex());
 
     auto currentStep1 = _input1TrackEngine->currentStep();
-
 
     auto stepIndex1 = stepIndex;
     stepIndex1 = currentStep1 != -1 ? (currentStep1 - _currentStep) + stepIndex : stepIndex;
