@@ -69,6 +69,21 @@ void LogicSequenceEditPage::enter() {
     updateMonitorStep();
 
     _inMemorySequence = _project.selectedLogicSequence();
+    auto &trackEngine = _engine.selectedTrackEngine().as<LogicTrackEngine>();
+    auto *ne1 = &trackEngine.input1TrackEngine();
+    auto &track = _project.selectedTrack().logicTrack();
+
+    if (ne1==nullptr && track.inputTrack1()!=-1) {
+        auto *ne = &_engine.trackEngine(track.inputTrack1()).as<NoteTrackEngine>();
+        trackEngine.setInput1TrackEngine(ne);
+    }
+    auto *ne2 = &trackEngine.input2TrackEngine();
+    if (ne2==nullptr && track.inputTrack2()!=-1) {
+        auto &track = _project.selectedTrack().logicTrack();
+        auto *ne = &_engine.trackEngine(track.inputTrack2()).as<NoteTrackEngine>();
+        trackEngine.setInput2TrackEngine(ne);
+    }
+
 
     _showDetail = false;
 }
@@ -156,27 +171,25 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
         } else {
             if (track.inputTrack1() != -1) {
 
-                auto *te = &_engine.trackEngine(track.inputTrack1()).as<NoteTrackEngine>();
-                auto currentStep1 = te->currentStep();
+                auto currentStep1 = trackEngine.input1TrackEngine().currentStep();
 
                 auto stepIndex1 = stepIndex;
                 stepIndex1 = currentStep1 != -1 ? (currentStep1 - currentStep) + stepIndex : stepIndex;
 
-                auto inpoutSeq1 = _project.track(track.inputTrack1()).noteTrack().sequence(_project.selectedPatternIndex());
-                auto idx = SequenceUtils::rotateStep(stepIndex1, inpoutSeq1.firstStep(), inpoutSeq1.lastStep(), 0);
-                if (inpoutSeq1.step(idx).gate()) {
+                auto inputSeq1 = _project.track(track.inputTrack1()).noteTrack().sequence(_project.selectedPatternIndex());
+                auto idx = SequenceUtils::rotateStep(stepIndex1, inputSeq1.firstStep(), inputSeq1.lastStep(), 0);
+                if (inputSeq1.step(idx).gate()) {
                     canvas.fillRect(x + 6, y + 6, 4, 4);
                 }
             }
             if (track.inputTrack2() != -1) {
-                auto *te = &_engine.trackEngine(track.inputTrack2()).as<NoteTrackEngine>();
-                auto currentStep2 = te->currentStep();
+                auto currentStep2 = trackEngine.input2TrackEngine().currentStep();
                 auto stepIndex2 = stepIndex;
                 stepIndex2 = currentStep2 != -1 ? (currentStep2 - currentStep) + stepIndex : stepIndex;
 
-                auto inpoutSeq2 = _project.track(track.inputTrack2()).noteTrack().sequence(_project.selectedPatternIndex());
-                auto idx = SequenceUtils::rotateStep(stepIndex2, inpoutSeq2.firstStep(), inpoutSeq2.lastStep(), 0);
-                if (inpoutSeq2.step(idx).gate()) {
+                auto inputSeq2 = _project.track(track.inputTrack2()).noteTrack().sequence(_project.selectedPatternIndex());
+                auto idx = SequenceUtils::rotateStep(stepIndex2, inputSeq2.firstStep(), inputSeq2.lastStep(), 0);
+                if (inputSeq2.step(idx).gate()) {
                     canvas.hline(x + 4, y + 4, 8);
                     canvas.hline(x + 4, y + 11, 8);
                     canvas.vline(x + 4, y + 4, 8);

@@ -53,6 +53,23 @@ public:
         return _sequenceState;
     }
 
+    const NoteTrackEngine &input1TrackEngine() const {
+        return *_input1TrackEngine;
+    }
+
+    const NoteTrackEngine &input2TrackEngine() const {
+        return *_input2TrackEngine;
+    }
+
+    void setInput1TrackEngine(NoteTrackEngine *ne) {
+        _input1TrackEngine = ne;
+    }
+
+    void setInput2TrackEngine(NoteTrackEngine *ne) {
+        _input2TrackEngine = ne;
+    }
+ 
+
 private:
     void triggerStep(uint32_t tick, uint32_t divisor, bool nextStep);
     void triggerStep(uint32_t tick, uint32_t divisor);
