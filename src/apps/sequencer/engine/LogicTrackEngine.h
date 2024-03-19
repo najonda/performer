@@ -1,5 +1,6 @@
 #pragma once
 
+#include "NoteTrackEngine.h"
 #include "TrackEngine.h"
 #include "SequenceState.h"
 #include "SortedQueue.h"
@@ -68,6 +69,9 @@ private:
 
     LogicSequence *_sequence;
     const LogicSequence *_fillSequence;
+
+    NoteTrackEngine *_input1TrackEngine = nullptr;
+    NoteTrackEngine *_input2TrackEngine = nullptr;
 
     uint32_t _freeRelativeTick;
     SequenceState _sequenceState;

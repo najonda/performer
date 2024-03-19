@@ -121,7 +121,7 @@ if (key.is(Key::Encoder) && selectedRow() == 14) {
     if (_project.selectedTrack().trackMode() == Track::TrackMode::Note) {
         std::vector<int> availableLogicTracks;
         for (int i =0; i<8; ++i) {
-            if (_project.track(i).trackMode() == Track::TrackMode::Logic) {
+            if (_project.track(i).trackMode() == Track::TrackMode::Logic && i > _project.selectedTrack().trackIndex()) {
                 availableLogicTracks.insert(availableLogicTracks.end(), i);
             } 
         }
@@ -140,10 +140,6 @@ if (key.is(Key::Encoder) && selectedRow() == 15) {
 
                 const auto tmpVal = _project.selectedTrack().noteTrack().logicTrackInput();
 
-                auto *te = &_engine.trackEngine(logicTrackIndex).as<LogicTrackEngine>();
-                
-                auto ne = &_engine.trackEngine(_project.selectedTrackIndex()).as<NoteTrackEngine>();
-                ne->setLogicTrackEngine(te);
 
                 if (tmpVal == 0 && logicTrack.inputTrack1() != -1 && logicTrack.inputTrack1() != _project.selectedTrack().trackIndex()) {
                     _project.selectedTrack().noteTrack().setLogicTrackInput(tmpVal+1);

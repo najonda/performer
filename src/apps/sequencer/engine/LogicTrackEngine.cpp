@@ -2,6 +2,7 @@
 
 #include "Engine.h"
 #include "Groove.h"
+#include "NoteTrackEngine.h"
 #include "Slide.h"
 #include "SequenceUtils.h"
 
@@ -182,6 +183,22 @@ TrackEngine::TickResult LogicTrackEngine::tick(uint32_t tick) {
     ASSERT(_sequence != nullptr, "invalid sequence");
     const auto &sequence = *_sequence;
     const auto *linkData = _linkedTrackEngine ? _linkedTrackEngine->linkData() : nullptr;
+
+
+    if (_logicTrack.inputTrack1() != -1) {
+        if (_input1TrackEngine == nullptr) {
+            auto *ne = &_engine.trackEngine(_logicTrack.inputTrack1()).as<NoteTrackEngine>();
+            _input1TrackEngine = ne;
+        }
+    }
+
+
+    if (_logicTrack.inputTrack2() != -1) {
+        if (_input2TrackEngine == nullptr) {
+            auto *ne = &_engine.trackEngine(_logicTrack.inputTrack2()).as<NoteTrackEngine>();
+            _input2TrackEngine = ne;
+        }
+    }
 
     if (linkData) {
         _linkData = *linkData;
@@ -439,31 +456,56 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
     bool stepGate = evalStepGate(step, _logicTrack.gateProbabilityBias());
 
+    if (_logicTrack.inputTrack1() == -1 || _logicTrack.inputTrack2() == -1) {
+        return;
+    }
+
+    const auto inputSequence1 = _model.project().track(_logicTrack.inputTrack1()).noteTrack().sequence(pattern());
+    const auto inputSequence2 = _model.project().track(_logicTrack.inputTrack2()).noteTrack().sequence(pattern());
+
+    auto currentStep1 = _input1TrackEngine->currentStep();
+
+
+    auto stepIndex1 = stepIndex;
+    stepIndex1 = currentStep1 != -1 ? (currentStep1 - _currentStep) + stepIndex : stepIndex;
+    const auto idx1 = SequenceUtils::rotateStep(stepIndex1, inputSequence1.firstStep(), inputSequence1.lastStep(), 0);
+
+    const auto inputStep1 = inputSequence1.step(idx1);
+
+    auto currentStep2 = _input2TrackEngine->currentStep();
+
+
+    auto stepIndex2 = stepIndex;
+    stepIndex2 = currentStep2 != -1 ? (currentStep2 - _currentStep) + stepIndex : stepIndex;
+    const auto idx2 = SequenceUtils::rotateStep(stepIndex2, inputSequence2.firstStep(), inputSequence2.lastStep(), 0);
+
+    const auto inputStep2 = inputSequence2.step(idx2);
+
     switch (step.gateLogic()) {
         case LogicSequence::GateLogicMode::One:
-            stepGate = step.gate() && step.inputGate1();
+            stepGate = step.gate() && inputStep1.gate();
             break;
         case LogicSequence::GateLogicMode::Two:
-            stepGate = step.gate() && step.inputGate2();
+            stepGate = step.gate() && inputStep2.gate();
             break;
         case LogicSequence::GateLogicMode::And:
-            stepGate = step.gate() && (step.inputGate1() & step.inputGate2());
+            stepGate = step.gate() && (inputStep1.gate() & inputStep2.gate());
             break;
         case LogicSequence::GateLogicMode::Or:
-            stepGate = step.gate() && (step.inputGate1() | step.inputGate2());
+            stepGate = step.gate() && (inputStep1.gate() | inputStep2.gate());
             break;
         case LogicSequence::GateLogicMode::Xor:
-            stepGate = step.gate() && step.inputGate1() xor step.inputGate2();
+            stepGate = step.gate() && inputStep1.gate() xor inputStep2.gate();
             break;
         case LogicSequence::GateLogicMode::Nand:
-            stepGate = step.gate() && !(step.inputGate1() & step.inputGate2());
+            stepGate = step.gate() && !(inputStep1.gate() & inputStep2.gate());
             break;
         case LogicSequence::GateLogicMode::RandomInput: {
                 int rnd = rng.nextRange(2);
                 if (rnd == 0) {
-                    stepGate = step.gate() && step.inputGate1();
+                    stepGate = step.gate() && inputStep1.gate();
                 } else {
-                    stepGate = step.gate() && step.inputGate2();
+                    stepGate = step.gate() && inputStep2.gate();
                 }
             }
             break;
@@ -471,29 +513,29 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
                     int rndMode = rng.nextRange(6);
                     switch (rndMode) {
                         case 0:
-                            stepGate = step.gate() && step.inputGate1();
+                            stepGate = step.gate() && inputStep1.gate();
                             break;
                         case 1:
-                            stepGate = step.gate() && step.inputGate2();
+                            stepGate = step.gate() && inputStep2.gate();
                             break;
                         case 2:
-                            stepGate = step.gate() && (step.inputGate1() & step.inputGate2());
+                            stepGate = step.gate() && (inputStep1.gate() & inputStep2.gate());
                             break;
                         case 3:
-                            stepGate = step.gate() && (step.inputGate1() | step.inputGate2());
+                            stepGate = step.gate() && (inputStep1.gate() | inputStep2.gate());
                             break;
                         case 4:
-                            stepGate = step.gate() && step.inputGate1() xor step.inputGate2();
+                            stepGate = step.gate() && inputStep1.gate() xor inputStep2.gate();
                             break;
                         case 5:
-                            stepGate = step.gate() && !(step.inputGate1() & step.inputGate2());
+                            stepGate = step.gate() && !(inputStep1.gate() & inputStep2.gate());
                             break;
                         case 6:
                             int rnd = rng.nextRange(2);
                             if (rnd == 0) {
-                                stepGate = step.gate() && step.inputGate1();
+                                stepGate = step.gate() && inputStep1.gate();
                             } else {
-                                stepGate = step.gate() && step.inputGate2();
+                                stepGate = step.gate() && inputStep2.gate();
                             }
                             break;
 
@@ -583,14 +625,7 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         if (_logicTrack.inputTrack1() == -1 || _logicTrack.inputTrack2() == -1) {
             return;
         }
-        const auto inputSequence1 = _model.project().track(_logicTrack.inputTrack1()).noteTrack().sequence(pattern());
-        const auto inputSequence2 = _model.project().track(_logicTrack.inputTrack2()).noteTrack().sequence(pattern());
-
-        auto idx1 = SequenceUtils::rotateStep(stepIndex, inputSequence1.firstStep(), inputSequence1.lastStep(), 0);
-        auto idx2 = SequenceUtils::rotateStep(stepIndex, inputSequence2.firstStep(), inputSequence2.lastStep(), 0);
-
-
-        _cvQueue.push({ Groove::applySwing(stepTick, swing()), evalStepNote(step, _logicTrack.noteProbabilityBias(), scale, rootNote, octave, transpose, inputSequence1.step(idx1).note(), inputSequence2.step(idx2).note()), step.slide() });
+        _cvQueue.push({ Groove::applySwing(stepTick, swing()), evalStepNote(step, _logicTrack.noteProbabilityBias(), scale, rootNote, octave, transpose, inputSequence1.step(stepIndex1).note(), inputSequence2.step(stepIndex2).note()), step.slide() });
     }
 }
 

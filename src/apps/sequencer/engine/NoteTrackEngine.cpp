@@ -157,16 +157,6 @@ TrackEngine::TickResult NoteTrackEngine::tick(uint32_t tick) {
         }
         auto &sequence = *_sequence;
 
-        /*if (_noteTrack.logicTrack()!=-1) {
-            const auto logicSeq = _model.project().logicSequence(_noteTrack.logicTrack(), pattern());
-            sequence.setFirstStep(logicSeq.firstStep());
-            sequence.setLastStep(logicSeq.lastStep());
-            sequence.setRunMode(logicSeq.runMode());
-            sequence.setDivisor(logicSeq.divisor());
-            sequence.setResetMeasure(logicSeq.resetMeasure());
-
-        }*/
-
         // advance sequence
         switch (_noteTrack.playMode()) {
         case Types::PlayMode::Aligned:
@@ -454,34 +444,6 @@ void NoteTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextS
 
                 }
                 break;
-    }
-
-    int logicTrackIndex = _noteTrack.logicTrack();
-    if (logicTrackIndex!=-1) {
-
-        auto track = _model.project().track(_noteTrack.logicTrack());
-        if (track.trackMode()==Track::TrackMode::Logic) {
-            auto &logicTrack = _model.project().track(_noteTrack.logicTrack()).logicTrack();
-            auto &logicSequence = logicTrack.sequence(pattern());
-
-            //auto *logicTrackEngine = &_engine.trackEngine(_noteTrack.logicTrack()).as<LogicTrackEngine>();
-            auto logicCurrentStep = _logicTrackEngine->currentStep();
-
-            if (_noteTrack.trackIndex() == 0) {
-                std::cerr << "LOGIC " << logicCurrentStep << "NOTE " << _currentStep << "\n";
-            }
-
-            auto logicStepIndex = logicCurrentStep != -1 ? (_currentStep - logicCurrentStep) + stepIndex : stepIndex;
-            auto idx = SequenceUtils::rotateStep(logicStepIndex, logicSequence.firstStep(), logicSequence.lastStep(), 0);
-
-            auto &logicStep = logicSequence.step(idx);
-            
-            if (_noteTrack.logicTrackInput() == 0) {
-                logicStep.setInputGate1(stepGate);
-            } else if (_noteTrack.logicTrackInput() == 1) {
-                logicStep.setInputGate2(stepGate);
-            }
-        }
     }
 
     if (stepGate) {

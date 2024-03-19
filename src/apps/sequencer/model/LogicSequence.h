@@ -259,18 +259,6 @@ public:
         int layerValue(Layer layer) const;
         void setLayerValue(Layer layer, int value);
 
-        const bool inputGate1() const { return  _data1.inputGate1 ? true : false;  }
-
-        void setInputGate1(bool gate) {
-            _data1.inputGate1 = gate;
-        }
-
-        const bool inputGate2() const { return  _data1.inputGate2 ? true : false;  }
-
-        void setInputGate2(bool gate) {
-            _data1.inputGate2 = gate;
-        }
-
         //----------------------------------------
         // Methods
         //----------------------------------------
@@ -313,9 +301,6 @@ public:
             BitField<uint32_t, 15, Condition::Bits> condition;
             BitField<uint32_t, 22, StageRepeats::Bits> stageRepeats;
             BitField<uint32_t, 25, StageRepeatsMode::Bits> stageRepeatMode;
-            // 4 bits left
-            BitField<uint32_t, 28, 1> inputGate1;
-            BitField<uint32_t, 29, 1> inputGate2;
         } _data1;
 
     };
