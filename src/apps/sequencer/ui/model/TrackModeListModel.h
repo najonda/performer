@@ -87,6 +87,9 @@ public:
     virtual void edit(int row, int column, int value, bool shift) override {
         if (column == 1) {
             _trackModes[row] = ModelUtils::adjustedEnum(_trackModes[row], value);
+            if (row < 2 && _trackModes[row] == Track::TrackMode::Logic) {
+                _trackModes[row] = Track::TrackMode::Stochastic;
+            }
         }
     }
     
