@@ -140,6 +140,10 @@ if (key.is(Key::Encoder) && selectedRow() == 15) {
             if (logicTrackIndex!=-1) {
 
                 const auto logicTrack = _project.track(logicTrackIndex).logicTrack();
+                if ((logicTrack.inputTrack1()!=-1 && logicTrack.inputTrack1() != _project.selectedTrackIndex()) 
+                    && (logicTrack.inputTrack2()!=-1 && logicTrack.inputTrack2() != _project.selectedTrackIndex())) {
+                    return;
+                }
 
                 const auto tmpVal = _project.selectedTrack().noteTrack().logicTrackInput();
 
