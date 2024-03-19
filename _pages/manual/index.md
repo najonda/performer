@@ -281,9 +281,12 @@ The generated CV signal is controlled by the _Note Probability_ defining the pro
 
 In Logic Mode, a track acts a logic operator using two Note tracks as inputs. This mode inherits all Note track features and adds two new layouts for the Gate and the Note layer.
 
-In the Gate layer there is a new Gate Logic layout defining the boolean logic operator for each step. The gate logic elaborate the evaluated gate values coming from the two track inputs.
+In the Gate layer there is a new Gate Logic layout defining the boolean logic operator for each step. The gate logic elaborate the stored gate values coming from the two track inputs.
 
-In the Note layer there is a new Note Logic layout defining the logic operation for each note step. The note logic elaborate the stored note values incoming from the two track inouts.
+In the Note layer there is a new Note Logic layout defining the logic operation for each note step. The note logic elaborate the stored note values coming from the two track inputs.
+
+> Note: A Note track can only be linked to a subsequent logic track due to the internal architecture of the sequencer. This means that the first available logic track must be track 3, linking to note track 1 and 2. 
+
 
 <!-- Pattern -->
 
@@ -1444,6 +1447,7 @@ This page is used to setup the clock system of the sequencer using the following
 | MIDI TX | yes, no | Transmit MIDI clock to MIDI. |
 | USB RX | yes, no | Receive MIDI clock from USB. |
 | USB TX | yes, no | Transmit MIDI clock to USB. |
+| Filter Note | yes, no | Prevent entering notes with `step`+midi event |
 
 > Note: To set up a 24 PPQN input or output clock resolution, the divisor needs to be set to 2. This is because the divisor is applied to a 48 PPQN resolution instead of the internal 192 PPQN resolution.
 
