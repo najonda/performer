@@ -76,6 +76,7 @@ private:
         PatternFollow,
         InputTrack1,
         InputTrack2,
+        DetailedView,
         Last
     };
 
@@ -97,6 +98,7 @@ private:
         case PatternFollow: return "Pattern Follow";
         case InputTrack1: return "Input Trk 1";
         case InputTrack2: return "Input Trk 2";
+        case DetailedView: return "Detail View";
         case Last:      break;
         }
         return nullptr;
@@ -156,6 +158,9 @@ private:
         case InputTrack2:
             _track->printInputTrack2(str);
             break;
+        case DetailedView:
+            _track->printDetailedView(str);
+            break;
         case Last:
             break;
         }
@@ -207,6 +212,9 @@ private:
             break;
         case InputTrack1:
         case InputTrack2:
+            break;
+        case DetailedView:
+            _track->editDetailedView(value, shift);
             break;
         case Last:
             break;

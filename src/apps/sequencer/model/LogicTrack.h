@@ -319,6 +319,26 @@ public:
         }
     }
 
+    // detailed view
+    bool detailedView() const { return _detailedView; }
+    void setDetailedView(bool value) {
+        if (value != _detailedView) {
+            _detailedView = value;
+        }
+    }
+
+    void editDetailedView(int value, bool shift) {
+        setDetailedView(value > 0);
+    }
+
+    void toggleDetailedView() {
+        setDetailedView(!detailedView());
+    }
+
+    void printDetailedView(StringBuilder &str) const {
+        ModelUtils::printYesNo(str, detailedView());
+    }
+
     //----------------------------------------
     // Methods
     //----------------------------------------
@@ -354,6 +374,8 @@ private:
 
     int8_t _inputTrack1 = -1;
     int8_t _inputTrack2 = -1;
+
+    bool _detailedView = false;
 
     LogicSequenceArray _sequences;
 

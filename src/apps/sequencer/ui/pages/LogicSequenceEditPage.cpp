@@ -172,28 +172,30 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
                 canvas.fillRect(x + 4, y + 4, stepWidth - 8, stepWidth - 8);
             }
         } else {
-            if (track.inputTrack1() != -1) {
-                const int currentStep1 = trackEngine.input1TrackEngine().currentStep();
-                int stepIndex1 = currentStep1 != -1 ? (currentStep1 - currentStep) + stepIndex : stepIndex;
-                const auto &noteTrack = _project.track(track.inputTrack1()).noteTrack();
-                const auto &inputSeq1 = noteTrack.sequence(_project.selectedPatternIndex());
-                int idx = SequenceUtils::rotateStep(stepIndex1, inputSeq1.firstStep(), inputSeq1.lastStep(), noteTrack.rotate());
-                if (inputSeq1.step(idx).gate()) {
-                    canvas.fillRect(x + 6, y + 6, 4, 4);
-                } 
-            }
-            if (track.inputTrack2() != -1) {
-                const int currentStep2 = trackEngine.input2TrackEngine().currentStep();
-                int stepIndex2 = currentStep2 != -1 ? (currentStep2 - currentStep) + stepIndex : stepIndex;
-                const auto &noteTrack = _project.track(track.inputTrack2()).noteTrack();
-                const auto &inputSeq2 = noteTrack.sequence(_project.selectedPatternIndex());
-                int idx = SequenceUtils::rotateStep(stepIndex2, inputSeq2.firstStep(), inputSeq2.lastStep(), noteTrack.rotate());
-                if (inputSeq2.step(idx).gate()) {
-                    canvas.hline(x + 4, y + 4, 8);
-                    canvas.hline(x + 4, y + 11, 8);
-                    canvas.vline(x + 4, y + 4, 8);
-                    canvas.vline(x + 11, y + 4, 7);
-                } 
+            if (track.detailedView()) {
+                if (track.inputTrack1() != -1) {
+                    const int currentStep1 = trackEngine.input1TrackEngine().currentStep();
+                    int stepIndex1 = currentStep1 != -1 ? (currentStep1 - currentStep) + stepIndex : stepIndex;
+                    const auto &noteTrack = _project.track(track.inputTrack1()).noteTrack();
+                    const auto &inputSeq1 = noteTrack.sequence(_project.selectedPatternIndex());
+                    int idx = SequenceUtils::rotateStep(stepIndex1, inputSeq1.firstStep(), inputSeq1.lastStep(), noteTrack.rotate());
+                    if (inputSeq1.step(idx).gate()) {
+                        canvas.fillRect(x + 6, y + 6, 4, 4);
+                    } 
+                }
+                if (track.inputTrack2() != -1) {
+                    const int currentStep2 = trackEngine.input2TrackEngine().currentStep();
+                    int stepIndex2 = currentStep2 != -1 ? (currentStep2 - currentStep) + stepIndex : stepIndex;
+                    const auto &noteTrack = _project.track(track.inputTrack2()).noteTrack();
+                    const auto &inputSeq2 = noteTrack.sequence(_project.selectedPatternIndex());
+                    int idx = SequenceUtils::rotateStep(stepIndex2, inputSeq2.firstStep(), inputSeq2.lastStep(), noteTrack.rotate());
+                    if (inputSeq2.step(idx).gate()) {
+                        canvas.hline(x + 4, y + 4, 8);
+                        canvas.hline(x + 4, y + 11, 8);
+                        canvas.vline(x + 4, y + 4, 8);
+                        canvas.vline(x + 11, y + 4, 7);
+                    } 
+                }
             }
            
         }
@@ -360,6 +362,10 @@ void LogicSequenceEditPage::updateLeds(Leds &leds) {
         leds.unmask(index);
         leds.set(index, false, true);
         leds.mask(index);
+        index = MatrixMap::fromStep(4);
+        leds.unmask(index);
+        leds.set(index, false, true);
+        leds.mask(index);
     }
 }
 
@@ -407,6 +413,12 @@ void LogicSequenceEditPage::keyPress(KeyPressEvent &event) {
         _project.setselectedLogicSequence(_inMemorySequence);
         event.consume();
         return;
+    }
+
+    if (key.pageModifier() && key.is(Key::Step4)) {
+            track.toggleDetailedView();
+            event.consume();
+            return;
     }
 
     if (key.pageModifier()) {
