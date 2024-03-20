@@ -81,7 +81,7 @@ class StochasticLoopStep {
 
 class StochasticEngine : public TrackEngine {
 public:
-    StochasticEngine(Engine &engine, const Model &model, Track &track, const TrackEngine *linkedTrackEngine) :
+    StochasticEngine(Engine &engine, Model &model, Track &track, const TrackEngine *linkedTrackEngine) :
         TrackEngine(engine, model, track, linkedTrackEngine),
         _stochasticTrack(track.stochasticTrack())
     {
@@ -138,7 +138,7 @@ private:
     int noteFromMidiNote(uint8_t midiNote) const;
 
     bool fill() const {
-        return false;
+        return (_stochasticTrack.fillMuted() || !TrackEngine::mute()) ? TrackEngine::fill() : false;
     }
 
     std::vector<StochasticLoopStep> slicing(std::vector<StochasticLoopStep> &arr, int X, int Y)

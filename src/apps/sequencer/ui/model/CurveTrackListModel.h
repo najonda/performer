@@ -64,6 +64,8 @@ private:
         GateProbabilityBias,
         PatternFollow,
         CurveCvInput,
+        Min,
+        Max,
         Last
     };
 
@@ -80,6 +82,8 @@ private:
         case GateProbabilityBias:   return "Gate P. Bias";
         case PatternFollow:         return "Pattern Follow";
         case CurveCvInput:          return "Curve CV Input";
+        case Min:                   return "Min";
+        case Max:                   return "Max";                   
         case Last:                  break;
         }
         return nullptr;
@@ -124,6 +128,12 @@ private:
         case CurveCvInput:
             _track->printCurveCvInput(str);
             break;
+        case Min:
+            _track->printMin(str);
+            break;
+        case Max:
+            _track->printMax(str);
+            break;
         case Last:
             break;
         }
@@ -162,6 +172,12 @@ private:
             break;
         case CurveCvInput:
             _track->editCurveCvInput(value, shift);
+            break;
+        case Min:
+            _track->editMin(value, shift);
+            break;
+        case Max:
+            _track->editMax(value, shift);
             break;
         case Last:
             break;

@@ -1,14 +1,9 @@
-#include "NoteSequence.h"
+#include "LogicSequence.h"
 #include "ProjectVersion.h"
 
 #include "ModelUtils.h"
-#include "Types.h"
-#include "Routing.h"
 
-#include "os/os.h"
-#include <cstdint>
-
-Types::LayerRange NoteSequence::layerRange(Layer layer) {
+Types::LayerRange LogicSequence::layerRange(Layer layer) {
     #define CASE(_layer_) \
     case Layer::_layer_: \
         return { _layer_::Min, _layer_::Max };
@@ -18,8 +13,6 @@ Types::LayerRange NoteSequence::layerRange(Layer layer) {
         return { 0, 1 };
     case Layer::Slide:
         return { 0, 1 };
-    case Layer::BypassScale:
-        return {0 ,1 };
     CASE(GateOffset)
     CASE(GateProbability)
     CASE(Retrigger)
@@ -27,7 +20,8 @@ Types::LayerRange NoteSequence::layerRange(Layer layer) {
     CASE(Length)
     CASE(LengthVariationRange)
     CASE(LengthVariationProbability)
-    CASE(Note)
+    CASE(GateLogic)
+    CASE(NoteLogic)
     CASE(NoteVariationRange)
     CASE(NoteVariationProbability)
     CASE(Condition)
@@ -42,21 +36,21 @@ Types::LayerRange NoteSequence::layerRange(Layer layer) {
     return { 0, 0 };
 }
 
-int NoteSequence::layerDefaultValue(Layer layer)
+int LogicSequence::layerDefaultValue(Layer layer)
 {
-    NoteSequence::Step step;
+    LogicSequence::Step step;
 
     switch (layer) {
     case Layer::Gate:
         return step.gate();
+    case Layer::GateLogic:
+        return step.gateLogic();
     case Layer::GateProbability:
         return step.gateProbability();
     case Layer::GateOffset:
         return step.gateOffset();
     case Layer::Slide:
         return step.slide();
-    case Layer::BypassScale:
-        return step.bypassScale();
     case Layer::Retrigger:
         return step.retrigger();
     case Layer::RetriggerProbability:
@@ -67,8 +61,8 @@ int NoteSequence::layerDefaultValue(Layer layer)
         return step.lengthVariationRange();
     case Layer::LengthVariationProbability:
         return step.lengthVariationProbability();
-    case Layer::Note:
-        return step.note();
+    case Layer::NoteLogic:
+        return step.noteLogic();
     case Layer::NoteVariationRange:
         return step.noteVariationRange();
     case Layer::NoteVariationProbability:
@@ -86,14 +80,14 @@ int NoteSequence::layerDefaultValue(Layer layer)
     return 0;
 }
 
-int NoteSequence::Step::layerValue(Layer layer) const {
+int LogicSequence::Step::layerValue(Layer layer) const {
     switch (layer) {
     case Layer::Gate:
         return gate() ? 1 : 0;
+    case Layer::GateLogic:
+        return gateLogic();
     case Layer::Slide:
         return slide() ? 1 : 0;
-    case Layer::BypassScale:
-        return bypassScale() ? 1 : 0;
     case Layer::GateProbability:
         return gateProbability();
     case Layer::GateOffset:
@@ -108,8 +102,8 @@ int NoteSequence::Step::layerValue(Layer layer) const {
         return lengthVariationRange();
     case Layer::LengthVariationProbability:
         return lengthVariationProbability();
-    case Layer::Note:
-        return note();
+    case Layer::NoteLogic:
+        return noteLogic();
     case Layer::NoteVariationRange:
         return noteVariationRange();
     case Layer::NoteVariationProbability:
@@ -127,16 +121,13 @@ int NoteSequence::Step::layerValue(Layer layer) const {
     return 0;
 }
 
-void NoteSequence::Step::setLayerValue(Layer layer, int value) {
+void LogicSequence::Step::setLayerValue(Layer layer, int value) {
     switch (layer) {
     case Layer::Gate:
         setGate(value);
         break;
     case Layer::Slide:
         setSlide(value);
-        break;
-    case Layer::BypassScale:
-        setBypassScale(value);
         break;
     case Layer::GateProbability:
         setGateProbability(value);
@@ -159,8 +150,11 @@ void NoteSequence::Step::setLayerValue(Layer layer, int value) {
     case Layer::LengthVariationProbability:
         setLengthVariationProbability(value);
         break;
-    case Layer::Note:
-        setNote(value);
+    case Layer::GateLogic:
+        setGateLogic(static_cast<LogicSequence::GateLogicMode>(value));
+        break;
+    case Layer::NoteLogic:
+        setNoteLogic(static_cast<LogicSequence::NoteLogicMode>(value));
         break;
     case Layer::NoteVariationRange:
         setNoteVariationRange(value);
@@ -182,20 +176,20 @@ void NoteSequence::Step::setLayerValue(Layer layer, int value) {
     }
 }
 
-void NoteSequence::Step::clear() {
+void LogicSequence::Step::clear() {
     _data0.raw = 0;
     _data1.raw = 1;
     setGate(false);
     setGateProbability(GateProbability::Max);
     setGateOffset(0);
+    setGateLogic(GateLogicMode::One);
     setSlide(false);
-    setBypassScale(false);
     setRetrigger(0);
     setRetriggerProbability(RetriggerProbability::Max);
     setLength(Length::Max / 2);
     setLengthVariationRange(0);
     setLengthVariationProbability(LengthVariationProbability::Max);
-    setNote(0);
+    setNoteLogic(NoteLogicMode::NOne);
     setNoteVariationRange(0);
     setNoteVariationProbability(NoteVariationProbability::Max);
     setCondition(Types::Condition::Off);
@@ -203,46 +197,17 @@ void NoteSequence::Step::clear() {
     setStageRepeatsMode(Types::StageRepeatMode::Each);
 }
 
-void NoteSequence::Step::write(VersionedSerializedWriter &writer) const {
+void LogicSequence::Step::write(VersionedSerializedWriter &writer) const {
     writer.write(_data0.raw);
     writer.write(_data1.raw);
 }
 
-void NoteSequence::Step::read(VersionedSerializedReader &reader) {
-
-    if (reader.dataVersion() < ProjectVersion::Version27) {
-        reader.read(_data0.raw);
-        reader.readAs<uint16_t>(_data1.raw);
-        if (reader.dataVersion() < ProjectVersion::Version5) {
-            _data1.raw &= 0x1f;
-        }
-        if (reader.dataVersion() < ProjectVersion::Version7) {
-            setGateOffset(0);
-        }
-        if (reader.dataVersion() < ProjectVersion::Version12) {
-            setCondition(Types::Condition(0));
-        }
-    } else {
-        reader.read(_data0.raw);
-        reader.read(_data1.raw);
-        if (reader.dataVersion() < ProjectVersion::Version36) {
-            bool bypassScale = (bool)((_data0.raw >> 31) & 0x1);
-
-            _data0.raw = (_data0.raw & 0x3 ) | (((_data0.raw ) & 0xFFFFFFFC) << 1);
-            _data1.raw = 0x7FFFFFFF & (_data1.raw << 1);
-            _data1.bypassScale = bypassScale;
-        }
-
-        if (reader.dataVersion() < ProjectVersion::Version34) {
-            setBypassScale(false);
-        }
-
-
-
-    }
+void LogicSequence::Step::read(VersionedSerializedReader &reader) {
+        reader.read(_data0.raw, ProjectVersion::Version37);
+        reader.read(_data1.raw, ProjectVersion::Version37);
 }
 
-void NoteSequence::writeRouted(Routing::Target target, int intValue, float floatValue) {
+void LogicSequence::writeRouted(Routing::Target target, int intValue, float floatValue) {
     switch (target) {
     case Routing::Target::Scale:
         //_model._selectedScale[0] = intValue;
@@ -263,31 +228,12 @@ void NoteSequence::writeRouted(Routing::Target target, int intValue, float float
     case Routing::Target::LastStep:
         setLastStep(intValue, true);
         break;
-    case Routing::Target::CurrentRecordStep:
-        if (_gate) {
-            if (floatValue < 2.f) {
-                // gate off
-                _gate = 0;
-                _lastGateOff = os::ticks();
-            }
-        } else {
-            if (floatValue > 3.f) {
-                if (os::ticks() - _lastGateOff >= GateOnDelay) {
-                    // gate on
-                    _gate = 1;
-                    setCurrentRecordStep(currentRecordStep()+1,true);
-                }
-            } else {
-                _lastGateOff = os::ticks();
-            }
-        }
-        break;
     default:
         break;
     }
 }
 
-void NoteSequence::clear() {
+void LogicSequence::clear() {
     setName("INIT");
     setScale(-1);
     setRootNote(-1);
@@ -296,18 +242,17 @@ void NoteSequence::clear() {
     setRunMode(Types::RunMode::Forward);
     setFirstStep(0);
     setLastStep(15);
-    setCurrentRecordStep(0);
 
     clearSteps();
 }
 
-void NoteSequence::clearSteps() {
+void LogicSequence::clearSteps() {
     for (auto &step : _steps) {
         step.clear();
     }
 }
 
-void NoteSequence::clearStepsSelected(const std::bitset<CONFIG_STEP_COUNT> &selected) {
+void LogicSequence::clearStepsSelected(const std::bitset<CONFIG_STEP_COUNT> &selected) {
     if (selected.any()) {
         for (size_t i = 0; i < CONFIG_STEP_COUNT; ++i) {
             if (selected[i]) {
@@ -319,7 +264,7 @@ void NoteSequence::clearStepsSelected(const std::bitset<CONFIG_STEP_COUNT> &sele
     }
 }
 
-bool NoteSequence::isEdited() const {
+bool LogicSequence::isEdited() const {
     auto clearStep = Step();
     for (const auto &step : _steps) {
         if (step != clearStep) {
@@ -329,7 +274,7 @@ bool NoteSequence::isEdited() const {
     return false;
 }
 
-void NoteSequence::setGates(std::initializer_list<int> gates) {
+void LogicSequence::setGates(std::initializer_list<int> gates) {
     size_t step = 0;
     for (auto gate : gates) {
         if (step < _steps.size()) {
@@ -338,7 +283,7 @@ void NoteSequence::setGates(std::initializer_list<int> gates) {
     }
 }
 
-void NoteSequence::setNotes(std::initializer_list<int> notes) {
+void LogicSequence::setNotes(std::initializer_list<int> notes) {
     size_t step = 0;
     for (auto note : notes) {
         if (step < _steps.size()) {
@@ -347,20 +292,20 @@ void NoteSequence::setNotes(std::initializer_list<int> notes) {
     }
 }
 
-void NoteSequence::shiftSteps(const std::bitset<CONFIG_STEP_COUNT> &selected, int direction) {
+void LogicSequence::shiftSteps(const std::bitset<CONFIG_STEP_COUNT> &selected, int direction) {
     if (selected.any()) {
-        ModelUtils::shiftSteps(_steps, selected, firstStep(), lastStep()+1, direction);
+        ModelUtils::shiftSteps(_steps, selected, firstStep(), lastStep(), direction);
     } else {
-        ModelUtils::shiftSteps(_steps, firstStep(), lastStep()+1, direction);
+        ModelUtils::shiftSteps(_steps, firstStep(), lastStep(), direction);
     }
 }
 
-void NoteSequence::duplicateSteps() {
+void LogicSequence::duplicateSteps() {
     ModelUtils::duplicateSteps(_steps, firstStep(), lastStep());
     setLastStep(lastStep() + (lastStep() - firstStep() + 1));
 }
 
-void NoteSequence::write(VersionedSerializedWriter &writer) const {
+void LogicSequence::write(VersionedSerializedWriter &writer) const {
     writer.write(_scale.base);
     writer.write(_rootNote.base);
     writer.write(_divisor.base);
@@ -375,7 +320,7 @@ void NoteSequence::write(VersionedSerializedWriter &writer) const {
     writer.writeHash();
 }
 
-bool NoteSequence::read(VersionedSerializedReader &reader) {
+bool LogicSequence::read(VersionedSerializedReader &reader) {
     reader.read(_scale.base);
     reader.read(_rootNote.base);
     if (reader.dataVersion() < ProjectVersion::Version10) {

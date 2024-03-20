@@ -257,6 +257,7 @@ void register_project(py::module &m) {
         .def_property_readonly("curveTrack", [] (Track &track) { return &track.curveTrack(); })
         .def_property_readonly("midiCvTrack", [] (Track &track) { return &track.midiCvTrack(); })
         .def_property_readonly("stochasticTrack", [] (Track &track) { return &track.stochasticTrack(); })
+        .def_property_readonly("logicTrack", [] (Track &track) { return &track.logicTrack(); })
         .def("clear", &Track::clear)
         .def("clearPattern", &Track::clearPattern, "patternIndex"_a)
         .def("copyPattern", &Track::copyPattern, "srcIndex"_a, "dstIndex"_a)
@@ -267,6 +268,7 @@ void register_project(py::module &m) {
         .value("Curve", Track::TrackMode::Curve)
         .value("MidiCv", Track::TrackMode::MidiCv)
         .value("Stochastic", Track::TrackMode::Stochastic)
+        .value("Logic", Track::TrackMode::Logic)
         .export_values()
     ;
 
@@ -349,6 +351,47 @@ void register_project(py::module &m) {
     py::enum_<StochasticTrack::CvUpdateMode>(stochasticTrack, "CvUpdateMode")
         .value("Gate", StochasticTrack::CvUpdateMode::Gate)
         .value("Always", StochasticTrack::CvUpdateMode::Always)
+        .export_values()
+    ;
+
+    // ------------------------------------------------------------------------
+    // Logic Track
+    // ------------------------------------------------------------------------
+
+    py::class_<LogicTrack> logicTrack(m, "LogicTrack");
+    logicTrack
+        .def_property("playMode", &LogicTrack::playMode, &LogicTrack::setPlayMode)
+        .def_property("fillMode", &LogicTrack::fillMode, &LogicTrack::setFillMode)
+        .def_property("cvUpdateMode", &LogicTrack::cvUpdateMode, &LogicTrack::setCvUpdateMode)
+        .def_property("slideTime", &LogicTrack::slideTime, &LogicTrack::setSlideTime)
+        .def_property("octave", &LogicTrack::octave, &LogicTrack::setOctave)
+        .def_property("transpose", &LogicTrack::transpose, &LogicTrack::setTranspose)
+        .def_property("rotate", &LogicTrack::rotate, &LogicTrack::setRotate)
+        .def_property("gateProbabilityBias", &LogicTrack::gateProbabilityBias, &LogicTrack::setGateProbabilityBias)
+        .def_property("retriggerProbabilityBias", &LogicTrack::retriggerProbabilityBias, &LogicTrack::setRetriggerProbabilityBias)
+        .def_property("lengthBias", &LogicTrack::lengthBias, &LogicTrack::setLengthBias)
+        .def_property("noteProbabilityBias", &LogicTrack::noteProbabilityBias, &LogicTrack::setNoteProbabilityBias)
+        .def_property_readonly("sequences", [] (LogicTrack &LogicTrack) {
+            py::list result;
+            for (int i = 0; i < CONFIG_PATTERN_COUNT; ++i) {
+                result.append(&LogicTrack.sequence(i));
+            }
+            return result;
+        })
+        .def("clear", &LogicTrack::clear)
+    ;
+
+    py::enum_<LogicTrack::FillMode>(logicTrack, "FillMode")
+        .value("None", LogicTrack::FillMode::None)
+        .value("Gates", LogicTrack::FillMode::Gates)
+        .value("NextPattern", LogicTrack::FillMode::NextPattern)
+        .value("Condition", LogicTrack::FillMode::Condition)
+        .export_values()
+    ;
+
+    py::enum_<LogicTrack::CvUpdateMode>(logicTrack, "CvUpdateMode")
+        .value("Gate", LogicTrack::CvUpdateMode::Gate)
+        .value("Always", LogicTrack::CvUpdateMode::Always)
         .export_values()
     ;
 

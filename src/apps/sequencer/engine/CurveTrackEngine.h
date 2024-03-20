@@ -9,7 +9,7 @@
 
 class CurveTrackEngine : public TrackEngine {
 public:
-    CurveTrackEngine(Engine &engine, const Model &model, Track &track, const TrackEngine *linkedTrackEngine) :
+    CurveTrackEngine(Engine &engine, Model &model, Track &track, const TrackEngine *linkedTrackEngine) :
         TrackEngine(engine, model, track, linkedTrackEngine),
         _curveTrack(track.curveTrack())
     {

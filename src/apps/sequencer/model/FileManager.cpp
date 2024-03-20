@@ -32,7 +32,8 @@ FileTypeInfo fileTypeInfos[] = {
     { "PROJECTS", "PRO" },
     { "SCALES", "SCA" },
     {"SEQS", "NSQ"},
-    {"SEQS", "CSQ"}
+    {"SEQS", "CSQ"},
+    {"SEQS", "LSQ"}
 };
 
 static void slotPath(StringBuilder &str, FileType type, int slot) {
@@ -130,6 +131,18 @@ fs::Error FileManager::writeCurveSequence(const CurveSequence &curveSequence, in
 fs::Error FileManager::readCurveSequence(CurveSequence &curveSequence, int slot) {
     return readFile(FileType::CurveSequence, slot, [&] (const char *path) {
         return readCurveSequence(curveSequence, path);
+    });
+}
+
+fs::Error FileManager::writeLogicSequence(const LogicSequence &noteSequence, int slot) {
+    return writeFile(FileType::LogicSequence, slot, [&] (const char *path) {
+        return writeLogicSequence(noteSequence, path);
+    });
+}
+
+fs::Error FileManager::readLogicSequence(LogicSequence &noteSequence, int slot) {
+    return readFile(FileType::LogicSequence, slot, [&] (const char *path) {
+        return readLogicSequence(noteSequence, path);
     });
 }
 
@@ -296,6 +309,49 @@ fs::Error FileManager::readCurveSequence(CurveSequence &curveSequence, const cha
     );
 
     bool success = curveSequence.read(reader);
+
+    auto error = fileReader.finish();
+    if (error == fs::OK && !success) {
+        error = fs::INVALID_CHECKSUM;
+    }
+
+    return error;
+}
+
+fs::Error FileManager::writeLogicSequence(const LogicSequence &noteSequence, const char *path) {
+    fs::FileWriter fileWriter(path);
+    if (fileWriter.error() != fs::OK) {
+        return fileWriter.error();
+    }
+
+    FileHeader header(FileType::LogicSequence, 0, noteSequence.name());
+    fileWriter.write(&header, sizeof(header));
+
+    VersionedSerializedWriter writer(
+        [&fileWriter] (const void *data, size_t len) { fileWriter.write(data, len); },
+        ProjectVersion::Latest
+    );
+
+    noteSequence.write(writer);
+
+    return fileWriter.finish();
+}
+
+fs::Error FileManager::readLogicSequence(LogicSequence &noteSequence, const char *path) {
+    fs::FileReader fileReader(path);
+    if (fileReader.error() != fs::OK) {
+        return fileReader.error();
+    }
+
+    FileHeader header;
+    fileReader.read(&header, sizeof(header));
+
+    VersionedSerializedReader reader(
+        [&fileReader] (void *data, size_t len) { fileReader.read(data, len); },
+        ProjectVersion::Latest
+    );
+
+    bool success = noteSequence.read(reader);
 
     auto error = fileReader.finish();
     if (error == fs::OK && !success) {

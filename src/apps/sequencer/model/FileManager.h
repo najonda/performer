@@ -33,6 +33,8 @@ public:
     static fs::Error readNoteSequence(NoteSequence &noteSequence, int slot);
     static fs::Error writeCurveSequence(const CurveSequence &curveSequence, int slot);
     static fs::Error readCurveSequence(CurveSequence &curveSequence, int slot);
+    static fs::Error writeLogicSequence(const LogicSequence &logicSequence, int slot);
+    static fs::Error readLogicSequence(LogicSequence &logicSequence, int slot);
 
     static fs::Error writeProject(const Project &project, const char *path);
     static fs::Error readProject(Project &project, const char *path);
@@ -44,6 +46,8 @@ public:
     static fs::Error readNoteSequence(NoteSequence &noteSequence, const char *path);
     static fs::Error writeCurveSequence(const CurveSequence &curveSequence, const char *path);
     static fs::Error readCurveSequence(CurveSequence &curveSequence, const char *path);
+    static fs::Error writeLogicSequence(const LogicSequence &logicSequence, const char *path);
+    static fs::Error readLogicSequence(LogicSequence &logicSequence, const char *path);
 
     static fs::Error writeSettings(const Settings &settings, const char *path);
     static fs::Error readSettings(Settings &settings, const char *path);

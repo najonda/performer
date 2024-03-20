@@ -38,12 +38,13 @@ public:
         RevBell,
         StepUp,
         StepDown,
-        ExpDown2x,
         ExpUp2x,
-        ExpDown3x,
+        ExpDown2x,
         ExpUp3x,
-        ExpDown4x,
+        ExpDown3x,
         ExpUp4x,
+        ExpDown4x,
+        Trigger,
         Last,
     };
 

@@ -41,11 +41,13 @@ static const float TwoPi = 2.f * Pi;
         {29, Curve::Bell},
         {30, Curve::StepDown},
         {31, Curve::StepUp},
-        {32, Curve::ExpUp2x},
         {33, Curve::ExpDown2x},
+        {32, Curve::ExpUp2x},
+        {35, Curve::ExpDown3x},
         {34, Curve::ExpUp3x},
-        {35, Curve::ExpUp4x},
-        {36, Curve::ExpDown4x}
+        {37, Curve::ExpDown4x},
+        {36, Curve::ExpUp4x},
+        {38, Curve::Low},
     };
 
     static const std::map<int, Curve::Type> REV_SHAPE_MAP = {
@@ -81,11 +83,13 @@ static const float TwoPi = 2.f * Pi;
         {29, Curve::RevBell},
         {30, Curve::StepDown},
         {31, Curve::StepUp},
-        {32, Curve::ExpUp2x},
-        {33, Curve::ExpDown2x},
-        {34, Curve::ExpUp3x},
-        {35, Curve::ExpUp4x},
-        {36, Curve::ExpDown4x}
+        {32, Curve::ExpDown2x},
+        {33, Curve::ExpUp2x},
+        {34, Curve::ExpDown3x},
+        {35, Curve::ExpUp3x},
+        {36, Curve::ExpDown4x},
+        {37, Curve::ExpUp4x},
+        {38, Curve::Low},
     };
 
 static float low(float x) {
@@ -240,6 +244,10 @@ static float doubleSmoothDownHalf(float x) {
     return x < 0.5f ? smoothDown(std::fmod(x * 2.f, 1.f)) : x < 1.f ? smoothDown(std::fmod(x * 2.f, 1.f)) : 0.f;
 }
 
+static float trigger(float x) {
+    return x < 0.1f ? 1.f : x < 0.3f ? expDown(std::fmod(x * 2.f, 1.f)) : 0.f;
+}
+
 static Curve::Function functions[] = {
     &low,
     &high,
@@ -278,7 +286,8 @@ static Curve::Function functions[] = {
     &expDown3x,
     &expUp3x,
     &expDown4x,
-    &expUp4x
+    &expUp4x,
+    &trigger
 };
 
 Curve::Function Curve::function(Type type) {

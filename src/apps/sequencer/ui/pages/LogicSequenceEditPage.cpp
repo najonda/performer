@@ -1,26 +1,29 @@
-#include "StochasticSequenceEditPage.h"
+#include "LogicSequenceEditPage.h"
 
+#include "LayoutPage.h"
 #include "Pages.h"
 
-#include "model/StochasticSequence.h"
+#include "model/LogicSequence.h"
 #include "ui/LedPainter.h"
 #include "ui/painters/SequencePainter.h"
 #include "ui/painters/WindowPainter.h"
+#include "engine/SequenceUtils.h"
 
 #include "model/Scale.h"
 
 #include "os/os.h"
 
 #include "core/utils/StringBuilder.h"
-#include <cstddef>
+#include <bitset>
+#include <cstdint>
 #include <iostream>
+
 
 enum class ContextAction {
     Init,
     Copy,
     Paste,
-    Duplicate, 
-    Generate,
+    Duplicate,    Generate,
     Last
 };
 
@@ -42,84 +45,105 @@ enum class Function {
 
 static const char *functionNames[] = { "GATE", "RETRIG", "LENGTH", "NOTE", "COND" };
 
-static const StochasticSequenceListModel::Item quickEditItems[8] = {
-    StochasticSequenceListModel::Item::SequenceFirstStep,
-    StochasticSequenceListModel::Item::SequenceLastStep,
-    StochasticSequenceListModel::Item::RunMode,
-    StochasticSequenceListModel::Item::Divisor,
-    StochasticSequenceListModel::Item::ResetMeasure,
-    StochasticSequenceListModel::Item::Scale,
-    StochasticSequenceListModel::Item::RootNote,
-    StochasticSequenceListModel::Item::Last
+
+static const LogicSequenceListModel::Item quickEditItems[8] = {
+    LogicSequenceListModel::Item::FirstStep,
+    LogicSequenceListModel::Item::LastStep,
+    LogicSequenceListModel::Item::RunMode,
+    LogicSequenceListModel::Item::Divisor,
+    LogicSequenceListModel::Item::ResetMeasure,
+    LogicSequenceListModel::Item::Scale,
+    LogicSequenceListModel::Item::RootNote,
+    LogicSequenceListModel::Item::Last
 };
 
-StochasticSequenceEditPage::StochasticSequenceEditPage(PageManager &manager, PageContext &context) :
+LogicSequenceEditPage::LogicSequenceEditPage(PageManager &manager, PageContext &context) :
     BasePage(manager, context)
 {
     _stepSelection.setStepCompare([this] (int a, int b) {
-        auto layer = _project.selectedStochasticSequenceLayer();
-        const auto &sequence = _project.selectedStochasticSequence();
+        auto layer = _project.selectedLogicSequenceLayer();
+        const auto &sequence = _project.selectedLogicSequence();
         return sequence.step(a).layerValue(layer) == sequence.step(b).layerValue(layer);
     });
 }
 
-void StochasticSequenceEditPage::enter() {
+void LogicSequenceEditPage::enter() {
     updateMonitorStep();
-    auto &sequence = _project.selectedStochasticSequence();
-    sequence.setMessage(StochasticSequence::Message::None);
 
-    _showDetail = false;
-    _section = 0;
-}
+    _inMemorySequence = _project.selectedLogicSequence();
+    auto &trackEngine = _engine.selectedTrackEngine().as<LogicTrackEngine>();
+    auto *ne1 = &trackEngine.input1TrackEngine();
+    auto &track = _project.selectedTrack().logicTrack();
 
-void StochasticSequenceEditPage::exit() {
-    _engine.selectedTrackEngine().as<StochasticEngine>().setMonitorStep(-1);
-}
-
-void StochasticSequenceEditPage::draw(Canvas &canvas) {
-    WindowPainter::clear(canvas);
-
-    /* Prepare flags shown before mode name (top right header) */
-    auto &sequence = _project.selectedStochasticSequence();
-
-    displayMessage(sequence);
-
-    const char *mode_flags = NULL;
-    if (sequence.useLoop()) {
-        const char *st_flag = "L";
-        mode_flags = st_flag;
+    if (ne1==nullptr && track.inputTrack1()!=-1) {
+        auto *ne = &_engine.trackEngine(track.inputTrack1()).as<NoteTrackEngine>();
+        trackEngine.setInput1TrackEngine(ne);
+    }
+    auto *ne2 = &trackEngine.input2TrackEngine();
+    if (ne2==nullptr && track.inputTrack2()!=-1) {
+        auto &track = _project.selectedTrack().logicTrack();
+        auto *ne = &_engine.trackEngine(track.inputTrack2()).as<NoteTrackEngine>();
+        trackEngine.setInput2TrackEngine(ne);
     }
 
-    WindowPainter::drawHeader(canvas, _model, _engine, "STEPS", mode_flags);
+    _showDetail = false;
+}
 
-    WindowPainter::drawActiveFunction(canvas, StochasticSequence::layerName(layer()));
+void LogicSequenceEditPage::exit() {
+    _engine.selectedTrackEngine().as<LogicTrackEngine>().setMonitorStep(-1);
+}
+
+void LogicSequenceEditPage::draw(Canvas &canvas) {
+    WindowPainter::clear(canvas);
+
+    auto &track = _project.selectedTrack().logicTrack();
+
+    /* Prepare flags shown before mode name (top right header) */
+    const auto pattern_follow = track.patternFollow();
+    const char* pf_repr = Types::patternFollowShortRepresentation(pattern_follow);
+
+    WindowPainter::drawHeader(canvas, _model, _engine, "STEPS", pf_repr);
+
+    WindowPainter::drawActiveFunction(canvas, LogicSequence::layerName(layer()));
     WindowPainter::drawFooter(canvas, functionNames, pageKeyState(), activeFunctionKey());
 
-    const auto &trackEngine = _engine.selectedTrackEngine().as<StochasticEngine>();
-    const auto &scale = sequence.selectedScale(_project.scale());
+    const auto &trackEngine = _engine.selectedTrackEngine().as<LogicTrackEngine>();
+
+    auto &sequence = _project.selectedLogicSequence();
     int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
-    int currentRecordStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentRecordStep() : -1;
 
     const int stepWidth = Width / StepCount;
     const int stepOffset = this->stepOffset();
 
-    int stepsToDraw = 12;
+    const int loopY = 16;
 
     // Track Pattern Section on the UI
-    if (_sectionTracking && _engine.state().running()) {
+    if (track.isPatternFollowDisplayOn() && _engine.state().running()) {
         bool section_change = bool((currentStep) % StepCount == 0); // StepCount is relative to screen
         int section_no = int((currentStep) / StepCount);
-        if (section_change && section_no != _section) {
-            _section = section_no;
+        if (section_change && section_no != sequence.section()) {
+            sequence.setSecion(section_no);
         }
     }
 
-    for (int i = 0; i < stepsToDraw; ++i) {
+    // draw loop points
+    canvas.setBlendMode(BlendMode::Set);
+    canvas.setColor(Color::Bright);
+    SequencePainter::drawLoopStart(canvas, (sequence.firstStep() - stepOffset) * stepWidth + 1, loopY, stepWidth - 2);
+    SequencePainter::drawLoopEnd(canvas, (sequence.lastStep() - stepOffset) * stepWidth + 1, loopY, stepWidth - 2);
+    
+    for (int i = 0; i < StepCount; ++i) {
         int stepIndex = stepOffset + i;
-        auto &step = sequence.step(stepIndex);
+        const auto &step = sequence.step(stepIndex);
 
-        int x = (i * stepWidth) + ((16 - stepsToDraw)*stepWidth)/2 ;
+        int x = i * stepWidth;
         int y = 20;
+
+        // loop
+        if (stepIndex > sequence.firstStep() && stepIndex <= sequence.lastStep()) {
+            canvas.setColor(Color::Bright);
+            canvas.point(x, loopY);
+        }
 
         // step index
         {
@@ -133,158 +157,130 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
         canvas.drawRect(x + 2, y + 2, stepWidth - 4, stepWidth - 4);
         if (step.gate()) {
             canvas.setColor(_context.model.settings().userSettings().get<DimSequenceSetting>(SettingDimSequence)->getValue() ? Color::Low : Color::Bright);
-            canvas.fillRect(x + 4, y + 4, stepWidth - 8, stepWidth - 8);
-        }
-
-        // record step
-        if (stepIndex == currentRecordStep) {
-            // draw circle
-            canvas.setColor(step.gate() ? Color::None : Color::Bright);
-            canvas.fillRect(x + 6, y + 6, stepWidth - 12, stepWidth - 12);
-            canvas.setColor(Color::Medium);
-            canvas.hline(x + 7, y + 5, 2);
-            canvas.hline(x + 7, y + 10, 2);
-            canvas.vline(x + 5, y + 7, 2);
-            canvas.vline(x + 10, y + 7, 2);
+            if (stepIndex == currentStep) {
+                if (trackEngine.gateOutput(currentStep)) {
+                    canvas.fillRect(x + 6, y + 6, stepWidth - 12, stepWidth - 12);
+                    canvas.setColor(Color::Medium);
+                    canvas.hline(x + 7, y + 5, 2);
+                    canvas.hline(x + 7, y + 10, 2);
+                    canvas.vline(x + 5, y + 7, 2);
+                    canvas.vline(x + 10, y + 7, 2);
+                } else {
+                    canvas.fillRect(x + 4, y + 4, stepWidth - 8, stepWidth - 8);
+                }
+            } else {
+                canvas.fillRect(x + 4, y + 4, stepWidth - 8, stepWidth - 8);
+            }
+        } else {
+            if (track.detailedView()) {
+                if (track.inputTrack1() != -1) {
+                    const int currentStep1 = trackEngine.input1TrackEngine().currentStep();
+                    int stepIndex1 = currentStep1 != -1 ? (currentStep1 - currentStep) + stepIndex : stepIndex;
+                    const auto &noteTrack = _project.track(track.inputTrack1()).noteTrack();
+                    const auto &inputSeq1 = noteTrack.sequence(_project.selectedPatternIndex());
+                    int idx = SequenceUtils::rotateStep(stepIndex1, inputSeq1.firstStep(), inputSeq1.lastStep(), noteTrack.rotate());
+                    if (inputSeq1.step(idx).gate()) {
+                        canvas.fillRect(x + 6, y + 6, 4, 4);
+                    } 
+                }
+                if (track.inputTrack2() != -1) {
+                    const int currentStep2 = trackEngine.input2TrackEngine().currentStep();
+                    int stepIndex2 = currentStep2 != -1 ? (currentStep2 - currentStep) + stepIndex : stepIndex;
+                    const auto &noteTrack = _project.track(track.inputTrack2()).noteTrack();
+                    const auto &inputSeq2 = noteTrack.sequence(_project.selectedPatternIndex());
+                    int idx = SequenceUtils::rotateStep(stepIndex2, inputSeq2.firstStep(), inputSeq2.lastStep(), noteTrack.rotate());
+                    if (inputSeq2.step(idx).gate()) {
+                        canvas.hline(x + 4, y + 4, 8);
+                        canvas.hline(x + 4, y + 11, 8);
+                        canvas.vline(x + 4, y + 4, 8);
+                        canvas.vline(x + 11, y + 4, 7);
+                    } 
+                }
+            }
+           
         }
 
         switch (layer()) {
-        case Layer::Gate: {
-                int rootNote = sequence.selectedRootNote(_model.project().rootNote());
-                FixedStringBuilder<8> str;
-                if (step.bypassScale()) {
-                    const Scale &bypassScale = std::ref(Scale::get(0));
-                    bypassScale.noteName(str, step.note(), rootNote, Scale::Short1);
-                    canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
-                    break;
-                } 
-                scale.noteName(str, step.note(), rootNote, Scale::Short1);
-                canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
-            }
+        case Layer::Gate:
+            break;
+        case Layer::GateLogic:
+            SequencePainter::drawGateLogicMode(
+                canvas,
+                x + 2, y + 18, stepWidth - 4, 6,
+                step.gateLogic()
+            );
             break;
         case Layer::GateProbability:
             SequencePainter::drawProbability(
                 canvas,
                 x + 2, y + 18, stepWidth - 4, 2,
-                step.gateProbability() + 1, StochasticSequence::GateProbability::Range
+                step.gateProbability() + 1, LogicSequence::GateProbability::Range
             );
             break;
         case Layer::GateOffset:
             SequencePainter::drawOffset(
                 canvas,
                 x + 2, y + 18, stepWidth - 4, 2,
-                step.gateOffset(), StochasticSequence::GateOffset::Min - 1, StochasticSequence::GateOffset::Max + 1
+                step.gateOffset(), LogicSequence::GateOffset::Min - 1, LogicSequence::GateOffset::Max + 1
             );
             break;
         case Layer::Retrigger:
             SequencePainter::drawRetrigger(
                 canvas,
                 x, y + 18, stepWidth, 2,
-                step.retrigger() + 1, StochasticSequence::Retrigger::Range
+                step.retrigger() + 1, NoteSequence::Retrigger::Range
             );
             break;
         case Layer::RetriggerProbability:
             SequencePainter::drawProbability(
                 canvas,
                 x + 2, y + 18, stepWidth - 4, 2,
-                step.retriggerProbability() + 1, StochasticSequence::RetriggerProbability::Range
+                step.retriggerProbability() + 1, NoteSequence::RetriggerProbability::Range
             );
             break;
         case Layer::Length:
             SequencePainter::drawLength(
                 canvas,
                 x + 2, y + 18, stepWidth - 4, 6,
-                step.length() + 1, StochasticSequence::Length::Range
+                step.length() + 1, LogicSequence::Length::Range
             );
             break;
         case Layer::LengthVariationRange:
             SequencePainter::drawLengthRange(
                 canvas,
                 x + 2, y + 18, stepWidth - 4, 6,
-                step.length() + 1, step.lengthVariationRange(), StochasticSequence::Length::Range
+                step.length() + 1, step.lengthVariationRange(), LogicSequence::Length::Range
             );
             break;
         case Layer::LengthVariationProbability:
             SequencePainter::drawProbability(
                 canvas,
                 x + 2, y + 18, stepWidth - 4, 2,
-                step.lengthVariationProbability() + 1, StochasticSequence::LengthVariationProbability::Range
+                step.lengthVariationProbability() + 1, LogicSequence::LengthVariationProbability::Range
             );
             break;
-        case Layer::NoteOctave: {
-            if (step.noteOctave() != 0) {
-                canvas.setColor(Color::Bright);
-            }
-            FixedStringBuilder<8> str;
-
-            int rootNote = sequence.selectedRootNote(_model.project().rootNote());
-            if (scale.isNotePresent(step.note())) {
-                canvas.setColor(Color::Bright);
-            } else {
-                canvas.setColor(Color::Low);
-            }
-            if (step.bypassScale()) {
-                const Scale &bypassScale = std::ref(Scale::get(0));
-                bypassScale.noteName(str, step.note(), rootNote, Scale::Short1);
-            
-                canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
-                str.reset();
-                str("%d", step.noteOctave());
-                canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
-                break;
-            } 
-            scale.noteName(str, step.note(), rootNote, Scale::Short1);
-            canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
+        case Layer::NoteLogic: {
+            SequencePainter::drawNoteLogicMode(
+                canvas,
+                x + 2, y + 18, stepWidth - 4, 6,
+                step.noteLogic()
+            );
             break;
         }
-        case Layer::NoteOctaveProbability: {
+        case Layer::NoteVariationRange: {
+            canvas.setColor(Color::Bright);
+            FixedStringBuilder<8> str("%d", step.noteVariationRange());
+            canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
+            break;
+        }
+        case Layer::NoteVariationProbability:
             SequencePainter::drawProbability(
                 canvas,
                 x + 2, y + 18, stepWidth - 4, 2,
-                step.noteOctaveProbability() + 1, StochasticSequence::NoteOctaveProbability::Range
+                step.noteVariationProbability() + 1, LogicSequence::NoteVariationProbability::Range
             );
-            int rootNote = sequence.selectedRootNote(_model.project().rootNote());
-            if (scale.isNotePresent(step.note())) {
-                canvas.setColor(Color::Bright);
-            } else {
-                canvas.setColor(Color::Low);
-            }
-            FixedStringBuilder<8> str;
-            if (step.bypassScale()) {
-                const Scale &bypassScale = std::ref(Scale::get(0));
-                bypassScale.noteName(str, step.note(), rootNote, Scale::Short1);
-                canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
-                break;
-            } 
-            scale.noteName(str, step.note(), rootNote, Scale::Short1);
-            canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
             break;
-        }
-        case Layer::NoteVariationProbability: {
-            SequencePainter::drawProbability(
-                canvas,
-                x + 2, y + 18, stepWidth - 4, 2,
-                step.noteVariationProbability() + 1, StochasticSequence::NoteVariationProbability::Range
-            );
-            int rootNote = sequence.selectedRootNote(_model.project().rootNote());
-
-            if (scale.isNotePresent(step.note())) {
-                canvas.setColor(Color::Bright);
-            } else {
-                canvas.setColor(Color::Low);
-            }
-            
-            FixedStringBuilder<8> str;
-            if (step.bypassScale()) {
-                const Scale &bypassScale = std::ref(Scale::get(0));
-                bypassScale.noteName(str, step.note(), rootNote, Scale::Short1);
-                canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
-                break;
-            } 
-            scale.noteName(str, step.note(), rootNote, Scale::Short1);
-            canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
-            break;
-        }
+        
         case Layer::Slide:
             SequencePainter::drawSlide(
                 canvas,
@@ -303,9 +299,17 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
             break;
         }
         case Layer::StageRepeats: {
+            canvas.setColor(Bright);
+            FixedStringBuilder<8> str("x%d", step.stageRepeats()+1);
+            canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
             break;
         }
         case Layer::StageRepeatsMode: {
+            SequencePainter::drawStageRepeatMode(
+                canvas,
+                x + 2, y + 18, stepWidth - 4, 6,
+                step.stageRepeatMode()
+            );
             break;
         }
         case Layer::Last:
@@ -332,9 +336,9 @@ void StochasticSequenceEditPage::draw(Canvas &canvas) {
 
 }
 
-void StochasticSequenceEditPage::updateLeds(Leds &leds) {
-    const auto &trackEngine = _engine.selectedTrackEngine().as<StochasticEngine>();
-    const auto &sequence = _project.selectedStochasticSequence();
+void LogicSequenceEditPage::updateLeds(Leds &leds) {
+    const auto &trackEngine = _engine.selectedTrackEngine().as<LogicTrackEngine>();
+    auto &sequence = _project.selectedLogicSequence();
     int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
 
     for (int i = 0; i < 16; ++i) {
@@ -344,54 +348,47 @@ void StochasticSequenceEditPage::updateLeds(Leds &leds) {
         leds.set(MatrixMap::fromStep(i), red, green);
     }
 
-    LedPainter::drawSelectedSequenceSection(leds, _section);
+    LedPainter::drawSelectedSequenceSection(leds, sequence.section());
 
     // show quick edit keys
     if (globalKeyState()[Key::Page] && !globalKeyState()[Key::Shift]) {
         for (int i = 0; i < 8; ++i) {
             int index = MatrixMap::fromStep(i + 8);
             leds.unmask(index);
-            leds.set(index, false, quickEditItems[i] != StochasticSequenceListModel::Item::Last);
+            leds.set(index, false, quickEditItems[i] != LogicSequenceListModel::Item::Last);
             leds.mask(index);
         }
-
-        for (int i : {4, 5, 6, 15}) {
-            int index = MatrixMap::fromStep(i);
-            leds.unmask(index);
-            leds.set(index, false, true);
-            leds.mask(index);
-        }
+        int index = MatrixMap::fromStep(15);
+        leds.unmask(index);
+        leds.set(index, false, true);
+        leds.mask(index);
+        index = MatrixMap::fromStep(4);
+        leds.unmask(index);
+        leds.set(index, false, true);
+        leds.mask(index);
     }
 }
 
-void StochasticSequenceEditPage::keyDown(KeyEvent &event) {
-    const auto &key = event.key();
-    if (key.is(Key::Step15) || key.is(Key::Step14)|| key.is(Key::Step13) || key.is(Key::Step12)) {
-        return;
-    }
+void LogicSequenceEditPage::keyDown(KeyEvent &event) {
     _stepSelection.keyDown(event, stepOffset());
     updateMonitorStep();
 }
 
-void StochasticSequenceEditPage::keyUp(KeyEvent &event) {
-    const auto &key = event.key();
-    if (key.is(Key::Step15) || key.is(Key::Step14)|| key.is(Key::Step13) || key.is(Key::Step12)) {
-        return;
-    }
+void LogicSequenceEditPage::keyUp(KeyEvent &event) {
     _stepSelection.keyUp(event, stepOffset());
     updateMonitorStep();
 }
 
-void StochasticSequenceEditPage::keyPress(KeyPressEvent &event) {
+void LogicSequenceEditPage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
-    auto &sequence = _project.selectedStochasticSequence();
+    auto &sequence = _project.selectedLogicSequence();
+    auto &track = _project.selectedTrack().logicTrack();
 
     if (key.isContextMenu()) {
         contextShow();
         event.consume();
         return;
     }
-
     if (key.pageModifier() && event.count() == 2) {
         contextShow(true);
         event.consume();
@@ -399,41 +396,72 @@ void StochasticSequenceEditPage::keyPress(KeyPressEvent &event) {
     }
 
     if (key.isQuickEdit()) {
-        quickEdit(key.quickEdit());
+         if (key.is(Key::Step15)) {
+            bool lpConnected = _engine.isLaunchpadConnected();
+
+             track.togglePatternFollowDisplay(lpConnected);
+        } else {
+            _inMemorySequence = _project.selectedLogicSequence();
+            quickEdit(key.quickEdit());
+        }
         event.consume();
         return;
     }
 
+    if (key.pageModifier() && key.is(Key::Step6)) {
+        // undo function
+        _project.setselectedLogicSequence(_inMemorySequence);
+        event.consume();
+        return;
+    }
+
+    if (key.pageModifier() && key.is(Key::Step4)) {
+            track.toggleDetailedView();
+            event.consume();
+            return;
+    }
+
     if (key.pageModifier()) {
-
-        if (key.is(Key::Step4) && !sequence.useLoop() && !sequence.isEmpty()) {
-            showMessage("Reseed");
-            sequence.setReseed(1, false);
-            event.consume();
-        }
-
-        if (key.is(Key::Step5)) {
-            showMessage("Loop cleared");
-            sequence.setClearLoop(true);
-            event.consume();
-        }
-
-        if (key.is(Key::Step6)) {
-            if (sequence.useLoop()) {
-                showMessage("Loop off");
-            } else  {
-                showMessage("Loop on");
-            }
-            sequence.setUseLoop();
-            event.consume();
-        }
         return;
     }
 
-    if (key.is(Key::Step15) || key.is(Key::Step14)|| key.is(Key::Step13) || key.is(Key::Step12)) {
-        return;
-    }
 
+    if (key.isFunction()) {
+        int v = 0;
+        switch (key.code()) {
+            case Key::F0:
+                v=1;
+                break;
+            case Key::F1:
+                v=2;
+                break;
+            case Key::F2:
+                v=3;
+                break;
+            case Key::F3:
+                v=4;
+                break;
+            case Key::F4:
+                v=5;
+                break;
+        }
+        for (int i=0; i<16; ++i) {
+           if (key.state(i)) {
+                const auto &scale = sequence.selectedScale(_project.scale());
+                int stepIndex = 0;
+                if (i>=8) {
+                    stepIndex = i -8;
+                } else {
+                    stepIndex = i+8;
+                }
+                sequence.step(stepIndex).setNote(scale.notesPerOctave()*v);
+                event.consume();
+                return;
+                
+           }
+        }
+        
+    }
     _stepSelection.keyPress(event, stepOffset());
     updateMonitorStep();
 
@@ -441,6 +469,7 @@ void StochasticSequenceEditPage::keyPress(KeyPressEvent &event) {
         int stepIndex = stepOffset() + key.step();
         switch (layer()) {
         case Layer::Gate:
+            _inMemorySequence = _project.selectedLogicSequence();
             sequence.step(stepIndex).toggleGate();
             event.consume();
             break;
@@ -454,37 +483,75 @@ void StochasticSequenceEditPage::keyPress(KeyPressEvent &event) {
     if (!key.shiftModifier() && key.isStep() && keyPressEvent.count() == 2) {
         int stepIndex = stepOffset() + key.step();
         if (layer() != Layer::Gate) {
+            _inMemorySequence = _project.selectedLogicSequence();
             sequence.step(stepIndex).toggleGate();
             event.consume();
         }
     }
 
     if (key.isFunction()) {
+        if(key.shiftModifier() && key.function() == 2 && _stepSelection.any()) {
+            _inMemorySequence = _project.selectedLogicSequence();
+            tieNotes();
+            event.consume();
+            return;
+        }
         switchLayer(key.function(), key.shiftModifier());
         event.consume();
     }
 
     if (key.isEncoder()) {
+        track.setPatternFollowDisplay(false);
+        _inMemorySequence = _project.selectedLogicSequence();
         if (!_showDetail && _stepSelection.any() && allSelectedStepsActive()) {
             setSelectedStepsGate(false);
         } else {
             setSelectedStepsGate(true);
         }
+        event.consume();
+    }
+
+
+    if (key.isLeft()) {
+        if (key.shiftModifier()) {
+            _inMemorySequence = _project.selectedLogicSequence();
+            sequence.shiftSteps(_stepSelection.selected(), -1);
+            _stepSelection.shiftLeft();
+        } else {
+            track.setPatternFollowDisplay(false);
+             sequence.setSecion(std::max(0, sequence.section() - 1));
+        }
+        event.consume();
+    }
+    if (key.isRight()) {
+        if (key.shiftModifier()) {
+            _inMemorySequence = _project.selectedLogicSequence();
+            sequence.shiftSteps(_stepSelection.selected(), 1);
+            _stepSelection.shiftRight();
+        } else {
+            track.setPatternFollowDisplay(false);
+            sequence.setSecion(std::min(3, sequence.section() + 1));
+        }
+        event.consume();
     }
 }
 
-void StochasticSequenceEditPage::encoder(EncoderEvent &event) {
-    auto &sequence = _project.selectedStochasticSequence();
+void LogicSequenceEditPage::encoder(EncoderEvent &event) {
+    auto &sequence = _project.selectedLogicSequence();
+    const auto &scale = sequence.selectedScale(_project.scale());
 
     if (!_stepSelection.any())
     {
         switch (layer())
         {
         case Layer::Gate:
-            setLayer(event.value() > 0 ? Layer::GateOffset : Layer::GateProbability);
+            setLayer(event.value() > 0 ? Layer::GateLogic : Layer::GateProbability);
+            break;
+        case Layer::GateLogic:
+            setLayer(event.value() > 0 ? Layer::GateOffset : Layer::Gate);
             break;
         case Layer::GateOffset:
-            setLayer(event.value() > 0 ? Layer::GateProbability : Layer::Gate);
+            setLayer(event.value() > 0 ? Layer::GateProbability : Layer::GateLogic);
             break;
         case Layer::GateProbability:
             setLayer(event.value() > 0 ? Layer::Gate : Layer::GateOffset);
@@ -510,17 +577,17 @@ void StochasticSequenceEditPage::encoder(EncoderEvent &event) {
         case Layer::LengthVariationProbability:
             setLayer(event.value() > 0 ? Layer::Length : Layer::LengthVariationRange);
             break;
+        case Layer::NoteLogic:
+            setLayer(event.value() > 0 ? Layer::NoteVariationRange : Layer::Slide);
+            break;
+        case Layer::NoteVariationRange:
+            setLayer(event.value() > 0 ? Layer::NoteVariationProbability : Layer::NoteLogic);
+            break;
         case Layer::NoteVariationProbability:
-            setLayer(event.value() > 0 ? Layer::NoteOctave : Layer::Slide);
-            break;
-        case Layer::NoteOctave:
-            setLayer(event.value() > 0 ? Layer::NoteOctaveProbability : Layer::NoteVariationProbability);
-            break;
-        case Layer::NoteOctaveProbability:
-            setLayer(event.value() > 0 ? Layer::Slide : Layer::NoteOctave);
+            setLayer(event.value() > 0 ? Layer::Slide : Layer::NoteVariationRange);
             break;
         case Layer::Slide:
-            setLayer(event.value() > 0 ? Layer::NoteVariationProbability : Layer::NoteOctaveProbability);
+            setLayer(event.value() > 0 ? Layer::NoteLogic : Layer::NoteVariationProbability);
             break;
         default:
             break;
@@ -536,9 +603,13 @@ void StochasticSequenceEditPage::encoder(EncoderEvent &event) {
     for (size_t stepIndex = 0; stepIndex < sequence.steps().size(); ++stepIndex) {
         if (_stepSelection[stepIndex]) {
             auto &step = sequence.step(stepIndex);
+            bool shift = globalKeyState()[Key::Shift];
             switch (layer()) {
             case Layer::Gate:
                 step.setGate(event.value() > 0);
+                break;
+            case Layer::GateLogic:
+                step.setGateLogic(static_cast<LogicSequence::GateLogicMode>(step.gateLogic() + event.value()));
                 break;
             case Layer::GateProbability:
                 step.setGateProbability(step.gateProbability() + event.value());
@@ -561,16 +632,15 @@ void StochasticSequenceEditPage::encoder(EncoderEvent &event) {
             case Layer::LengthVariationProbability:
                 step.setLengthVariationProbability(step.lengthVariationProbability() + event.value());
                 break;
-            case Layer::NoteOctave:
-                step.setNoteOctave(step.noteOctave() + event.value());
+            case Layer::NoteLogic:
+                step.setNoteLogic(static_cast<LogicSequence::NoteLogicMode>(step.noteLogic() + event.value()));
                 updateMonitorStep();
                 break;
-            case Layer::NoteOctaveProbability:
-                step.setNoteOctaveProbability(step.noteOctaveProbability() + event.value());
+             case Layer::NoteVariationRange:
+                step.setNoteVariationRange(step.noteVariationRange() + event.value() * ((shift && scale.isChromatic()) ? scale.notesPerOctave() : 1));
                 break;
             case Layer::NoteVariationProbability:
                 step.setNoteVariationProbability(step.noteVariationProbability() + event.value());
-                updateMonitorStep();
                 break;
             case Layer::Slide:
                 step.setSlide(event.value() > 0);
@@ -583,7 +653,7 @@ void StochasticSequenceEditPage::encoder(EncoderEvent &event) {
                 break;
             case Layer::StageRepeatsMode:
                 step.setStageRepeatsMode(
-                    static_cast<StochasticSequence::StageRepeatMode>(
+                    static_cast<Types::StageRepeatMode>(
                         step.stageRepeatMode() + event.value()
                     )
                 );
@@ -597,10 +667,10 @@ void StochasticSequenceEditPage::encoder(EncoderEvent &event) {
     event.consume();
 }
 
-void StochasticSequenceEditPage::midi(MidiEvent &event) {
-    if (!_engine.recording() && layer() == Layer::NoteVariationProbability && _stepSelection.any()) {
-        auto &trackEngine = _engine.selectedTrackEngine().as<StochasticEngine>();
-        auto &sequence = _project.selectedStochasticSequence();
+void LogicSequenceEditPage::midi(MidiEvent &event) {
+    if (!_engine.recording() && layer() == Layer::NoteLogic && _stepSelection.any()) {
+        auto &trackEngine = _engine.selectedTrackEngine().as<LogicTrackEngine>();
+        auto &sequence = _project.selectedLogicSequence();
         const auto &scale = sequence.selectedScale(_project.scale());
         const auto &message = event.message();
 
@@ -622,27 +692,27 @@ void StochasticSequenceEditPage::midi(MidiEvent &event) {
     }
 }
 
-void StochasticSequenceEditPage::switchLayer(int functionKey, bool shift) {
+void LogicSequenceEditPage::switchLayer(int functionKey, bool shift) {
 
-    auto engine = _engine.selectedTrackEngine().as<StochasticEngine>();
+    auto engine = _engine.selectedTrackEngine().as<LogicTrackEngine>();
+
     if (shift) {
         switch (Function(functionKey)) {
         case Function::Gate:
-            setLayer(Layer::GateProbability);
+            setLayer(Layer::Gate);
             break;
         case Function::Retrigger:
             if (engine.playMode() == Types::PlayMode::Free) {
                 setLayer(Layer::StageRepeats);
-                break;
             }
-            
+            break;
         case Function::Length:
             if (engine.playMode() == Types::PlayMode::Free) {
                 setLayer(Layer::StageRepeatsMode);
             }
             break;
         case Function::Note:
-            setLayer(Layer::NoteVariationProbability);
+            setLayer(Layer::NoteLogic);
             break;
         case Function::Condition:
             setLayer(Layer::Condition);
@@ -655,6 +725,9 @@ void StochasticSequenceEditPage::switchLayer(int functionKey, bool shift) {
     case Function::Gate:
         switch (layer()) {
         case Layer::Gate:
+            setLayer(Layer::GateLogic);
+            break;
+        case Layer::GateLogic:
             setLayer(Layer::GateOffset);
             break;
         case Layer::GateOffset:
@@ -675,12 +748,13 @@ void StochasticSequenceEditPage::switchLayer(int functionKey, bool shift) {
                 setLayer(Layer::StageRepeats);
                 break;
             }
-            
+
         case Layer::StageRepeats:
             if (engine.playMode() == Types::PlayMode::Free) {
                 setLayer(Layer::StageRepeatsMode);
                 break;
             }
+
         default:
             setLayer(Layer::Retrigger);
             break;
@@ -701,19 +775,17 @@ void StochasticSequenceEditPage::switchLayer(int functionKey, bool shift) {
         break;
     case Function::Note:
         switch (layer()) {
+        case Layer::NoteLogic:
+            setLayer(Layer::NoteVariationRange);
+            break;
+        case Layer::NoteVariationRange:
+            setLayer(Layer::NoteVariationProbability);
+            break;
         case Layer::NoteVariationProbability:
-            setLayer(Layer::NoteOctave);
-            break;
-        case Layer::NoteOctave:
-            setLayer(Layer::NoteOctaveProbability);
-            break;
-        case Layer::NoteOctaveProbability:
             setLayer(Layer::Slide);
             break;
-        case Layer::Slide:
-            setLayer(Layer::NoteVariationProbability);
         default:
-            setLayer(Layer::NoteVariationProbability);
+            setLayer(Layer::NoteLogic);
             break;
         }
         break;
@@ -723,11 +795,12 @@ void StochasticSequenceEditPage::switchLayer(int functionKey, bool shift) {
     }
 }
 
-int StochasticSequenceEditPage::activeFunctionKey() {
+int LogicSequenceEditPage::activeFunctionKey() {
     switch (layer()) {
     case Layer::Gate:
     case Layer::GateProbability:
     case Layer::GateOffset:
+    case Layer::GateLogic:
         return 0;
     case Layer::Retrigger:
     case Layer::RetriggerProbability:
@@ -738,9 +811,9 @@ int StochasticSequenceEditPage::activeFunctionKey() {
     case Layer::LengthVariationRange:
     case Layer::LengthVariationProbability:
         return 2;
-    case Layer::NoteOctave:
+    case Layer::NoteLogic:
+    case Layer::NoteVariationRange:
     case Layer::NoteVariationProbability:
-    case Layer::NoteOctaveProbability:
     case Layer::Slide:
         return 3;
     case Layer::Condition:
@@ -752,19 +825,18 @@ int StochasticSequenceEditPage::activeFunctionKey() {
     return -1;
 }
 
-void StochasticSequenceEditPage::updateMonitorStep() {
-    auto &trackEngine = _engine.selectedTrackEngine().as<StochasticEngine>();
+void LogicSequenceEditPage::updateMonitorStep() {
+    auto &trackEngine = _engine.selectedTrackEngine().as<LogicTrackEngine>();
 
     // TODO should we monitor an all layers not just note?
-    if (layer() == Layer::NoteVariationProbability && !_stepSelection.isPersisted() && _stepSelection.any()) {
+    if (layer() == Layer::NoteLogic && !_stepSelection.isPersisted() && _stepSelection.any()) {
         trackEngine.setMonitorStep(_stepSelection.first());
     } else {
         trackEngine.setMonitorStep(-1);
     }
 }
 
-void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequence::Step &step) {
-
+void LogicSequenceEditPage::drawDetail(Canvas &canvas, const LogicSequence::Step &step) {
 
     FixedStringBuilder<16> str;
 
@@ -787,14 +859,49 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
     case Layer::Gate:
     case Layer::Slide:
         break;
+
+    case Layer::GateLogic:
+        str.reset();
+        switch (step.gateLogic()) {
+            case LogicSequence::GateLogicMode::One:
+                str("INPUT 1");
+                break;
+            case LogicSequence::GateLogicMode::Two:
+                str("INPUT 2");
+                break;
+            case LogicSequence::GateLogicMode::And:
+                str("AND");
+                break;
+            case LogicSequence::GateLogicMode::Or:
+                str("OR");
+                break;
+            case LogicSequence::GateLogicMode::Xor:
+                str("XOR");
+                break;
+            case LogicSequence::GateLogicMode::Nand:
+                str("NAND");
+                break;
+            
+            case LogicSequence::GateLogicMode::RandomInput:
+                str("RND INPUT");
+                break;
+            case LogicSequence::GateLogicMode::RandomLogic:
+                str("RND LOGIC");
+                break;
+            default:
+                break;
+        }
+        canvas.setFont(Font::Small);
+        canvas.drawTextCentered(64 + 64, 32 - 4, 32, 8, str);
+        break;
     case Layer::GateProbability:
         SequencePainter::drawProbability(
             canvas,
             64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.gateProbability() + 1, StochasticSequence::GateProbability::Range
+            step.gateProbability(), LogicSequence::GateProbability::Range-1
         );
         str.reset();
-        str("%.1f%%", 100.f * (step.gateProbability()) / (StochasticSequence::GateProbability::Range-1));
+        str("%.1f%%", 100.f * (step.gateProbability()) / (LogicSequence::GateProbability::Range-1));
         canvas.setColor(Color::Bright);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
@@ -802,10 +909,10 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
         SequencePainter::drawOffset(
             canvas,
             64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.gateOffset(), StochasticSequence::GateOffset::Min - 1, StochasticSequence::GateOffset::Max + 1
+            step.gateOffset(), LogicSequence::GateOffset::Min - 1, LogicSequence::GateOffset::Max + 1
         );
         str.reset();
-        str("%.1f%%", 100.f * step.gateOffset() / float(StochasticSequence::GateOffset::Max + 1));
+        str("%.1f%%", 100.f * step.gateOffset() / float(LogicSequence::GateOffset::Max + 1));
         canvas.setColor(Color::Bright);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
@@ -813,7 +920,7 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
         SequencePainter::drawRetrigger(
             canvas,
             64+ 32 + 8, 32 - 4, 64 - 16, 8,
-            step.retrigger() + 1, StochasticSequence::Retrigger::Range
+            step.retrigger() + 1, NoteSequence::Retrigger::Range
         );
         str.reset();
         str("%d", step.retrigger() + 1);
@@ -824,10 +931,10 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
         SequencePainter::drawProbability(
             canvas,
             64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.retriggerProbability() + 1, StochasticSequence::RetriggerProbability::Range
+            step.retriggerProbability(), NoteSequence::RetriggerProbability::Range-1
         );
         str.reset();
-        str("%.1f%%", 100.f * (step.retriggerProbability()) / (StochasticSequence::RetriggerProbability::Range-1));
+        str("%.1f%%", 100.f * (step.retriggerProbability()) / (NoteSequence::RetriggerProbability::Range-1));
         canvas.setColor(Color::Bright);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
@@ -835,10 +942,10 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
         SequencePainter::drawLength(
             canvas,
             64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.length() + 1, StochasticSequence::Length::Range
+            step.length() + 1, LogicSequence::Length::Range
         );
         str.reset();
-        str("%.1f%%", 100.f * (step.length() + 1.f) / StochasticSequence::Length::Range);
+        str("%.1f%%", 100.f * (step.length() + 1.f) / LogicSequence::Length::Range);
         canvas.setColor(Color::Bright);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
@@ -846,10 +953,10 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
         SequencePainter::drawLengthRange(
             canvas,
             64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.length() + 1, step.lengthVariationRange(), StochasticSequence::Length::Range
+            step.length() + 1, step.lengthVariationRange(), LogicSequence::Length::Range
         );
         str.reset();
-        str("%.1f%%", 100.f * (step.lengthVariationRange()) / (StochasticSequence::Length::Range-1));
+        str("%.1f%%", 100.f * (step.lengthVariationRange()) / LogicSequence::Length::Range);
         canvas.setColor(Color::Bright);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
@@ -857,41 +964,68 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
         SequencePainter::drawProbability(
             canvas,
             64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.lengthVariationProbability() + 1, StochasticSequence::LengthVariationProbability::Range
+            step.lengthVariationProbability(), LogicSequence::LengthVariationProbability::Range-1
         );
         str.reset();
-        str("%.1f%%", 100.f * (step.lengthVariationProbability()) / (StochasticSequence::LengthVariationProbability::Range-1));
+        str("%.1f%%", 100.f * (step.lengthVariationProbability()) / (LogicSequence::LengthVariationProbability::Range-1));
         canvas.setColor(Color::Bright);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
-    case Layer::NoteOctave:
+    case Layer::NoteLogic:
         str.reset();
-        str("%d", step.noteOctave());
+        switch (step.noteLogic()) {
+            case LogicSequence::NoteLogicMode::NOne:
+                str("INPUT 1");
+                break;
+            case LogicSequence::NoteLogicMode::NTwo:
+                str("INPUT 2");
+                break;
+            case LogicSequence::NoteLogicMode::Min:
+                str("MIN");
+                break;
+            case LogicSequence::NoteLogicMode::Max:
+                str("MAX");
+                break;
+            case LogicSequence::NoteLogicMode::Sum:
+                str("SUM");
+                break;
+            case LogicSequence::NoteLogicMode::Avg:
+                str("AVG");
+                break;
+            case LogicSequence::NoteLogicMode::NRandomInput:
+                str("RND INPUT");
+                break;
+            case LogicSequence::NoteLogicMode::NRandomLogic:
+                str("RND LOGIC");
+                break;
+            default:
+                break;
+        }
+        canvas.setFont(Font::Small);
+        canvas.drawTextCentered(64 + 64, 32 - 4, 32, 8, str);
+        break;
+
+
+
+        break;
+    case Layer::NoteVariationRange:
+        str.reset();
+        str("%d", step.noteVariationRange());
         canvas.setFont(Font::Small);
         canvas.drawTextCentered(64 + 32, 16, 64, 32, str);
-        break;
-    case Layer::NoteOctaveProbability:
-        SequencePainter::drawProbability(
-            canvas,
-            64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.noteOctaveProbability() + 1, StochasticSequence::NoteOctaveProbability::Range
-        );
-        str.reset();
-        str("%.1f%%", 100.f * (step.noteOctaveProbability()) / (StochasticSequence::NoteOctaveProbability::Range-1));
-        canvas.setColor(Color::Bright);
-        canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
     case Layer::NoteVariationProbability:
         SequencePainter::drawProbability(
             canvas,
             64 + 32 + 8, 32 - 4, 64 - 16, 8,
-            step.noteVariationProbability() + 1, StochasticSequence::NoteVariationProbability::Range
+            step.noteVariationProbability(), NoteSequence::NoteVariationProbability::Range-1
         );
         str.reset();
-        str("%.1f%%", 100.f * (step.noteVariationProbability()) / (StochasticSequence::NoteVariationProbability::Range -1));
+        str("%.1f%%", 100.f * (step.noteVariationProbability()) / (NoteSequence::NoteVariationProbability::Range-1));
         canvas.setColor(Color::Bright);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
         break;
+   
     case Layer::Condition:
         str.reset();
         Types::printCondition(str, step.condition(), Types::ConditionFormat::Long);
@@ -907,28 +1041,28 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
      case Layer::StageRepeatsMode:
         str.reset();
         switch (step.stageRepeatMode()) {
-            case StochasticSequence::Each:
+            case Types::Each:
                 str("EACH");
                 break;
-            case StochasticSequence::First:
+            case Types::First:
                 str("FIRST");
                 break;
-            case StochasticSequence::Middle:
+            case Types::Middle:
                 str("MIDDLE");
                 break;
-            case StochasticSequence::Last:
+            case Types::Last:
                 str("LAST");
                 break;
-            case StochasticSequence::Odd:
+            case Types::Odd:
                 str("ODD");
                 break;
-            case StochasticSequence::Even:
+            case Types::Even:
                 str("EVEN");
                 break;
-            case StochasticSequence::Triplets:
+            case Types::Triplets:
                 str("TRIPLET");
                 break;
-            case StochasticSequence::Random:
+            case Types::Random:
                 str("RANDOM");
                 break;
 
@@ -943,7 +1077,7 @@ void StochasticSequenceEditPage::drawDetail(Canvas &canvas, const StochasticSequ
     }
 }
 
-void StochasticSequenceEditPage::contextShow(bool doubleClick) {
+void LogicSequenceEditPage::contextShow(bool doubleClick) {
     showContextMenu(ContextMenu(
         contextMenuItems,
         int(ContextAction::Last),
@@ -952,7 +1086,7 @@ void StochasticSequenceEditPage::contextShow(bool doubleClick) {
     ));
 }
 
-void StochasticSequenceEditPage::contextAction(int index) {
+void LogicSequenceEditPage::contextAction(int index) {
     switch (ContextAction(index)) {
     case ContextAction::Init:
         initSequence();
@@ -974,68 +1108,68 @@ void StochasticSequenceEditPage::contextAction(int index) {
     }
 }
 
-bool StochasticSequenceEditPage::contextActionEnabled(int index) const {
+bool LogicSequenceEditPage::contextActionEnabled(int index) const {
     switch (ContextAction(index)) {
     case ContextAction::Paste:
-        return _model.clipBoard().canPasteStochasticSequenceSteps();
+        return _model.clipBoard().canPasteLogicSequenceSteps();
     default:
         return true;
     }
 }
 
-void StochasticSequenceEditPage::initSequence() {
-    _project.selectedStochasticSequence().clearSteps();
+void LogicSequenceEditPage::initSequence() {
+    _project.selectedLogicSequence().clearStepsSelected(_stepSelection.selected());
     showMessage("STEPS INITIALIZED");
 }
 
-void StochasticSequenceEditPage::copySequence() {
-    
-
-    if (_project.selectedStochasticSequence().useLoop()) {
-        auto lockedSteps = _engine.selectedTrackEngine().as<StochasticEngine>().lockedSteps();
-
-        const auto &scale = _project.selectedStochasticSequence().selectedScale(_model.project().scale());
-
-        auto sequence = NoteSequence();
-        for (int i=0; i<int(lockedSteps.size()); ++i) {
-            auto lockedStep = lockedSteps.at(i);
-            auto &step = sequence.step(i);
-            step.setGate(lockedStep.gate());
-            step.setGateProbability(lockedStep.step().gateProbability());
-            step.setGateOffset(lockedStep.step().gateOffset());
-            step.setRetrigger(lockedStep.step().retrigger());
-            step.setRetriggerProbability(lockedStep.step().retriggerProbability());
-            step.setLength(lockedStep.step().length());
-            step.setLengthVariationRange(lockedStep.step().lengthVariationRange());
-            step.setLengthVariationProbability(lockedStep.step().lengthVariationProbability());
-
-            step.setNote(scale.noteFromVolts(lockedStep.noteValue()));
-            step.setCondition(lockedStep.step().condition());
-            
-            
-        }
-        _model.clipBoard().copyNoteSequenceSteps(sequence, _stepSelection.selected());
-        showMessage("LOOP COPIED");
-    } else {
-        _model.clipBoard().copyStochasticSequenceSteps(_project.selectedStochasticSequence(), _stepSelection.selected());
-        showMessage("STEPS COPIED");
-    }
+void LogicSequenceEditPage::copySequence() {
+    _model.clipBoard().copyLogicSequenceSteps(_project.selectedLogicSequence(), _stepSelection.selected());
+    showMessage("STEPS COPIED");
 }
 
-void StochasticSequenceEditPage::pasteSequence() {
-    _model.clipBoard().pasteStochasticSequenceSteps(_project.selectedStochasticSequence(), _stepSelection.selected());
+void LogicSequenceEditPage::pasteSequence() {
+    _model.clipBoard().pasteLogicSequenceSteps(_project.selectedLogicSequence(), _stepSelection.selected());
     showMessage("STEPS PASTED");
 }
 
-void StochasticSequenceEditPage::duplicateSequence() {
-    _project.selectedStochasticSequence().duplicateSteps();
+void LogicSequenceEditPage::duplicateSequence() {
+    _project.selectedLogicSequence().duplicateSteps();
     showMessage("STEPS DUPLICATED");
 }
 
-void StochasticSequenceEditPage::generateSequence() {
+
+void LogicSequenceEditPage::tieNotes() {
+
+    auto &sequence = _project.selectedLogicSequence();
+
+    if (_stepSelection.any()) {
+        int first=-1;
+        int last=-1;
+
+        for (size_t i = 0; i < sequence.steps().size(); ++i) {
+            if (_stepSelection[i]) {
+                if (first == -1 ) {
+                    first = i;
+                }
+                last = i;
+            }
+        }
+
+        for (int i = first; i <= last; i++) {
+            sequence.step(i).setGate(true);
+            if (i != last) {
+                sequence.step(i).setLength(LogicSequence::Length::Max);
+                showMessage("NOTES TIED");
+            }
+            sequence.step(i).setNote(sequence.step(first).note());
+        }
+    }
+}
+
+void LogicSequenceEditPage::generateSequence() {
     _manager.pages().generatorSelect.show([this] (bool success, Generator::Mode mode) {
         if (success) {
-            auto builder = _builderContainer.create<StochasticSequenceBuilder>(_project.selectedStochasticSequence(), layer());
+            auto builder = _builderContainer.create<LogicSequenceBuilder>(_project.selectedLogicSequence(), layer());
 
             if (_stepSelection.none()) {
                 _stepSelection.selectAll();
@@ -1049,18 +1183,15 @@ void StochasticSequenceEditPage::generateSequence() {
     });
 }
 
-
-
-void StochasticSequenceEditPage::quickEdit(int index) {
-    
-    _listModel.setSequence(&_project.selectedStochasticSequence());
-    if (quickEditItems[index] != StochasticSequenceListModel::Item::Last) {
+void LogicSequenceEditPage::quickEdit(int index) {
+    _listModel.setSequence(&_project.selectedLogicSequence());
+    if (quickEditItems[index] != LogicSequenceListModel::Item::Last) {
         _manager.pages().quickEdit.show(_listModel, int(quickEditItems[index]));
     }
 }
 
-bool StochasticSequenceEditPage::allSelectedStepsActive() const {
-    const auto &sequence = _project.selectedStochasticSequence();
+bool LogicSequenceEditPage::allSelectedStepsActive() const {
+    const auto &sequence = _project.selectedLogicSequence();
     for (size_t stepIndex = 0; stepIndex < _stepSelection.size(); ++stepIndex) {
         if (_stepSelection[stepIndex] && !sequence.step(stepIndex).gate()) {
             return false;
@@ -1069,36 +1200,11 @@ bool StochasticSequenceEditPage::allSelectedStepsActive() const {
     return true;
 }
 
-void StochasticSequenceEditPage::setSelectedStepsGate(bool gate) {
-    auto &sequence = _project.selectedStochasticSequence();
+void LogicSequenceEditPage::setSelectedStepsGate(bool gate) {
+    auto &sequence = _project.selectedLogicSequence();
     for (size_t stepIndex = 0; stepIndex < _stepSelection.size(); ++stepIndex) {
         if (_stepSelection[stepIndex]) {
             sequence.step(stepIndex).setGate(gate);
         }
     }
-}
-
-void StochasticSequenceEditPage::displayMessage(StochasticSequence &sequence) {
-    FixedStringBuilder<16> str;
-    if (sequence.message() != StochasticSequence::Message::None) {
-
-        switch (sequence.message()) {
-            case StochasticSequence::Message::LoopOn:
-                str("Loop On");
-                break;
-            case StochasticSequence::Message::LoopOff:
-                str("Loop Off");
-                break;
-            case StochasticSequence::Message::Cleared:
-                str("Loop cleared");
-                break;
-            case StochasticSequence::Message::ReSeed:
-                str("Reseed");
-                break;
-            default:
-                break;  
-        }
-        showMessage(str);
-        sequence.setMessage(StochasticSequence::Message::None);
-    } 
 }

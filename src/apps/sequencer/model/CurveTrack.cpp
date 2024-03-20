@@ -1,5 +1,6 @@
 #include "CurveTrack.h"
 #include "ProjectVersion.h"
+#include "Routing.h"
 
 void CurveTrack::writeRouted(Routing::Target target, int intValue, float floatValue) {
     switch (target) {
@@ -18,6 +19,12 @@ void CurveTrack::writeRouted(Routing::Target target, int intValue, float floatVa
     case Routing::Target::GateProbabilityBias:
         setGateProbabilityBias(intValue, true);
         break;
+    case Routing::Target::CurveMin:
+        setMin(floatValue, true);
+        break;
+    case Routing::Target::CurveMax:
+        setMax(floatValue, true);
+        break;
     default:
         break;
     }
@@ -33,6 +40,8 @@ void CurveTrack::clear() {
     setShapeProbabilityBias(0);
     setGateProbabilityBias(0);
     setCurveCvInput(Types::CurveCvInput::Off);
+    setMin(0);
+    setMax(CurveSequence::Max::max());
 
     for (auto &sequence : _sequences) {
         sequence.clear();
@@ -51,6 +60,8 @@ void CurveTrack::write(VersionedSerializedWriter &writer) const {
     writer.write(_shapeProbabilityBias.base);
     writer.write(_gateProbabilityBias.base);
     writer.write(_curveCvInput);
+    writer.write(_min);
+    writer.write(_max);
     writeArray(writer, _sequences);
 }
 
@@ -65,5 +76,7 @@ void CurveTrack::read(VersionedSerializedReader &reader) {
     reader.read(_shapeProbabilityBias.base, ProjectVersion::Version15);
     reader.read(_gateProbabilityBias.base, ProjectVersion::Version15);
     reader.read(_curveCvInput, ProjectVersion::Version36);
+    reader.read(_min, ProjectVersion::Version37);
+    reader.read(_max, ProjectVersion::Version37);
     readArray(reader, _sequences);
 }

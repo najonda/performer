@@ -224,6 +224,15 @@ void Routing::writeTarget(Target target, uint8_t tracks, float normalized) {
                         }
                     }
                     break;
+                case Track::TrackMode::Logic:
+                    if (isTrackTarget(target)) {
+                        track.logicTrack().writeRouted(target, intValue, floatValue);
+                    } else {
+                        for (int patternIndex = 0; patternIndex < CONFIG_PATTERN_COUNT; ++patternIndex) {
+                            track.logicTrack().sequence(patternIndex).writeRouted(target, intValue, floatValue);
+                        }
+                    }
+                    break;
                 case Track::TrackMode::Last:
                     break;
                 }
@@ -309,6 +318,8 @@ static const TargetInfo targetInfos[int(Routing::Target::Last)] = {
     [int(Routing::Target::LengthBias)]                      = { -8,     8,      -8,     8,      8       },
     [int(Routing::Target::NoteProbabilityBias)]             = { -8,     8,      -8,     8,      8       },
     [int(Routing::Target::ShapeProbabilityBias)]            = { -8,     8,      -8,     8,      8       },
+    [int(Routing::Target::CurveMin)]                        = { 0,      255,    0,      255,    1       },
+    [int(Routing::Target::CurveMax)]                        = { 0,      255,    0,      255,    1       },
     // Sequence targets
     [int(Routing::Target::FirstStep)]                       = { 0,      63,     0,      63,     16      },
     [int(Routing::Target::LastStep)]                        = { 0,      63,     0,      63,     16      },
@@ -316,6 +327,8 @@ static const TargetInfo targetInfos[int(Routing::Target::Last)] = {
     [int(Routing::Target::Divisor)]                         = { 1,      768,    6,      24,     1       },
     [int(Routing::Target::Scale)]                           = { 0,      23,     0,      23,     1       },
     [int(Routing::Target::RootNote)]                        = { 0,      11,     0,      11,     1       },
+    [int(Routing::Target::CurrentRecordStep)]               = { 0,      63,     0,      63,     16      },
+
     [int(Routing::Target::Reseed)]                          = { 0,      1,      0,      1,      1       },
     [int(Routing::Target::RestProbability2)]                = { -8,     8,      -8,     8,      8       },
     [int(Routing::Target::RestProbability4)]                = { -8,     8,      -8,     8,      8       },

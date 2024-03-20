@@ -1,5 +1,21 @@
 # Changelog
 
+# v0.2.2 (20 March 2024)
+- Logic Track
+    - per step gate logic operators
+    - per step note logic operators
+- fix shift steps feature [@glibersat](https://github.com/glibersat)
+- step recorder "move step forward" shortcuts
+- step recorder "current step" cv routable, respond to gate (5ms)
+- curve track cv contrallable min and max
+- Overview page improvements
+- add trigger curve shape
+- add filter note parameter
+
+> **testers** :
+>  
+> mebitek, Jil, Guillaume Libersat, Andreas Hieninger, P.M. Lenneskog
+
 # v0.2.1 (4 March 2024)
 - issue #80 - Repeat Function Issue - Metropolix Mode 
 - issue #82 - Fatal error when pressing STEP button and turning encoder
@@ -7,6 +23,10 @@
 - issue #88 - Copy Loop from STOCHASTIC channel to a NOTE channel
 - issue #90 - the first note is never recorded
 - fix user settings
+
+> **testers** :
+>  
+> mebitek, Jil, Andreas Hieninger
 
 # v0.2.0 (29 Febrary 2024)
 - Stochastic Track

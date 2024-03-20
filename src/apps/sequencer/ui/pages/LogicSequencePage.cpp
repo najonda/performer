@@ -1,4 +1,4 @@
-#include "NoteSequencePage.h"
+#include "LogicSequencePage.h"
 
 #include "ListPage.h"
 #include "Pages.h"
@@ -39,19 +39,19 @@ static const ContextMenuModel::Item saveContextMenuItems[] = {
 };
 
 
-NoteSequencePage::NoteSequencePage(PageManager &manager, PageContext &context) :
+LogicSequencePage::LogicSequencePage(PageManager &manager, PageContext &context) :
     ListPage(manager, context, _listModel)
 {}
 
-void NoteSequencePage::enter() {
-    _listModel.setSequence(&_project.selectedNoteSequence());
+void LogicSequencePage::enter() {
+    _listModel.setSequence(&_project.selectedLogicSequence());
 }
 
-void NoteSequencePage::exit() {
+void LogicSequencePage::exit() {
     _listModel.setSequence(nullptr);
 }
 
-void NoteSequencePage::draw(Canvas &canvas) {
+void LogicSequencePage::draw(Canvas &canvas) {
     WindowPainter::clear(canvas);
     WindowPainter::drawHeader(canvas, _model, _engine, "SEQUENCE");
     WindowPainter::drawActiveFunction(canvas, Track::trackModeName(_project.selectedTrack().trackMode()));
@@ -60,11 +60,11 @@ void NoteSequencePage::draw(Canvas &canvas) {
     ListPage::draw(canvas);
 }
 
-void NoteSequencePage::updateLeds(Leds &leds) {
+void LogicSequencePage::updateLeds(Leds &leds) {
     ListPage::updateLeds(leds);
 }
 
-void NoteSequencePage::keyPress(KeyPressEvent &event) {
+void LogicSequencePage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
 
     if (key.shiftModifier() && event.count() == 2) {
@@ -91,21 +91,14 @@ void NoteSequencePage::keyPress(KeyPressEvent &event) {
     }
 
     if (key.is(Key::Encoder) && selectedRow() == 0) {
-        _manager.pages().textInput.show("NAME:", _project.selectedNoteSequence().name(), NoteSequence::NameLength, [this] (bool result, const char *text) {
+        _manager.pages().textInput.show("NAME:", _project.selectedLogicSequence().name(), LogicSequence::NameLength, [this] (bool result, const char *text) {
             if (result) {
-                _project.selectedNoteSequence().setName(text);
+                _project.selectedLogicSequence().setName(text);
             }
         });
 
         return;
     }
-
-    // We lock the playback parameters when logic track is enabled 
-    /*if (key.is(Key::Encoder) && selectedRow() > 0 && selectedRow() < 6) {
-        if (_project.selectedTrack().noteTrack().logicTrack() != -1) {
-            return;
-        }
-    }*/
 
     if (!event.consumed()) {
         ListPage::keyPress(event);
@@ -118,7 +111,7 @@ void NoteSequencePage::keyPress(KeyPressEvent &event) {
     }
 }
 
-void NoteSequencePage::contextShow(bool doubleClick) {
+void LogicSequencePage::contextShow(bool doubleClick) {
     showContextMenu(ContextMenu(
         contextMenuItems,
         int(ContextAction::Last),
@@ -128,7 +121,7 @@ void NoteSequencePage::contextShow(bool doubleClick) {
     ));
 }
 
-void NoteSequencePage::saveContextShow(bool doubleClick) {
+void LogicSequencePage::saveContextShow(bool doubleClick) {
     showContextMenu(ContextMenu(
         saveContextMenuItems,
         int(SaveContextAction::Last),
@@ -138,7 +131,7 @@ void NoteSequencePage::saveContextShow(bool doubleClick) {
     ));
 }
 
-void NoteSequencePage::contextAction(int index) {
+void LogicSequencePage::contextAction(int index) {
     switch (ContextAction(index)) {
     case ContextAction::Init:
         initSequence();
@@ -160,7 +153,7 @@ void NoteSequencePage::contextAction(int index) {
     }
 }
 
-void NoteSequencePage::saveContextAction(int index) {
+void LogicSequencePage::saveContextAction(int index) {
     switch (SaveContextAction(index)) {
     case SaveContextAction::Load:
         loadSequence();
@@ -176,10 +169,10 @@ void NoteSequencePage::saveContextAction(int index) {
     }
 }
 
-bool NoteSequencePage::contextActionEnabled(int index) const {
+bool LogicSequencePage::contextActionEnabled(int index) const {
     switch (ContextAction(index)) {
     case ContextAction::Paste:
-        return _model.clipBoard().canPasteNoteSequence();
+        return _model.clipBoard().canPasteLogicSequence();
     case ContextAction::Route:
         return _listModel.routingTarget(selectedRow()) != Routing::Target::None;
     default:
@@ -187,33 +180,33 @@ bool NoteSequencePage::contextActionEnabled(int index) const {
     }
 }
 
-void NoteSequencePage::initSequence() {
-    _project.selectedNoteSequence().clear();
+void LogicSequencePage::initSequence() {
+    _project.selectedLogicSequence().clear();
     showMessage("SEQUENCE INITIALIZED");
 }
 
-void NoteSequencePage::copySequence() {
-    _model.clipBoard().copyNoteSequence(_project.selectedNoteSequence());
+void LogicSequencePage::copySequence() {
+    _model.clipBoard().copyLogicSequence(_project.selectedLogicSequence());
     showMessage("SEQUENCE COPIED");
 }
 
-void NoteSequencePage::pasteSequence() {
-    _model.clipBoard().pasteNoteSequence(_project.selectedNoteSequence());
+void LogicSequencePage::pasteSequence() {
+    _model.clipBoard().pasteLogicSequence(_project.selectedLogicSequence());
     showMessage("SEQUENCE PASTED");
 }
 
-void NoteSequencePage::duplicateSequence() {
+void LogicSequencePage::duplicateSequence() {
     if (_project.selectedTrack().duplicatePattern(_project.selectedPatternIndex())) {
         showMessage("SEQUENCE DUPLICATED");
     }
 }
 
-void NoteSequencePage::initRoute() {
+void LogicSequencePage::initRoute() {
     _manager.pages().top.editRoute(_listModel.routingTarget(selectedRow()), _project.selectedTrackIndex());
 }
 
-void NoteSequencePage::loadSequence() {
-    _manager.pages().fileSelect.show("LOAD SEQUENCE", FileType::NoteSequence, _project.selectedNoteSequence().slotAssigned() ? _project.selectedNoteSequence().slot() : 0, false, [this] (bool result, int slot) {
+void LogicSequencePage::loadSequence() {
+    _manager.pages().fileSelect.show("LOAD SEQUENCE", FileType::LogicSequence, _project.selectedLogicSequence().slotAssigned() ? _project.selectedLogicSequence().slot() : 0, false, [this] (bool result, int slot) {
         if (result) {
             _manager.pages().confirmation.show("ARE YOU SURE?", [this, slot] (bool result) {
                 if (result) {
@@ -224,22 +217,22 @@ void NoteSequencePage::loadSequence() {
     });
 }
 
-void NoteSequencePage::saveSequence() {
+void LogicSequencePage::saveSequence() {
 
-    if (!_project.selectedNoteSequence().slotAssigned() || sizeof(_project.selectedNoteSequence().name())==0) {
+    if (!_project.selectedLogicSequence().slotAssigned() || sizeof(_project.selectedLogicSequence().name())==0) {
         saveAsSequence();
         return;
     }
 
-    saveSequenceToSlot(_project.selectedNoteSequence().slot());
+    saveSequenceToSlot(_project.selectedLogicSequence().slot());
 
     showMessage("SEQUENCE SAVED");
 }
 
-void NoteSequencePage::saveAsSequence() {
-    _manager.pages().fileSelect.show("SAVE SEQUENCE", FileType::NoteSequence, _project.selectedNoteSequence().slotAssigned() ? _project.selectedNoteSequence().slot() : 0, true, [this] (bool result, int slot) {
+void LogicSequencePage::saveAsSequence() {
+    _manager.pages().fileSelect.show("SAVE SEQUENCE", FileType::LogicSequence, _project.selectedLogicSequence().slotAssigned() ? _project.selectedLogicSequence().slot() : 0, true, [this] (bool result, int slot) {
         if (result) {
-            if (FileManager::slotUsed(FileType::NoteSequence, slot)) {
+            if (FileManager::slotUsed(FileType::LogicSequence, slot)) {
                 _manager.pages().confirmation.show("ARE YOU SURE?", [this, slot] (bool result) {
                     if (result) {
                         saveSequenceToSlot(slot);
@@ -252,12 +245,12 @@ void NoteSequencePage::saveAsSequence() {
     });
 }
 
-void NoteSequencePage::saveSequenceToSlot(int slot) {
+void LogicSequencePage::saveSequenceToSlot(int slot) {
     //_engine.suspend();
     _manager.pages().busy.show("SAVING SEQUENCE ...");
 
     FileManager::task([this, slot] () {
-        return FileManager::writeNoteSequence(_project.selectedNoteSequence(), slot);
+        return FileManager::writeLogicSequence(_project.selectedLogicSequence(), slot);
     }, [this] (fs::Error result) {
         if (result == fs::OK) {
             showMessage("SEQUENCE SAVED");
@@ -270,13 +263,13 @@ void NoteSequencePage::saveSequenceToSlot(int slot) {
     });
 }
 
-void NoteSequencePage::loadSequenceFromSlot(int slot) {
+void LogicSequencePage::loadSequenceFromSlot(int slot) {
     //_engine.suspend();
     _manager.pages().busy.show("LOADING SEQUENCE ...");
 
     FileManager::task([this, slot] () {
         // TODO this is running in file manager thread but model notification affect ui
-        return FileManager::readNoteSequence(_project.selectedNoteSequence(), slot);
+        return FileManager::readLogicSequence(_project.selectedLogicSequence(), slot);
     }, [this] (fs::Error result) {
         if (result == fs::OK) {
             showMessage("SEQUENCE LOADED");
@@ -290,3 +283,5 @@ void NoteSequencePage::loadSequenceFromSlot(int slot) {
         _engine.resume();
     });
 }
+
+

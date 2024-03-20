@@ -1,13 +1,16 @@
 #include "Engine.h"
 
 #include "Config.h"
+#include "LogicTrackEngine.h"
 #include "MidiUtils.h"
 
+#include "NoteTrackEngine.h"
 #include "core/Debug.h"
 #include "core/midi/MidiMessage.h"
 #include "ui/ControllerManager.h"
 
 #include "os/os.h"
+#include <iostream>
 
 Engine::Engine(Model &model, ClockTimer &clockTimer, Adc &adc, Dac &dac, Dio &dio, GateOutput &gateOutput, Midi &midi, UsbMidi &usbMidi) :
     _model(model),
@@ -409,7 +412,6 @@ void Engine::updateTrackSetups() {
         auto &track = _project.track(trackIndex);
         int linkTrack = track.linkTrack();
         const TrackEngine *linkedTrackEngine = linkTrack >= 0 ? &trackEngine(linkTrack) : nullptr;
-        FixedStringBuilder<16> str("TRACK %d", trackIndex+1);
        
         if (!_trackEngines[trackIndex] || _trackEngines[trackIndex]->trackMode() != track.trackMode()) {
             auto &trackEngine = _trackEngines[trackIndex];
@@ -418,27 +420,18 @@ void Engine::updateTrackSetups() {
             switch (track.trackMode()) {
             case Track::TrackMode::Note:
                 trackEngine = trackContainer.create<NoteTrackEngine>(*this, _model, track, linkedTrackEngine);
-                if (sizeof(track.noteTrack().name()==0)) {
-                    track.noteTrack().setName(str);
-                }
                 break;
             case Track::TrackMode::Curve:
                 trackEngine = trackContainer.create<CurveTrackEngine>(*this, _model, track, linkedTrackEngine);
-                if (sizeof(track.noteTrack().name()==0)) {
-                    track.curveTrack().setName(str);
-                }
                 break;
             case Track::TrackMode::MidiCv:
                 trackEngine = trackContainer.create<MidiCvTrackEngine>(*this, _model, track, linkedTrackEngine);
-                if (sizeof(track.noteTrack().name()==0)) {
-                    track.midiCvTrack().setName(str);
-                }
                 break;
             case Track::TrackMode::Stochastic:
                 trackEngine = trackContainer.create<StochasticEngine>(*this, _model, track, linkedTrackEngine);
-                if (sizeof(track.stochasticTrack().name()==0)) {
-                    track.stochasticTrack().setName(str);
-                }
+                break;
+            case Track::TrackMode::Logic:
+                trackEngine = trackContainer.create<LogicTrackEngine>(*this, _model, track, linkedTrackEngine);
                 break;
             case Track::TrackMode::Last:
                 break;

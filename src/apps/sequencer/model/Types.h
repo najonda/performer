@@ -65,6 +65,18 @@ public:
         Last
     };
 
+    enum StageRepeatMode {
+        Each,
+        First,
+        Middle,
+        Last,
+        Odd,
+        Even,
+        Triplets,
+        Random,
+
+    };
+
     static const char *cvGateInputName(CvGateInput cvGateInput) {
         switch (cvGateInput) {
         case CvGateInput::Off:      return "Off";

@@ -79,6 +79,29 @@ static const LayerMapItem noteSequenceLayerMap[] = {
 
 static constexpr int noteSequenceLayerMapSize = sizeof(noteSequenceLayerMap) / sizeof(noteSequenceLayerMap[0]);
 
+static const LayerMapItem logicSequenceLayerMap[] = {
+    [int(LogicSequence::Layer::Gate)]                        =  { 0, 0 },
+    [int(LogicSequence::Layer::GateLogic)]                   =  { 1, 0 },
+    [int(LogicSequence::Layer::GateProbability)]             =  { 2, 0 },
+    [int(LogicSequence::Layer::GateOffset)]                  =  { 3, 0 },
+    [int(LogicSequence::Layer::Retrigger)]                   =  { 0, 1 },
+    [int(LogicSequence::Layer::RetriggerProbability)]        =  { 1, 1 },
+    [int(LogicSequence::Layer::StageRepeats)]                =  { 2, 1 },
+    [int(LogicSequence::Layer::StageRepeatsMode)]            =  { 3, 1 },
+    [int(LogicSequence::Layer::Length)]                      =  { 0, 2 },
+    [int(LogicSequence::Layer::LengthVariationRange)]        =  { 1, 2 },
+    [int(LogicSequence::Layer::LengthVariationProbability)]  =  { 2, 2 },
+    [int(LogicSequence::Layer::NoteLogic)]                   =  { 0, 3 },
+    [int(LogicSequence::Layer::NoteVariationRange)]          =  { 1, 3 },
+    [int(LogicSequence::Layer::NoteVariationProbability)]    =  { 2, 3 },
+    [int(LogicSequence::Layer::Slide)]                       =  { 3, 3 },
+    [int(LogicSequence::Layer::Condition)]                   =  { 0, 4 },
+
+
+};
+
+static constexpr int logicSequenceLayerMapSize = sizeof(logicSequenceLayerMap) / sizeof(logicSequenceLayerMap[0]);
+
 static const LayerMapItem curveSequenceLayerMap[] = {
     [int(CurveSequence::Layer::Shape)]                      =  { 0, 0 },
     [int(CurveSequence::Layer::ShapeVariation)]             =  { 1, 0 },
@@ -417,8 +440,6 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
             }
         } else {
             if (button.isGrid()) {
-
-
                 if (_noteStyle == 0) {
                     sequenceEditStep(button.row, button.col);
                 } else {
@@ -440,8 +461,10 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
                             } else {
                                 sequenceEditStep(button.row, button.col);
                             }
+                            break;
                          }
-
+                         case Track::TrackMode::Logic:
+                            sequenceEditStep(button.row, button.col);
                             break;
                         default:
                             break;
@@ -723,6 +746,17 @@ void LaunchpadController::sequenceUpdateNavigation() {
 
         break;
     }
+    case Track::TrackMode::Logic: {
+        auto layer = _project.selectedLogicSequenceLayer();
+        _sequence.navigation.left = 0;
+        _sequence.navigation.right = layer == LogicSequence::Layer::Gate || layer == LogicSequence::Layer::Slide ? 0 : 7;
+
+        auto range = LogicSequence::layerRange(_project.selectedLogicSequenceLayer());
+        _sequence.navigation.top = range.max / 8;
+        _sequence.navigation.bottom = (range.min - 7) / 8;
+
+        break;
+    }
     default:
         break;
     }
@@ -758,7 +792,16 @@ void LaunchpadController::sequenceSetLayer(int row, int col) {
                 break;
             }
         }
-        break;    
+        break; 
+    case Track::TrackMode::Logic:
+        for (int i = 0; i < logicSequenceLayerMapSize; ++i) {
+            const auto &item = logicSequenceLayerMap[i];
+            if (row == item.row && col == item.col) {
+                _project.setSelectedLogicSequenceLayer(LogicSequence::Layer(i));
+                break;
+            }
+        }
+        break;  
     default:
         break;
     }
@@ -775,6 +818,10 @@ void LaunchpadController::sequenceSetFirstStep(int step) {
         break;
     case Track::TrackMode::Stochastic:
         _project.selectedStochasticSequence().setSequenceFirstStep(step);
+        break;
+    case Track::TrackMode::Logic:
+        _project.selectedLogicSequence().setFirstStep(step);
+        break;
     default:
         break;
     }
@@ -791,6 +838,10 @@ void LaunchpadController::sequenceSetLastStep(int step) {
         break;
     case Track::TrackMode::Stochastic:
         _project.selectedStochasticSequence().setSequenceLastStep(step);
+        break;
+    case Track::TrackMode::Logic:
+        _project.selectedLogicSequence().setLastStep(step);
+        break;
     default:
         break;
     }
@@ -806,6 +857,9 @@ void LaunchpadController::sequenceSetRunMode(int mode) {
         break;
     case Track::TrackMode::Stochastic:
          _project.selectedStochasticSequence().setRunMode(Types::RunMode(mode));
+        break;
+    case Track::TrackMode::Logic:
+        _project.selectedLogicSequence().setRunMode(Types::RunMode(mode));
         break;
     default:
         break;
@@ -854,6 +908,9 @@ void LaunchpadController::sequenceSetFollowMode(int col) {
     case Track::TrackMode::Curve:
         _project.selectedTrack().curveTrack().setPatternFollow(Types::PatternFollow(col));
         break;
+    case Track::TrackMode::Logic:
+        _project.selectedTrack().logicTrack().setPatternFollow(Types::PatternFollow(col));
+        break;
     default:
         break;
     }
@@ -863,6 +920,9 @@ void LaunchpadController::sequenceToggleStep(int row, int col) {
     switch (_project.selectedTrack().trackMode()) {
     case Track::TrackMode::Note:
         sequenceToggleNoteStep(row, col);
+        break;
+    case Track::TrackMode::Logic:
+        sequenceToggleLogicStep(row, col);
         break;
     default:
         break;
@@ -885,6 +945,22 @@ void LaunchpadController::sequenceToggleNoteStep(int row, int col) {
     }
 }
 
+void LaunchpadController::sequenceToggleLogicStep(int row, int col) {
+    auto &sequence = _project.selectedLogicSequence();
+    auto layer = _project.selectedLogicSequenceLayer();
+
+    int linearIndex = col + _sequence.navigation.col * 8;
+
+    switch (layer) {
+    case LogicSequence::Layer::Gate:
+    case LogicSequence::Layer::Slide:
+        break;
+    default:
+        sequence.step(linearIndex).toggleGate();
+        break;
+    }
+}
+
 void LaunchpadController::sequenceEditStep(int row, int col) {
     switch (_project.selectedTrack().trackMode()) {
     case Track::TrackMode::Note:
@@ -893,8 +969,11 @@ void LaunchpadController::sequenceEditStep(int row, int col) {
     case Track::TrackMode::Curve:
         sequenceEditCurveStep(row, col);
         break;
-    case Track::Track::TrackMode::Stochastic:
+    case Track::TrackMode::Stochastic:
         sequenceEditStochasticStep(row, col);
+        break;
+    case Track::TrackMode::Logic:
+        sequenceEditLogicStep(row, col);
         break;
     default:
         break;
@@ -969,6 +1048,27 @@ void LaunchpadController::sequenceEditStochasticStep(int row, int col) {
     }
 }
 
+void LaunchpadController::sequenceEditLogicStep(int row, int col) {
+    auto &sequence = _project.selectedLogicSequence();
+    auto layer = _project.selectedLogicSequenceLayer();
+
+    int gridIndex = row * 8 + col;
+    int linearIndex = col + _sequence.navigation.col * 8;
+    int value = (7 - row) + _sequence.navigation.row * 8;
+
+    switch (layer) {
+    case LogicSequence::Layer::Gate:
+        sequence.step(gridIndex).toggleGate();
+        break;
+    case LogicSequence::Layer::Slide:
+        sequence.step(gridIndex).toggleSlide();
+        break;
+    default:
+        sequence.step(linearIndex).setLayerValue(layer, value);
+        break;
+    }
+}
+
 void LaunchpadController::sequenceDrawLayer() {
     switch (_project.selectedTrack().trackMode()) {
     
@@ -1002,6 +1102,18 @@ void LaunchpadController::sequenceDrawLayer() {
             setGridLed(item.row, item.col, selected ? colorYellow() : colorGreen());
         }
         break;
+    case Track::TrackMode::Logic:
+        for (int i = 0; i < logicSequenceLayerMapSize; ++i) {
+            const auto &item = logicSequenceLayerMap[i];
+            bool selected = i == int(_project.selectedLogicSequenceLayer());
+
+            auto playMode = _engine.selectedTrackEngine().as<LogicTrackEngine>().playMode();
+            if (playMode == Types::PlayMode::Aligned && (i == 6 || i == 7)) {
+                continue;
+            } 
+            setGridLed(item.row, item.col, selected ? colorYellow() : colorGreen());
+        }
+        break;
     default:
         break;
     }
@@ -1022,6 +1134,11 @@ void LaunchpadController::sequenceDrawStepRange(int highlight) {
     case Track::TrackMode::Stochastic: {
         const auto &sequence = _project.selectedStochasticSequence();
         drawRange(sequence.sequenceFirstStep(), sequence.sequenceLastStep(), highlight == 0 ? sequence.sequenceFirstStep() : sequence.sequenceLastStep());
+        break;
+    }
+    case Track::TrackMode::Logic: {
+        const auto &sequence = _project.selectedLogicSequence();
+        drawRange(sequence.firstStep(), sequence.lastStep(), highlight == 0 ? sequence.firstStep() : sequence.lastStep());
         break;
     }
     default:
@@ -1052,6 +1169,10 @@ void LaunchpadController::sequenceDrawRunMode() {
         drawEnum(_project.selectedStochasticSequence().runMode());
         break;
     }
+    case Track::TrackMode::Logic: {
+        drawEnum(_project.selectedLogicSequence().runMode());
+        break;
+    }
     default:
         break;
     }
@@ -1065,6 +1186,10 @@ void LaunchpadController::sequenceDrawFollowMode() {
         }
         case Track::TrackMode::Curve: {
             drawEnum(_project.selectedTrack().curveTrack().patternFollow());
+            break;
+        }
+        case Track::TrackMode::Logic: {
+            drawEnum(_project.selectedTrack().logicTrack().patternFollow());
             break;
         }
         default:
@@ -1082,6 +1207,9 @@ void LaunchpadController::sequenceDrawSequence() {
         break;
     case Track::TrackMode::Stochastic:
         sequenceDrawStochasticSequence();
+        break;
+    case Track::TrackMode::Logic:
+        sequenceDrawLogicSequence();
         break;
     default:
         break;
@@ -1112,6 +1240,31 @@ void LaunchpadController::sequenceDrawNoteSequence() {
         break;
     default:
         drawNoteSequenceBars(sequence, layer, currentStep);
+        break;
+    }
+}
+
+void LaunchpadController::sequenceDrawLogicSequence() {
+    const auto &trackEngine = _engine.selectedTrackEngine().as<LogicTrackEngine>();
+
+    auto sequence = std::ref(_project.selectedLogicSequence());
+    if (_project.playState().songState().playing()) {
+        auto trackIndex = _project.selectedTrackIndex() ;   
+        sequence = std::ref(_project.selectedTrack().logicTrack().sequence(_project.playState().trackState(trackIndex).pattern()));
+    }
+    auto layer = _project.selectedLogicSequenceLayer();
+    int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
+
+    switch (layer) {
+    case LogicSequence::Layer::Gate:
+    case LogicSequence::Layer::Slide:
+        drawLogicSequenceBits(sequence, layer, currentStep);
+        break;
+    case LogicSequence::Layer::Condition:
+        drawLogicSequenceDots(sequence, layer, currentStep);
+        break;
+    default:
+        drawLogicSequenceBars(sequence, layer, currentStep);
         break;
     }
 }
@@ -1223,6 +1376,12 @@ void LaunchpadController::patternDraw() {
                     if (track.stochasticTrack().sequence(patternIndex).isEdited()) {
                         setGridLed(row, trackIndex, colorRed(2));
                     }
+                    break;
+                case Track::TrackMode::Logic:
+                    if (track.logicTrack().sequence(patternIndex).isEdited()) {
+                        setGridLed(row, trackIndex, colorRed(2));
+                    }
+                    break;
                 default:
                     break;
                 }
@@ -1319,8 +1478,13 @@ void LaunchpadController::performerEnter() {
             case Track::TrackMode::Stochastic: {
                     _startingFirstStep[i] = _project.track(i).stochasticTrack().sequence(_project.selectedPatternIndex()).sequenceFirstStep();
                     _startingLastStep[i] = _project.track(i).stochasticTrack().sequence(_project.selectedPatternIndex()).sequenceLastStep();
+                }
                 break;
-            }
+            case Track::TrackMode::Logic: {
+                    _startingFirstStep[i] = _project.track(i).logicTrack().sequence(_project.selectedPatternIndex()).firstStep();
+                    _startingLastStep[i] = _project.track(i).logicTrack().sequence(_project.selectedPatternIndex()).lastStep();
+                }
+                break;
             default:
                 break;
         }
@@ -1419,6 +1583,24 @@ void LaunchpadController::performerDraw() {
                                 setGridLed(row, col, color);
                             }
                             break;
+                        case Track::TrackMode::Logic: {
+                                const auto &trackEngine = _engine.trackEngine(row).as<LogicTrackEngine>();
+                                if (_performFollowMode || track.logicTrack().patternFollow() == Types::PatternFollow::DispAndLP || track.logicTrack().patternFollow() == Types::PatternFollow::LaunchPad) {
+                                    int stepOffset = (std::max(0, trackEngine.currentStep()) / 8) * 8;
+                                    stepIndex = stepOffset + col;
+                                }
+                                auto sequence = track.logicTrack().sequence(_project.selectedPatternIndex());
+                                currentStep = trackEngine.currentStep();
+                                Color color = colorOff();
+                                if (sequence.step(stepIndex).gate()) {
+                                    color = colorGreen(2);
+                                }                      
+                                if (currentStep == stepIndex) {
+                                    color = colorRed();
+                                }
+                                setGridLed(row, col, color);
+                            }
+                            break;
                         default:
                             break;
 
@@ -1442,6 +1624,11 @@ void LaunchpadController::performerDraw() {
                     break;
                 case Track::TrackMode::Stochastic: {
                         auto engine = _engine.selectedTrackEngine().as<StochasticEngine>();
+                        currentStep = engine.currentStep();
+                    }
+                    break;
+                case Track::TrackMode::Logic: {
+                        auto engine = _engine.selectedTrackEngine().as<LogicTrackEngine>();
                         currentStep = engine.currentStep();
                     }
                     break;
@@ -1533,6 +1720,9 @@ void LaunchpadController::performerButton(const Button &button, ButtonAction act
                     } else if (_project.track(i).trackMode() == Track::TrackMode::Stochastic) {
                         _project.track(i).stochasticTrack().sequence(_project.selectedPatternIndex()).setSequenceFirstStep(fs);
                         _project.track(i).stochasticTrack().sequence(_project.selectedPatternIndex()).setSequenceLastStep(ls);
+                    } else if (_project.track(i).trackMode() == Track::TrackMode::Logic) {
+                        _project.track(i).logicTrack().sequence(_project.selectedPatternIndex()).setFirstStep(fs);
+                        _project.track(i).logicTrack().sequence(_project.selectedPatternIndex()).setLastStep(ls);
                     }
                 }
             } else if (_performSelectedLayer == 1) {
@@ -1553,13 +1743,20 @@ void LaunchpadController::performerButton(const Button &button, ButtonAction act
                         if (stepIndex<12) {  
                             track.stochasticTrack().sequence(_project.selectedPatternIndex()).step(stepIndex).toggleGate();
                         }
+                        break;
                     }
+                    case Track::TrackMode::Logic: {
+                            const auto &trackEngine = _engine.trackEngine(button.row).as<LogicTrackEngine>();
+                            if (_performFollowMode) {
+                                int stepOffset = (std::max(0, trackEngine.currentStep()) / 8) * 8;
+                                stepIndex = stepOffset + button.col;
+                            }           
+                            track.logicTrack().sequence(_project.selectedPatternIndex()).step(stepIndex).toggleGate();
+                        }
+                        break;
                     default:
                         break;
-                
                 }
-
-
             } 
         } else if (button.isScene()) {
                 _project.setSelectedTrackIndex(button.scene());
@@ -1584,8 +1781,10 @@ void LaunchpadController::performerButton(const Button &button, ButtonAction act
                     } else if (_project.track(i).trackMode() == Track::TrackMode::Stochastic) {
                         _project.track(i).stochasticTrack().sequence(_project.selectedPatternIndex()).setSequenceFirstStep(_startingFirstStep[i]);
                         _project.track(i).stochasticTrack().sequence(_project.selectedPatternIndex()).setSequenceLastStep(_startingLastStep[i]);
+                    } else if (_project.track(i).trackMode() == Track::TrackMode::Logic) {
+                        _project.track(i).logicTrack().sequence(_project.selectedPatternIndex()).setFirstStep(_startingFirstStep[i]);
+                        _project.track(i).logicTrack().sequence(_project.selectedPatternIndex()).setLastStep(_startingLastStep[i]);
                     }
-
                 }
             }
         }
@@ -2215,6 +2414,55 @@ void LaunchpadController::drawStochasticSequenceNotes(const StochasticSequence &
         setGridLed(6,2, !sequence.useLoop() && !sequence.isEmpty() && sequence.reseed() == 1 ? colorYellow(): colorYellow(1));
 }
 
+void LaunchpadController::drawLogicSequenceBits(const LogicSequence &sequence, LogicSequence::Layer layer, int currentStep) {
+     const auto &trackEngine = _engine.selectedTrackEngine().as<LogicTrackEngine>();
+    for (int row = 0; row < 8; ++row) {
+        for (int col = 0; col < 8; ++col) {
+            int stepIndex = row * 8 + col;
+            const auto &step = sequence.step(stepIndex);
+
+            Color color = colorOff();
+            if (step.gate()) {
+                color = colorYellow();
+            }
+            if (step.layerValue(layer) != 0) {
+                color = colorGreen(2);
+            }
+            if (stepIndex == currentStep) {
+                if (trackEngine.gateOutput(stepIndex)) {
+                    color = colorYellow();
+                } else {
+                    color = colorRed();
+                }
+            }
+            
+            setGridLed(row, col, color);
+        }
+    }
+}
+
+void LaunchpadController::drawLogicSequenceBars(const LogicSequence &sequence, LogicSequence::Layer layer, int currentStep) {
+    for (int col = 0; col < 8; ++col) {
+        int stepIndex = col + _sequence.navigation.col * 8;
+        int lastStep = sequence.lastStep();
+        followModeAction(currentStep, lastStep);
+        const auto &step = sequence.step(stepIndex);
+        drawBar(col, step.layerValue(layer), step.gate(), stepIndex == currentStep);
+    }
+}
+
+void LaunchpadController::drawLogicSequenceDots(const LogicSequence &sequence, LogicSequence::Layer layer, int currentStep) {
+    int ofs = _sequence.navigation.row * 8;
+    for (int col = 0; col < 8; ++col) {
+        int stepIndex = col + _sequence.navigation.col * 8;
+        int lastStep = sequence.lastStep();
+        followModeAction(currentStep, lastStep);
+        const auto &step = sequence.step(stepIndex);
+        int value = step.layerValue(layer);
+        setGridLed((7 - value) + ofs, col, stepColor(true, stepIndex == currentStep));
+    }
+}
+
 void LaunchpadController::followModeAction(int currentStep, int lastStep) {
     if (_engine.state().running()) {
         bool followMode = false;
@@ -2232,6 +2480,13 @@ void LaunchpadController::followModeAction(int currentStep, int lastStep) {
             }
             case Track::TrackMode::Curve: {
                 auto mode = _project.selectedTrack().curveTrack().patternFollow();
+                if (mode == Types::PatternFollow::LaunchPad || mode == Types::PatternFollow::DispAndLP) {
+                    followMode = true;
+                }
+                break;
+            }
+            case Track::TrackMode::Logic: {
+                auto mode = _project.selectedTrack().logicTrack().patternFollow();
                 if (mode == Types::PatternFollow::LaunchPad || mode == Types::PatternFollow::DispAndLP) {
                     followMode = true;
                 }

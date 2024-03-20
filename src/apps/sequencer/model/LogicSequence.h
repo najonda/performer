@@ -8,7 +8,6 @@
 #include "Scale.h"
 #include "Routing.h"
 #include "FileDefs.h"
-#include "os/os.h"
 
 #include "core/math/Math.h"
 #include "core/utils/StringBuilder.h"
@@ -21,7 +20,7 @@
 #include <iostream>
 #include <map>
 
-class NoteSequence {
+class LogicSequence {
 public:
     //----------------------------------------
     // Types
@@ -34,7 +33,9 @@ public:
     typedef UnsignedValue<4> Length;
     typedef SignedValue<4> LengthVariationRange;
     typedef UnsignedValue<4> LengthVariationProbability;
+    typedef SignedValue<3> GateLogic;
     typedef SignedValue<7> Note;
+    typedef SignedValue<3> NoteLogic;
     typedef SignedValue<7> NoteVariationRange;
     typedef UnsignedValue<4> NoteVariationProbability;
     typedef UnsignedValue<7> Condition;
@@ -45,6 +46,7 @@ public:
 
     enum class Layer {
         Gate,
+        GateLogic,
         GateProbability,
         GateOffset,
         Retrigger,
@@ -54,40 +56,67 @@ public:
         Length,
         LengthVariationRange,
         LengthVariationProbability,
-        Note,
+        NoteLogic,
         NoteVariationRange,
         NoteVariationProbability,
         Slide,
-        BypassScale,
         Condition,
         Last
     };
 
     static const char *layerName(Layer layer) {
         switch (layer) {
-        case Layer::Gate:                       return "GATE";
-        case Layer::GateProbability:            return "GATE PROB";
-        case Layer::GateOffset:                 return "GATE OFFSET";
-        case Layer::Slide:                      return "SLIDE";
-        case Layer::BypassScale:                 return "BYPASS SCALE";
-        case Layer::Retrigger:                  return "RETRIG";
-        case Layer::RetriggerProbability:       return "RETRIG PROB";
-        case Layer::Length:                     return "LENGTH";
-        case Layer::LengthVariationRange:       return "LENGTH RANGE";
-        case Layer::LengthVariationProbability: return "LENGTH PROB";
-        case Layer::Note:                       return "NOTE";
-        case Layer::NoteVariationRange:         return "NOTE RANGE";
-        case Layer::NoteVariationProbability:   return "NOTE PROB";
-        case Layer::Condition:                  return "CONDITION";
-        case Layer::StageRepeats:               return "REPEAT";
-        case Layer::StageRepeatsMode:           return "REPEAT MODE";
-        case Layer::Last:                       break;
+            case Layer::Gate:                       return "GATE";
+            case Layer::GateLogic:                  return "GATE LOGIC";
+            case Layer::GateProbability:            return "GATE PROB";
+            case Layer::GateOffset:                 return "GATE OFFSET";
+
+            case Layer::Retrigger:                  return "RETRIG";
+            case Layer::RetriggerProbability:       return "RETRIG PROB";
+
+            case Layer::Length:                     return "LENGTH";
+            case Layer::LengthVariationRange:       return "LENGTH RANGE";
+            case Layer::LengthVariationProbability: return "LENGTH PROB";
+            
+            case Layer::NoteLogic:                  return "NOTE LOGIC";
+            case Layer::NoteVariationProbability:   return "NOTE PROB";
+            case Layer::NoteVariationRange:         return "NOTE RANGE";
+            case Layer::Slide:                      return "SLIDE";
+
+            case Layer::Condition:                  return "CONDITION";
+
+            case Layer::StageRepeats:               return "REPEAT";
+            case Layer::StageRepeatsMode:           return "REPEAT MODE";
+            case Layer::Last:                       break;
         }
         return nullptr;
     }
 
     static Types::LayerRange layerRange(Layer layer);
     static int layerDefaultValue(Layer layer);
+
+
+    enum GateLogicMode {
+        One,
+        Two,
+        And,
+        Or,
+        Xor,
+        Nand,
+        RandomInput,
+        RandomLogic
+    };
+
+    enum NoteLogicMode {
+        NOne,
+        NTwo,
+        Min,
+        Max,
+        Sum,
+        Avg,
+        NRandomInput,
+        NRandomLogic
+    };
 
     static constexpr size_t NameLength = FileHeader::NameLength;
 
@@ -133,6 +162,26 @@ public:
         void setGateOffset(int gateOffset) {
             _data1.gateOffset = GateOffset::clamp(gateOffset) - GateOffset::Min;
         }
+
+        // gateLogic
+
+        GateLogicMode gateLogic() const { 
+            int value = _data0.gateLogic;
+            return static_cast<GateLogicMode>(value); 
+        }
+        void setGateLogic(GateLogicMode gateLogic) {
+            _data0.gateLogic = gateLogic;
+        }
+
+        // noteLogic
+        NoteLogicMode noteLogic() const { 
+            int value = _data0.noteLogic;
+            return static_cast<NoteLogicMode>(value); 
+        }
+        void setNoteLogic(NoteLogicMode noteLogic) {
+            _data0.noteLogic = noteLogic;
+        }
+
 
         // slide
 
@@ -181,9 +230,9 @@ public:
 
         // note
 
-        int note() const { return Note::Min + _data0.note; }
+        int note() const { return 0; }
         void setNote(int note) {
-            _data0.note = Note::clamp(note) - Note::Min;
+            //
         }
 
         // noteVariationRange
@@ -209,14 +258,6 @@ public:
 
         int layerValue(Layer layer) const;
         void setLayerValue(Layer layer, int value);
-
-        bool bypassScale() const { return _data1.bypassScale ? true : false; }
-        void setBypassScale(bool bypass) {
-            _data1.bypassScale = bypass;
-        }
-        void toggleBypassScale() {
-            setBypassScale(!bypassScale());
-        }
 
         //----------------------------------------
         // Methods
@@ -245,25 +286,28 @@ public:
             BitField<uint32_t, 2, Length::Bits> length;
             BitField<uint32_t, 6, LengthVariationRange::Bits> lengthVariationRange;
             BitField<uint32_t, 10, LengthVariationProbability::Bits> lengthVariationProbability;
-            BitField<uint32_t, 14, Note::Bits> note;
-            BitField<uint32_t, 21, NoteVariationRange::Bits> noteVariationRange;
-            BitField<uint32_t, 28, NoteVariationProbability::Bits> noteVariationProbability;
+            BitField<uint32_t, 14, GateLogic::Bits> gateLogic;
+            BitField<uint32_t, 17, NoteVariationRange::Bits> noteVariationRange;
+            BitField<uint32_t, 24, NoteVariationProbability::Bits> noteVariationProbability;
+            BitField<uint32_t, 28, NoteLogic::Bits> noteLogic;
+
         } _data0;
         union {
             uint32_t raw;
-            BitField<uint32_t, 0, 1> bypassScale;
-            BitField<uint32_t, 1, Retrigger::Bits> retrigger;
-            BitField<uint32_t, 4, GateProbability::Bits> gateProbability;
-            BitField<uint32_t, 8, RetriggerProbability::Bits> retriggerProbability;
-            BitField<uint32_t, 12, GateOffset::Bits> gateOffset;
-            BitField<uint32_t, 16, Condition::Bits> condition;
-            BitField<uint32_t, 23, StageRepeats::Bits> stageRepeats;
-            BitField<uint32_t, 26, StageRepeatsMode::Bits> stageRepeatMode;
-            // 4 bits left
+            BitField<uint32_t, 0, Retrigger::Bits> retrigger;
+            BitField<uint32_t, 3, GateProbability::Bits> gateProbability;
+            BitField<uint32_t, 7, RetriggerProbability::Bits> retriggerProbability;
+            BitField<uint32_t, 11, GateOffset::Bits> gateOffset;
+            BitField<uint32_t, 15, Condition::Bits> condition;
+            BitField<uint32_t, 22, StageRepeats::Bits> stageRepeats;
+            BitField<uint32_t, 25, StageRepeatsMode::Bits> stageRepeatMode;
         } _data1;
+
     };
 
     typedef std::array<Step, CONFIG_STEP_COUNT> StepArray;
+
+
 
     //----------------------------------------
     // Properties
@@ -492,25 +536,6 @@ public:
         str("%d", lastStep() + 1);
     }
 
-    int currentRecordStep() const {
-        return _currentRecordStep.get(isRouted(Routing::Target::CurrentRecordStep)); 
-    }
-    
-    void setCurrentRecordStep(int step, bool routed = false) {
-        _currentRecordStep.set(clamp(step, firstStep(), CONFIG_STEP_COUNT - 1), routed);
-    }    
-    
-    void editCurrentRecordStep(int value, bool shift) {
-        if (!isRouted(Routing::Target::CurrentRecordStep)) {
-            setCurrentRecordStep(currentRecordStep()+value);
-        }
-    }
-
-    void printCurrentRecordStep(StringBuilder &str) const {
-        printRouted(str, Routing::Target::CurrentRecordStep);
-        str("%d", currentRecordStep() + 1);
-    }
-
     // steps
 
     const StepArray &steps() const { return _steps; }
@@ -531,7 +556,7 @@ public:
     // Methods
     //----------------------------------------
 
-    NoteSequence() { clear(); }
+    LogicSequence() { clear(); }
 
     void clear();
     void clearSteps();
@@ -588,16 +613,11 @@ private:
     Routable<uint8_t> _firstStep;
     Routable<uint8_t> _lastStep;
 
-    Routable<uint8_t> _currentRecordStep;
-
     StepArray _steps;
 
     uint8_t _edited;
 
     int _section = 0;
-    uint32_t _lastGateOff;
-    uint8_t _gate;
-    static constexpr uint32_t GateOnDelay = os::time::ms(5);
 
-    friend class NoteTrack;
+    friend class LogicTrack;
 };

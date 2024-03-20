@@ -1,10 +1,10 @@
-#include "StochasticTrack.h"
+#include "LogicTrack.h"
 #include "ProjectVersion.h"
 #include <string>
 #include "core/utils/StringBuilder.h"
 
 
-void StochasticTrack::writeRouted(Routing::Target target, int intValue, float floatValue) {
+void LogicTrack::writeRouted(Routing::Target target, int intValue, float floatValue) {
     switch (target) {
     case Routing::Target::SlideTime:
         setSlideTime(intValue, true);
@@ -18,12 +18,24 @@ void StochasticTrack::writeRouted(Routing::Target target, int intValue, float fl
     case Routing::Target::Rotate:
         setRotate(intValue, true);
         break;
+    case Routing::Target::GateProbabilityBias:
+        setGateProbabilityBias(intValue, true);
+        break;
+    case Routing::Target::RetriggerProbabilityBias:
+        setRetriggerProbabilityBias(intValue, true);
+        break;
+    case Routing::Target::LengthBias:
+        setLengthBias(intValue, true);
+        break;
+    case Routing::Target::NoteProbabilityBias:
+        setNoteProbabilityBias(intValue, true);
+        break;
     default:
         break;
     }
 }
 
-void StochasticTrack::clear() {
+void LogicTrack::clear() {
     setPlayMode(Types::PlayMode::Aligned);
     setFillMode(FillMode::Gates);
     setFillMuted(true);
@@ -36,13 +48,15 @@ void StochasticTrack::clear() {
     setRetriggerProbabilityBias(0);
     setLengthBias(0);
     setNoteProbabilityBias(0);
+    setDetailedView(false);
 
     for (auto &sequence : _sequences) {
         sequence.clear();
     }
 }
 
-void StochasticTrack::write(VersionedSerializedWriter &writer) const {
+
+void LogicTrack::write(VersionedSerializedWriter &writer) const {
     writer.write(_name, NameLength + 1);
     writer.write(_playMode);
     writer.write(_fillMode);
@@ -52,10 +66,17 @@ void StochasticTrack::write(VersionedSerializedWriter &writer) const {
     writer.write(_octave.base);
     writer.write(_transpose.base);
     writer.write(_rotate.base);
+    writer.write(_gateProbabilityBias.base);
+    writer.write(_retriggerProbabilityBias.base);
+    writer.write(_lengthBias.base);
+    writer.write(_noteProbabilityBias.base);
+    writer.write(_inputTrack1);
+    writer.write(_inputTrack2);
+    writer.write(_detailedView);
     writeArray(writer, _sequences);
 }
 
-void StochasticTrack::read(VersionedSerializedReader &reader) {
+void LogicTrack::read(VersionedSerializedReader &reader) {
     reader.backupHash();
 
     reader.read(_name, NameLength + 1, ProjectVersion::Version33);
@@ -68,6 +89,14 @@ void StochasticTrack::read(VersionedSerializedReader &reader) {
     reader.read(_octave.base);
     reader.read(_transpose.base);
     reader.read(_rotate.base);
+    reader.read(_gateProbabilityBias.base);
+    reader.read(_retriggerProbabilityBias.base);
+    reader.read(_lengthBias.base);
+    reader.read(_noteProbabilityBias.base);
+
+    reader.read(_inputTrack1, ProjectVersion::Version37);
+    reader.read(_inputTrack2, ProjectVersion::Version37);
+    reader.read(_detailedView, ProjectVersion::Version37);
 
     // There is a bug in previous firmware versions where writing the properties
     // of a note track did not update the hash value.

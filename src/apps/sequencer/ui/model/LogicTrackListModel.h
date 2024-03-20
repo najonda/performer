@@ -4,11 +4,12 @@
 
 #include "RoutableListModel.h"
 
-#include "model/StochasticTrack.h"
+#include "model/LogicTrack.h"
+#include <vector>
 
-class StochasticTrackListModel : public RoutableListModel {
+class LogicTrackListModel : public RoutableListModel {
 public:
-    void setTrack(StochasticTrack &track) {
+    void setTrack(LogicTrack &track) {
         _track = &track;
     }
 
@@ -72,6 +73,10 @@ private:
         RetriggerProbabilityBias,
         LengthBias,
         NoteProbabilityBias,
+        PatternFollow,
+        InputTrack1,
+        InputTrack2,
+        DetailedView,
         Last
     };
 
@@ -90,6 +95,10 @@ private:
         case RetriggerProbabilityBias: return "Retrig P. Bias";
         case LengthBias: return "Length Bias";
         case NoteProbabilityBias: return "Note P. Bias";
+        case PatternFollow: return "Pattern Follow";
+        case InputTrack1: return "Input Trk 1";
+        case InputTrack2: return "Input Trk 2";
+        case DetailedView: return "Detail View";
         case Last:      break;
         }
         return nullptr;
@@ -140,6 +149,18 @@ private:
         case NoteProbabilityBias:
             _track->printNoteProbabilityBias(str);
             break;
+        case PatternFollow:
+            _track->printPatternFollow(str);
+            break;
+        case InputTrack1:
+            _track->printInputTrack1(str);
+            break;
+        case InputTrack2:
+            _track->printInputTrack2(str);
+            break;
+        case DetailedView:
+            _track->printDetailedView(str);
+            break;
         case Last:
             break;
         }
@@ -151,7 +172,7 @@ private:
         case TrackName:
             break;
         case PlayMode:
-            //_track->editPlayMode(value, shift);
+            _track->editPlayMode(value, shift);
             break;
         case FillMode:
             _track->editFillMode(value, shift);
@@ -186,6 +207,15 @@ private:
         case NoteProbabilityBias:
             _track->editNoteProbabilityBias(value, shift);
             break;
+        case PatternFollow:
+            _track->editPatternFollow(value, shift);
+            break;
+        case InputTrack1:
+        case InputTrack2:
+            break;
+        case DetailedView:
+            _track->editDetailedView(value, shift);
+            break;
         case Last:
             break;
         }
@@ -193,6 +223,5 @@ private:
 
     virtual void setSelectedScale(int defaultScale, bool force = false) override {};
 
-
-    StochasticTrack *_track;
+    LogicTrack *_track;
 };

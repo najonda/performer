@@ -3,7 +3,7 @@
 #include "BaseTrackPatternFollow.h"
 #include "Config.h"
 #include "Types.h"
-#include "NoteSequence.h"
+#include "LogicSequence.h"
 #include "Serialize.h"
 #include "Routing.h"
 #include "FileDefs.h"
@@ -12,13 +12,13 @@
 #include <cstdint>
 
 
-class NoteTrack : public BaseTrack, public BaseTrackPatternFollow {
+class LogicTrack : public BaseTrack, public BaseTrackPatternFollow {
 public:
     //----------------------------------------
     // Types
     //----------------------------------------
 
-    typedef std::array<NoteSequence, CONFIG_PATTERN_COUNT + CONFIG_SNAPSHOT_COUNT> NoteSequenceArray;
+    typedef std::array<LogicSequence, CONFIG_PATTERN_COUNT + CONFIG_SNAPSHOT_COUNT> LogicSequenceArray;
 
     // FillMode
 
@@ -61,8 +61,6 @@ public:
     //----------------------------------------
     // Properties
     //----------------------------------------
-
-    const int trackIndex() const { return _trackIndex;}
 
     // playMode
 
@@ -200,7 +198,7 @@ public:
 
     int gateProbabilityBias() const { return _gateProbabilityBias.get(isRouted(Routing::Target::GateProbabilityBias)); }
     void setGateProbabilityBias(int gateProbabilityBias, bool routed = false) {
-        _gateProbabilityBias.set(clamp(gateProbabilityBias, -NoteSequence::GateProbability::Range, NoteSequence::GateProbability::Range), routed);
+        _gateProbabilityBias.set(clamp(gateProbabilityBias, -LogicSequence::GateProbability::Range, LogicSequence::GateProbability::Range), routed);
     }
 
     void editGateProbabilityBias(int value, bool shift) {
@@ -218,7 +216,7 @@ public:
 
     int retriggerProbabilityBias() const { return _retriggerProbabilityBias.get(isRouted(Routing::Target::RetriggerProbabilityBias)); }
     void setRetriggerProbabilityBias(int retriggerProbabilityBias, bool routed = false) {
-        _retriggerProbabilityBias.set(clamp(retriggerProbabilityBias, -NoteSequence::RetriggerProbability::Range, NoteSequence::RetriggerProbability::Range), routed);
+        _retriggerProbabilityBias.set(clamp(retriggerProbabilityBias, -LogicSequence::RetriggerProbability::Range, LogicSequence::RetriggerProbability::Range), routed);
     }
 
     void editRetriggerProbabilityBias(int value, bool shift) {
@@ -236,7 +234,7 @@ public:
 
     int lengthBias() const { return _lengthBias.get(isRouted(Routing::Target::LengthBias)); }
     void setLengthBias(int lengthBias, bool routed = false) {
-        _lengthBias.set(clamp(lengthBias, -NoteSequence::Length::Range, NoteSequence::Length::Range), routed);
+        _lengthBias.set(clamp(lengthBias, -LogicSequence::Length::Range, LogicSequence::Length::Range), routed);
     }
 
     void editLengthBias(int value, bool shift) {
@@ -254,7 +252,7 @@ public:
 
     int noteProbabilityBias() const { return _noteProbabilityBias.get(isRouted(Routing::Target::NoteProbabilityBias)); }
     void setNoteProbabilityBias(int noteProbabilityBias, bool routed = false) {
-        _noteProbabilityBias.set(clamp(noteProbabilityBias, -NoteSequence::NoteVariationProbability::Range, NoteSequence::NoteVariationProbability::Range), routed);
+        _noteProbabilityBias.set(clamp(noteProbabilityBias, -LogicSequence::NoteVariationProbability::Range, LogicSequence::NoteVariationProbability::Range), routed);
     }
 
     void editNoteProbabilityBias(int value, bool shift) {
@@ -270,48 +268,14 @@ public:
 
     // sequences
 
-    const NoteSequenceArray &sequences() const { return _sequences; }
-          NoteSequenceArray &sequences()       { return _sequences; }
+    const LogicSequenceArray &sequences() const { return _sequences; }
+          LogicSequenceArray &sequences()       { return _sequences; }
 
-    const NoteSequence &sequence(int index) const { return _sequences[index]; }
-          NoteSequence &sequence(int index)       { return _sequences[index]; }
+    const LogicSequence &sequence(int index) const { return _sequences[index]; }
+          LogicSequence &sequence(int index)       { return _sequences[index]; }
 
-    void setSequence(int index, NoteSequence seq) {
+    void setSequence(int index, LogicSequence seq) {
         _sequences[index] = seq;
-    }
-
-    const int logicTrack() const { return _logicTrack; }
-    void setLogicTrack(int logicTrack) {
-        _logicTrack = clamp(logicTrack, -1, 7);
-    }
-
-    void printLogicTrack(StringBuilder &str) const {
-        if (logicTrack()==-1) {
-            str("Off");
-        } else {
-            str("%d", logicTrack()+1);
-        }
-    }
-
-    void editLogicTrack(int value, bool shift) {
-        setLogicTrack(logicTrack()+ value);
-    }
-
-    const int logicTrackInput() const { return _logicTrackInput; }
-    void setLogicTrackInput(int logicTrackInput) {
-        _logicTrackInput = clamp(logicTrackInput, -1, 1);
-    }
-
-    void printLogicTrackInput(StringBuilder &str) const {
-        if (logicTrackInput()==-1) {
-            str("-");
-        } else {
-            str("%d", logicTrackInput()+1);
-        }
-    }
-
-    void editLogicTrackInput(int value, bool shift) {
-        setLogicTrackInput(logicTrackInput()+ value);
     }
 
     //----------------------------------------
@@ -322,11 +286,64 @@ public:
     inline void printRouted(StringBuilder &str, Routing::Target target) const { Routing::printRouted(str, target, _trackIndex); }
     void writeRouted(Routing::Target target, int intValue, float floatValue);
 
+    const int inputTrack1() const {
+        return _inputTrack1;
+    }
+
+    void setInputTrack1(int trackIndex) {
+        _inputTrack1 = trackIndex;
+    }
+
+    void printInputTrack1(StringBuilder &str) const {
+        if (inputTrack1()==-1) {
+            str("-");
+        } else {
+            str("%d", inputTrack1()+1);
+        }
+    }
+
+
+    const int inputTrack2() const {
+        return _inputTrack2;
+    }
+
+    void setInputTrack2(int trackIndex) {
+        _inputTrack2 = trackIndex;
+    }
+
+     void printInputTrack2(StringBuilder &str) const {
+        if (inputTrack2()==-1) {
+            str("-");
+        } else {
+            str("%d", inputTrack2()+1);
+        }
+    }
+
+    // detailed view
+    bool detailedView() const { return _detailedView; }
+    void setDetailedView(bool value) {
+        if (value != _detailedView) {
+            _detailedView = value;
+        }
+    }
+
+    void editDetailedView(int value, bool shift) {
+        setDetailedView(value > 0);
+    }
+
+    void toggleDetailedView() {
+        setDetailedView(!detailedView());
+    }
+
+    void printDetailedView(StringBuilder &str) const {
+        ModelUtils::printYesNo(str, detailedView());
+    }
+
     //----------------------------------------
     // Methods
     //----------------------------------------
 
-    NoteTrack() { clear(); }
+    LogicTrack() { clear(); }
 
     void clear();
 
@@ -355,10 +372,12 @@ private:
     Routable<int8_t> _lengthBias;
     Routable<int8_t> _noteProbabilityBias;
 
-    int8_t _logicTrack = -1;
-    int8_t _logicTrackInput = -1;
+    int8_t _inputTrack1 = -1;
+    int8_t _inputTrack2 = -1;
 
-    NoteSequenceArray _sequences;
+    bool _detailedView = false;
+
+    LogicSequenceArray _sequences;
 
     friend class Track;
 };

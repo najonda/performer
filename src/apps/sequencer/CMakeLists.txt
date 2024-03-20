@@ -15,6 +15,7 @@ set(sources
     engine/MidiOutputEngine.cpp
     engine/NoteTrackEngine.cpp
     engine/StochasticEngine.cpp
+    engine/LogicTrackEngine.cpp
     engine/RoutingEngine.cpp
     engine/SequenceState.cpp
     # engine/generators
@@ -41,6 +42,8 @@ set(sources
     model/NoteTrack.cpp
     model/StochasticSequence.cpp
     model/StochasticTrack.cpp
+    model/LogicSequence.cpp
+    model/LogicTrack.cpp
     model/PlayState.cpp
     model/Project.cpp
     model/Routing.cpp
@@ -89,6 +92,8 @@ set(sources
     ui/pages/NoteSequencePage.cpp
     ui/pages/StochasticSequencePage.cpp
     ui/pages/StochasticSequenceEditPage.cpp
+    ui/pages/LogicSequenceEditPage.cpp
+    ui/pages/LogicSequencePage.cpp
     ui/pages/OverviewPage.cpp
     ui/pages/PatternPage.cpp
     ui/pages/PerformerPage.cpp

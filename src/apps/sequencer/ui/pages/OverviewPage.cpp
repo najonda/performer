@@ -1,17 +1,62 @@
 #include "OverviewPage.h"
 
+#include "TopPage.h"
 #include "model/NoteTrack.h"
 
 #include "ui/painters/WindowPainter.h"
 #include "ui/LedPainter.h"
 #include "ui/painters/SequencePainter.h"
+#include "Pages.h"
+
+static const NoteSequenceListModel::Item noteQuickEditItems[8] = {
+    NoteSequenceListModel::Item::FirstStep,
+    NoteSequenceListModel::Item::LastStep,
+    NoteSequenceListModel::Item::RunMode,
+    NoteSequenceListModel::Item::Divisor,
+    NoteSequenceListModel::Item::ResetMeasure,
+    NoteSequenceListModel::Item::Scale,
+    NoteSequenceListModel::Item::RootNote,
+    NoteSequenceListModel::Item::Last
+};
+
+static const CurveSequenceListModel::Item curveQuickEditItems[8] = {
+    CurveSequenceListModel::Item::FirstStep,
+    CurveSequenceListModel::Item::LastStep,
+    CurveSequenceListModel::Item::RunMode,
+    CurveSequenceListModel::Item::Divisor,
+    CurveSequenceListModel::Item::ResetMeasure,
+    CurveSequenceListModel::Item::Range,
+    CurveSequenceListModel::Item::Last,
+    CurveSequenceListModel::Item::Last
+};
+
+static const LogicSequenceListModel::Item logicQuickEditItems[8] = {
+    LogicSequenceListModel::Item::FirstStep,
+    LogicSequenceListModel::Item::LastStep,
+    LogicSequenceListModel::Item::RunMode,
+    LogicSequenceListModel::Item::Divisor,
+    LogicSequenceListModel::Item::ResetMeasure,
+    LogicSequenceListModel::Item::Scale,
+    LogicSequenceListModel::Item::RootNote,
+    LogicSequenceListModel::Item::Last
+};
+
+static const StochasticSequenceListModel::Item stochasticQuickEditItems[8] = {
+    StochasticSequenceListModel::Item::SequenceFirstStep,
+    StochasticSequenceListModel::Item::SequenceLastStep,
+    StochasticSequenceListModel::Item::RunMode,
+    StochasticSequenceListModel::Item::Divisor,
+    StochasticSequenceListModel::Item::ResetMeasure,
+    StochasticSequenceListModel::Item::Scale,
+    StochasticSequenceListModel::Item::RootNote,
+    StochasticSequenceListModel::Item::Last
+};
 
 static void drawNoteTrack(Canvas &canvas, int trackIndex, const NoteTrackEngine &trackEngine, NoteSequence &sequence, bool running, bool patternFollow) {
     canvas.setBlendMode(BlendMode::Set);
 
     int stepOffset = 16*sequence.section();
     if (patternFollow) {
-        stepOffset = (std::max(0, trackEngine.currentStep()) / 16) * 16*sequence.section();
         int section_no = int((trackEngine.currentStep()) / 16);
         sequence.setSecion(section_no);
     }
@@ -21,7 +66,7 @@ static void drawNoteTrack(Canvas &canvas, int trackIndex, const NoteTrackEngine 
         int stepIndex = stepOffset + i;
         const auto &step = sequence.step(stepIndex);
 
-        int x = 68 + i * 8;
+        int x = 76 + i * 8;
 
         if (trackEngine.currentStep() == stepIndex) {
             canvas.setColor(step.gate() ? Color::Bright : Color::MediumBright);
@@ -30,11 +75,38 @@ static void drawNoteTrack(Canvas &canvas, int trackIndex, const NoteTrackEngine 
             canvas.setColor(step.gate() ? Color::Medium : Color::Low);
             canvas.fillRect(x + 1, y + 1, 6, 6);
         }
+    }
+}
 
-        // if (trackEngine.currentStep() == stepIndex) {
-        //     canvas.setColor(Color::Bright);
-        //     canvas.drawRect(x + 1, y + 1, 6, 6);
-        // }
+static void drawLogicTrack(Canvas &canvas, int trackIndex, const LogicTrackEngine &trackEngine, LogicSequence &sequence, bool running, bool patternFollow) {
+    canvas.setBlendMode(BlendMode::Set);
+
+    int stepOffset = 16*sequence.section();
+    if (patternFollow) {
+        int section_no = int((trackEngine.currentStep()) / 16);
+        sequence.setSecion(section_no);
+    }
+    int y = trackIndex * 8;
+
+    for (int i = 0; i < 16; ++i) {
+        int stepIndex = stepOffset + i;
+        const auto &step = sequence.step(stepIndex);
+
+        int x = 76 + i * 8;
+
+        if (trackEngine.currentStep() == stepIndex) {
+            canvas.setColor(step.gate() ? Color::Bright : Color::MediumBright);
+
+            if (trackEngine.gateOutput(stepIndex)) {
+                canvas.fillRect(x + 3, y + 3, 3, 3);
+                canvas.setColor(Color::Medium);
+            } else {
+                canvas.fillRect(x + 1, y + 1, 6, 6);
+            }
+        } else {
+            canvas.setColor(step.gate() ? Color::Medium : Color::Low);
+            canvas.fillRect(x + 1, y + 1, 6, 6);
+        }
     }
 }
 
@@ -60,24 +132,32 @@ static void drawCurve(Canvas &canvas, int x, int y, int w, int h, float &lastY, 
     lastY = fy0;
 }
 
-static void drawStochasticTrack(Canvas &canvas, int trackIndex, const StochasticEngine &trackEngine, const StochasticSequence &sequence) {
+static void drawStochasticTrack(Canvas &canvas, int trackIndex, const StochasticEngine &trackEngine, const StochasticSequence &sequence, const Scale &scale) {
+
     canvas.setBlendMode(BlendMode::Set);
 
     int stepOffset = (std::max(0, trackEngine.currentStep()) / 12) * 12;
     int y = trackIndex * 8;
 
     for (int i = 0; i < 12; ++i) {
+        
         int stepIndex = stepOffset + i;
         const auto &step = sequence.step(stepIndex);
 
-        int x = 16 + (68 + i * 8);
+        int x = 16 + (76+ i * 8);
 
         if (trackEngine.currentStep() == stepIndex) {
             canvas.setColor(step.gate() ? Color::Bright : Color::MediumBright);
             canvas.fillRect(x + 1, y + 1, 6, 6);
+            
         } else {
             canvas.setColor(step.gate() ? Color::Medium : Color::Low);
             canvas.fillRect(x + 1, y + 1, 6, 6);
+        }
+        if (step.gate() && scale.isNotePresent(step.note())) {
+            canvas.setBlendMode(BlendMode::Sub);
+            canvas.fillRect(x + 3, y + 3, 3, 3);
+            canvas.setBlendMode(BlendMode::Set);
         }
     }
 
@@ -89,7 +169,6 @@ static void drawCurveTrack(Canvas &canvas, int trackIndex, const CurveTrackEngin
 
     int stepOffset = 16*sequence.section();
     if (patternFollow) {
-        stepOffset = (std::max(0, trackEngine.currentStep()) / 16) * 16*sequence.section();
         int section_no = int((trackEngine.currentStep()) / 16);
         sequence.setSecion(section_no);
     }
@@ -104,13 +183,13 @@ static void drawCurveTrack(Canvas &canvas, int trackIndex, const CurveTrackEngin
         float max = step.maxNormalized();
         const auto function = Curve::function(Curve::Type(std::min(Curve::Last - 1, step.shape())));
 
-        int x = 68 + i * 8;
+        int x = 76 + i * 8;
 
         drawCurve(canvas, x, y + 1, 8, 6, lastY, function, min, max);
     }
 
     if (trackEngine.currentStep() >= 0) {
-        int x = 64 + ((trackEngine.currentStep() - stepOffset) + trackEngine.currentStepFraction()) * 8;
+        int x = 76 + ((trackEngine.currentStep() - stepOffset) + trackEngine.currentStepFraction()) * 8;
         canvas.setBlendMode(BlendMode::Set);
         canvas.setColor(Color::Bright);
         canvas.vline(x, y + 1, 7);
@@ -132,6 +211,8 @@ void OverviewPage::exit() {
         _engine.selectedTrackEngine().as<NoteTrackEngine>().setMonitorStep(-1);
     } else if (_project.selectedTrack().trackMode()==Track::TrackMode::Stochastic) {
         _engine.selectedTrackEngine().as<NoteTrackEngine>().setMonitorStep(-1);
+    } else if (_project.selectedTrack().trackMode()==Track::TrackMode::Logic) {
+        _engine.selectedTrackEngine().as<LogicTrackEngine>().setMonitorStep(-1);
     }
 }
 
@@ -142,10 +223,10 @@ void OverviewPage::draw(Canvas &canvas) {
     canvas.setBlendMode(BlendMode::Set);
     canvas.setColor(Color::Medium);
 
-    canvas.vline(68 - 3, 0, 68);
-    canvas.vline(68 - 2, 0, 68);
-    canvas.vline(196 + 1, 0, 68);
-    canvas.vline(196 + 2, 0, 68);
+    canvas.vline(76 - 3, 0, 68);
+    canvas.vline(76 - 2, 0, 68);
+    canvas.vline(204 + 1, 0, 68);
+    canvas.vline(204 + 2, 0, 68);
 
     for (int trackIndex = 0; trackIndex < 8; trackIndex++) {
         auto &track = _project.track(trackIndex);
@@ -159,46 +240,61 @@ void OverviewPage::draw(Canvas &canvas) {
 
         // track number / pattern number
         canvas.setColor(trackState.mute() ? Color::Medium : Color::Bright);
+        
         switch (track.trackMode()) {
-            case Track::TrackMode::Note:
-                canvas.drawText(2, y, track.noteTrack().name());
+            case Track::TrackMode::Note: {
+                    FixedStringBuilder<16> str("%s%s", _project.selectedTrackIndex() == trackIndex ? "+" : "", track.noteTrack().name());
+                    canvas.drawText(2, y, str);
+                }
                 break;
-            case Track::TrackMode::Curve:
-                canvas.drawText(2, y, track.curveTrack().name());
+            case Track::TrackMode::Curve: {
+                    FixedStringBuilder<16> str("%s%s", _project.selectedTrackIndex() == trackIndex ? "+" : "", track.curveTrack().name());
+                    canvas.drawText(2, y, str);
+                }
                 break;
-            case Track::TrackMode::MidiCv:
-                canvas.drawText(2, y, track.midiCvTrack().name());
+            case Track::TrackMode::MidiCv: {
+                    FixedStringBuilder<16> str("%s%s", _project.selectedTrackIndex() == trackIndex ? "+" : "", track.midiCvTrack().name());
+                    canvas.drawText(2, y, str);
+                }
                 break;
-            case Track::TrackMode::Stochastic:
-                canvas.drawText(2, y, track.stochasticTrack().name());
+            case Track::TrackMode::Stochastic: {
+                    FixedStringBuilder<16> str("%s%s", _project.selectedTrackIndex() == trackIndex ? "+" : "", track.stochasticTrack().name());
+                    canvas.drawText(2, y, str);
+                }
+                break;
+            case Track::TrackMode::Logic: {
+                    FixedStringBuilder<16> str("%s%s", _project.selectedTrackIndex() == trackIndex ? "+" : "", track.logicTrack().name());
+                    canvas.drawText(2, y, str);
+                }
                 break;
             default:
                 break;
         }  
 
-        std::string s = std::to_string(trackState.pattern() + 1);
-        char const *pchar = s.c_str(); 
-        char const p[] = {'P'};
-
-        canvas.fillRect(46 - 1, y - 5, canvas.textWidth(p)+canvas.textWidth(pchar) + 1, 7);
+        if (trackState.pattern()>9) {
+            canvas.fillRect(56 - 1, y - 5, 16,7);
+        } else {
+            canvas.fillRect(56 - 1, y - 5, 12,7);
+        }
+        
         canvas.setBlendMode(BlendMode::Sub);
-        canvas.drawText(46, y, FixedStringBuilder<8>("P%d", trackState.pattern() + 1));
+        canvas.drawText(56, y, FixedStringBuilder<8>("P%d", trackState.pattern() + 1));
         canvas.setBlendMode(BlendMode::Set);
 
         bool gate = _engine.gateOutput() & (1 << trackIndex);
         canvas.setColor(gate ? Color::Bright : Color::Medium);
-        canvas.fillRect(256 - 48 + 1, trackIndex * 8 + 1, 6, 6);
+        canvas.fillRect(256 - 40 + 1, trackIndex * 8 + 1, 6, 6);
 
         // cv output
         canvas.setColor(Color::Bright);
-        canvas.drawText(256 - 32, y, FixedStringBuilder<8>("%.2fV", _engine.cvOutput().channel(trackIndex)));
+        canvas.drawText(256 - 28, y, FixedStringBuilder<8>("%.2fV", _engine.cvOutput().channel(trackIndex)));
 
         switch (track.trackMode()) {
         case Track::TrackMode::Note: {
                 bool patterFolow = false;
                 if (track.noteTrack().patternFollow()==Types::PatternFollow::Display || track.noteTrack().patternFollow()==Types::PatternFollow::DispAndLP) {
                     patterFolow = true;
-                    canvas.drawText(256 - 54, y, FixedStringBuilder<8>("F"));
+                    canvas.drawText(256 - 46, y, FixedStringBuilder<8>("F"));
                 }
                 drawNoteTrack(canvas, trackIndex, trackEngine.as<NoteTrackEngine>(), track.noteTrack().sequence(trackState.pattern()), _engine.state().running(), patterFolow);    
             }
@@ -207,13 +303,29 @@ void OverviewPage::draw(Canvas &canvas) {
                 bool patterFolow = false;
                 if (track.curveTrack().patternFollow()==Types::PatternFollow::Display || track.curveTrack().patternFollow()==Types::PatternFollow::DispAndLP) {
                     patterFolow = true;
-                    canvas.drawText(256 - 54, y, FixedStringBuilder<8>("F"));
+                    canvas.drawText(256 - 46, y, FixedStringBuilder<8>("F"));
                 }
                 drawCurveTrack(canvas, trackIndex, trackEngine.as<CurveTrackEngine>(), track.curveTrack().sequence(trackState.pattern()), _engine.state().running(), patterFolow);
             }
             break;
-        case Track::TrackMode::Stochastic:
-            drawStochasticTrack(canvas, trackIndex, trackEngine.as<StochasticEngine>(), track.stochasticTrack().sequence(trackState.pattern()));
+        case Track::TrackMode::Stochastic: {
+                const auto &sequence = track.stochasticTrack().sequence(trackState.pattern());
+                const auto &scale = sequence.selectedScale(_project.scale());
+
+                if (sequence.useLoop()) {
+                    canvas.drawText(256 - 46, y, FixedStringBuilder<8>("L"));
+                }
+                drawStochasticTrack(canvas, trackIndex, trackEngine.as<StochasticEngine>(), sequence, scale);
+            }
+            break;
+        case Track::TrackMode::Logic: {
+                bool patterFolow = false;
+                if (track.logicTrack().patternFollow()==Types::PatternFollow::Display || track.logicTrack().patternFollow()==Types::PatternFollow::DispAndLP) {
+                    patterFolow = true;
+                    canvas.drawText(256 - 46, y, FixedStringBuilder<8>("F"));
+                }
+                drawLogicTrack(canvas, trackIndex, trackEngine.as<LogicTrackEngine>(), track.logicTrack().sequence(trackState.pattern()), _engine.state().running(), patterFolow);  
+            }
             break;
         case Track::TrackMode::MidiCv:
             break;
@@ -242,9 +354,15 @@ void OverviewPage::draw(Canvas &canvas) {
                 }
                 break;
             case Track::TrackMode::Curve: {
-                auto &sequence = _project.selectedCurveSequence();
-                drawCurveDetail(canvas, sequence.step(_stepSelection.first()));
-            }
+                    auto &sequence = _project.selectedCurveSequence();
+                    drawCurveDetail(canvas, sequence.step(_stepSelection.first()));
+                }
+                break;
+            case Track::TrackMode::Logic: {
+                    auto &sequence = _project.selectedLogicSequence();
+                    drawLogicDetail(canvas, sequence.step(_stepSelection.first()));
+                }
+                break;
             default:
                 break;
         }
@@ -304,8 +422,52 @@ void OverviewPage::updateLeds(Leds &leds) {
             LedPainter::drawSelectedSequenceSection(leds, sequence.section());
             }
             break;
+        case Track::TrackMode::Logic: {
+            const auto &trackEngine = _engine.selectedTrackEngine().as<LogicTrackEngine>();
+            auto &sequence = _project.selectedLogicSequence();
+            int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
+
+            for (int i = 0; i < 16; ++i) {
+                int stepIndex = stepOffset() + i;
+                bool red = (stepIndex == currentStep) || _stepSelection[stepIndex];
+                bool green = (stepIndex != currentStep) && (sequence.step(stepIndex).gate() || _stepSelection[stepIndex]);
+                leds.set(MatrixMap::fromStep(i), red, green);
+            }
+
+            LedPainter::drawSelectedSequenceSection(leds, sequence.section());
+            
+            }
+            break;
         default:
             break;
+    }
+
+        if (globalKeyState()[Key::Page] && !globalKeyState()[Key::Shift]) {
+        for (int i = 0; i < 8; ++i) {
+            int index = MatrixMap::fromStep(i + 8);
+            leds.unmask(index);
+            switch (_project.selectedTrack().trackMode()) {
+                case Track::TrackMode::Note:
+                    leds.set(index, false, noteQuickEditItems[i] != NoteSequenceListModel::Item::Last);
+                    break;
+                case Track::TrackMode::Curve:
+                    leds.set(index, false, curveQuickEditItems[i] != CurveSequenceListModel::Item::Last);
+                    break;
+                case Track::TrackMode::Stochastic:
+                    leds.set(index, false, stochasticQuickEditItems[i] != StochasticSequenceListModel::Item::Last);
+                    break;
+                case Track::TrackMode::Logic:
+                    leds.set(index, false, logicQuickEditItems[i] != LogicSequenceListModel::Item::Last);
+                    break;
+                default:
+                    break;
+            }
+            leds.mask(index);
+        }
+        int index = MatrixMap::fromStep(15);
+        leds.unmask(index);
+        leds.set(index, false, true);
+        leds.mask(index);
     }
 }
 
@@ -333,6 +495,8 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
                     if (key.is(Key::Step15)) {
                         bool lpConnected = _engine.isLaunchpadConnected();
                         track.togglePatternFollowDisplay(lpConnected);
+                    } else {
+                        quickEdit(key.quickEdit());
                     }
                 }
                 break;
@@ -341,12 +505,30 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
                     if (key.is(Key::Step15)) {
                         bool lpConnected = _engine.isLaunchpadConnected();
                         track.togglePatternFollowDisplay(lpConnected);
+                    }  else {
+                        quickEdit(key.quickEdit());
                     }
+                }
+                break;
+            case Track::TrackMode::Logic: {
+                    auto &track = _project.selectedTrack().logicTrack();
+                    if (key.is(Key::Step15)) {
+                        bool lpConnected = _engine.isLaunchpadConnected();
+                        track.togglePatternFollowDisplay(lpConnected);
+                    }  else {
+                        quickEdit(key.quickEdit());
+                    }
+                }
+            case Track::TrackMode::Stochastic: {
+                quickEdit(key.quickEdit());
+                    
                 }
                 break;
             default:
                 break;
-         }
+        }
+        event.consume();
+        return;
     }
 
     if (key.pageModifier()) {
@@ -378,7 +560,39 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
             default:
                 break;
         }
+        event.consume();
+        return;
      }
+
+    if (key.isEncoder() && _project.selectedTrack().trackMode() == Track::TrackMode::Logic) {
+        switch (_project.selectedLogicSequenceLayer()) {
+            case LogicSequence::Layer::NoteLogic:
+                showMessage("GATE LOGIC");
+                _project.setSelectedLogicSequenceLayer(LogicSequence::Layer::GateLogic);
+                break;
+
+            default:
+                 showMessage("NOTE LOGIC");
+                _project.setSelectedLogicSequenceLayer(LogicSequence::Layer::NoteLogic);
+        }
+        event.consume();
+        return;
+    }
+
+    if (key.isEncoder() && _project.selectedTrack().trackMode() == Track::TrackMode::Stochastic) {
+        auto loop = _project.selectedStochasticSequence().useLoop();
+        _project.selectedStochasticSequence().setUseLoop(!loop);
+        event.consume();
+        return;;
+
+    }
+
+
+    if (key.isTrack() && event.count() == 2) {
+        _manager.pages().top.setMode(TopPage::Mode::SequenceEdit);
+        event.consume();
+        return;
+    }
 
     if (key.isStep() && event.count() == 2) {
         switch (track.trackMode()) {
@@ -393,6 +607,13 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
             case Track::TrackMode::Stochastic: {
                     int stepIndex = stepOffset() + key.step();
                     auto &sequence = _project.selectedStochasticSequence();
+                    sequence.step(stepIndex).toggleGate();
+                    event.consume();
+                }
+                break;
+            case Track::TrackMode::Logic: {
+                    auto &sequence = _project.selectedLogicSequence();
+                    int stepIndex = stepOffset() + key.step();
                     sequence.step(stepIndex).toggleGate();
                     event.consume();
                 }
@@ -452,13 +673,14 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
                     str("||||");
                     break;
             }
-
-                showMessage(str);
-
+            showMessage(str);
+            break;
             }
             default:
                 break;
         }
+        event.consume();
+        return;
     }
 
      if (key.isLeft()) {
@@ -473,6 +695,12 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
                 auto &sequence = _project.selectedCurveSequence();
                 sequence.setSecion(std::max(0, sequence.section() - 1));
                  track.curveTrack().setPatternFollowDisplay(false);
+                break;
+            }
+            case Track::TrackMode::Logic: {
+                auto &sequence = _project.selectedLogicSequence();
+                sequence.setSecion(std::max(0, sequence.section() - 1));
+                track.logicTrack().setPatternFollowDisplay(false);
                 break;
             }
             default:
@@ -495,6 +723,12 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
                 track.curveTrack().setPatternFollowDisplay(false);
                 break;
             }
+            case Track::TrackMode::Logic: {
+                auto &sequence = _project.selectedLogicSequence();
+                sequence.setSecion(std::max(0, sequence.section() + 1));
+                track.logicTrack().setPatternFollowDisplay(false);
+                break;
+            }
             default:
                 break;        
         }
@@ -503,11 +737,21 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
     }
 }
 
+static int wrap(int value, int const lowerBound, int const upperBound)
+{
+    int rangeSize = upperBound - lowerBound + 1;
+    if (value < lowerBound)
+        value += rangeSize * ((lowerBound - value) / rangeSize + 1);
+    return lowerBound + (value - lowerBound) % rangeSize;
+}
+
 void OverviewPage::encoder(EncoderEvent &event) {
 
     auto &track = _project.selectedTrack();
 
     if (!_stepSelection.any()) {
+        const auto val = wrap(_project.selectedTrackIndex()+event.value(), 0, 7);
+        _project.setSelectedTrackIndex(val);
         return;
     }
 
@@ -530,15 +774,15 @@ void OverviewPage::encoder(EncoderEvent &event) {
             }   
             break;
         case Track::TrackMode::Stochastic: {
-             auto &sequence = _project.selectedStochasticSequence();
+                auto &sequence = _project.selectedStochasticSequence();
                 for (size_t stepIndex = 0; stepIndex < sequence.steps().size(); ++stepIndex) {
                     if (_stepSelection[stepIndex]) {
                         auto &step = sequence.step(stepIndex);
                         step.setNoteVariationProbability(step.noteVariationProbability() + event.value());
                     }
                 }
-        }
-        break;
+            }
+            break;
         case Track::TrackMode::Curve: {
             auto &sequence = _project.selectedCurveSequence();
                 for (size_t stepIndex = 0; stepIndex < sequence.steps().size(); ++stepIndex) {
@@ -563,7 +807,28 @@ void OverviewPage::encoder(EncoderEvent &event) {
                         }
                     }
                 }
-        }
+            }
+            break;
+        case Track::TrackMode::Logic: {
+            auto &sequence = _project.selectedLogicSequence();
+                for (size_t stepIndex = 0; stepIndex < sequence.steps().size(); ++stepIndex) {
+                    if (_stepSelection[stepIndex]) {
+                        auto &step = sequence.step(stepIndex);
+                        
+                        switch (_project.selectedLogicSequenceLayer()) {
+                            case LogicSequence::Layer::GateLogic:
+                                step.setGateLogic(static_cast<LogicSequence::GateLogicMode>(step.gateLogic() + event.value()));
+                                break;
+                            case LogicSequence::Layer::NoteLogic:
+                                step.setNoteLogic(static_cast<LogicSequence::NoteLogicMode>(step.noteLogic() + event.value()));
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
+            break;
         default:
             break;
         }
@@ -742,11 +1007,178 @@ void OverviewPage::drawStochasticDetail(Canvas &canvas, const StochasticSequence
     canvas.setFont(Font::Tiny);
 }
 
-void OverviewPage::updateMonitorStep() {
-    auto &trackEngine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
+void OverviewPage::drawLogicDetail(Canvas &canvas, const LogicSequence::Step &step) {
+    FixedStringBuilder<16> str;
 
-    // TODO should we monitor an all layers not just note?
-    if (_stepSelection.any()) {
-        trackEngine.setMonitorStep(_stepSelection.first());
+    WindowPainter::drawFrame(canvas, 64, 16, 128, 32);
+
+    canvas.setBlendMode(BlendMode::Set);
+    canvas.setColor(Color::Bright);
+    canvas.vline(64 + 32, 16, 32);
+
+    canvas.setFont(Font::Small);
+    str("%d", _stepSelection.first() + 1);
+    if (_stepSelection.count() > 1) {
+        str("*");
+    }
+    canvas.drawTextCentered(64, 16, 32, 32, str);
+
+    canvas.setFont(Font::Tiny);
+
+    str.reset();
+    switch (_project.selectedLogicSequenceLayer()) {
+        case LogicSequence::Layer::GateLogic: {
+            switch (step.gateLogic()) {
+                case LogicSequence::GateLogicMode::One:
+                    str("INPUT 1");
+                    break;
+                case LogicSequence::GateLogicMode::Two:
+                    str("INPUT 2");
+                    break;
+                case LogicSequence::GateLogicMode::And:
+                    str("AND");
+                    break;
+                case LogicSequence::GateLogicMode::Or:
+                    str("OR");
+                    break;
+                case LogicSequence::GateLogicMode::Xor:
+                    str("XOR");
+                    break;
+                case LogicSequence::GateLogicMode::Nand:
+                    str("NAND");
+                    break;
+                case LogicSequence::GateLogicMode::RandomInput:
+                    str("RND INPUT");
+                    break;
+                case LogicSequence::GateLogicMode::RandomLogic:
+                    str("RND LOGIC");
+                    break;
+                default:
+                    break;
+            }
+            canvas.setFont(Font::Small);
+            canvas.drawTextCentered(64 + 64, 32 - 4, 32, 8, str);
+        }
+            break;
+        case LogicSequence::Layer::NoteLogic: {
+                switch (step.noteLogic()) {
+                    case LogicSequence::NoteLogicMode::NOne:
+                        str("INPUT 1");
+                        break;
+                    case LogicSequence::NoteLogicMode::NTwo:
+                        str("INPUT 2");
+                        break;
+                    case LogicSequence::NoteLogicMode::Min:
+                        str("MIN");
+                        break;
+                    case LogicSequence::NoteLogicMode::Max:
+                        str("MAX");
+                        break;
+                    case LogicSequence::NoteLogicMode::Sum:
+                        str("SUM");
+                        break;
+                    case LogicSequence::NoteLogicMode::Avg:
+                        str("AVG");
+                        break;
+                    case LogicSequence::NoteLogicMode::NRandomInput:
+                        str("RND INPUT");
+                        break;
+                    case LogicSequence::NoteLogicMode::NRandomLogic:
+                        str("RND LOGIC");
+                        break;
+                    default:
+                        break;
+                }
+                canvas.setFont(Font::Small);
+                canvas.drawTextCentered(64 + 64, 32 - 4, 32, 8, str);
+            }
+            break;
+        default:
+            break;
+    }
+
+    canvas.setFont(Font::Tiny);
+
+}
+
+void OverviewPage::updateMonitorStep() {
+
+    switch (_project.selectedTrack().trackMode()) {
+        case Track::TrackMode::Note: {
+                auto &trackEngine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
+                // TODO should we monitor an all layers not just note?
+                if (_stepSelection.any()) {
+                    trackEngine.setMonitorStep(_stepSelection.first());
+                }   
+            }
+            break;
+        case Track::TrackMode::Curve: {
+                auto &trackEngine = _engine.selectedTrackEngine().as<CurveTrackEngine>();
+                if ( _stepSelection.any()) {
+                    trackEngine.setMonitorStep(_stepSelection.first());
+                    trackEngine.setMonitorStepLevel(_project.selectedCurveSequenceLayer() == CurveSequence::Layer::Min ? CurveTrackEngine::MonitorLevel::Min : CurveTrackEngine::MonitorLevel::Max);
+                }
+            }
+            break;
+        case Track::TrackMode::Stochastic: {
+                auto &trackEngine = _engine.selectedTrackEngine().as<StochasticEngine>();
+                // TODO should we monitor an all layers not just note?
+                if (_stepSelection.any()) {
+                    trackEngine.setMonitorStep(_stepSelection.first());
+                }   
+            }
+            break;
+        case Track::TrackMode::Logic: {
+                auto &trackEngine = _engine.selectedTrackEngine().as<LogicTrackEngine>();
+                // TODO should we monitor an all layers not just note?
+                if (_stepSelection.any()) {
+                    trackEngine.setMonitorStep(_stepSelection.first());
+                }   
+            }
+            break;
+        default:
+            break;
+    }
+    
+}
+
+void OverviewPage::quickEdit(int index) {
+    switch (_project.selectedTrack().trackMode()) {
+        case Track::TrackMode::Note: {
+                _noteListModel.setSequence(&_project.selectedNoteSequence());
+                if (noteQuickEditItems[index] != NoteSequenceListModel::Item::Last) {
+                    _manager.pages().quickEdit.show(_noteListModel, int(noteQuickEditItems[index]));
+                }
+            }
+            break;
+        case Track::TrackMode::Curve: {
+                CurveSequenceListModel _listModel;
+
+                _curveListModel.setSequence(&_project.selectedCurveSequence());
+                if (curveQuickEditItems[index] != CurveSequenceListModel::Item::Last) {
+                    _manager.pages().quickEdit.show(_curveListModel, int(curveQuickEditItems[index]));
+                }
+            }
+            break;
+        case Track::TrackMode::Stochastic: {
+                StochasticSequenceListModel _listModel;
+
+                _stochasticListModel.setSequence(&_project.selectedStochasticSequence());
+                if (stochasticQuickEditItems[index] != StochasticSequenceListModel::Item::Last) {
+                    _manager.pages().quickEdit.show(_stochasticListModel, int(stochasticQuickEditItems[index]));
+                }
+            }
+            break;
+        case Track::TrackMode::Logic: {
+                LogicSequenceListModel _listModel;
+
+                _logicListModel.setSequence(&_project.selectedLogicSequence());
+                if (logicQuickEditItems[index] != LogicSequenceListModel::Item::Last) {
+                    _manager.pages().quickEdit.show(_logicListModel, int(logicQuickEditItems[index]));
+                }
+            }
+            break;
+        default:
+            break;
     }
 }

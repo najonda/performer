@@ -63,6 +63,18 @@ void ClipBoard::copyStochasticSequenceSteps(const StochasticSequence &sequence, 
     stochasticSequenceSteps.selected = selectedSteps;
 }
 
+void ClipBoard::copyLogicSequence(const LogicSequence &sequence) {
+    _type = Type::LogicSequence;
+    _container.as<LogicSequence>() = sequence;
+}
+
+void ClipBoard::copyLogicSequenceSteps(const LogicSequence &sequence, const SelectedSteps &selectedSteps) {
+    _type = Type::LogicSequenceSteps;
+    auto &logicSequenceSteps = _container.as<LogicSequenceSteps>();
+    logicSequenceSteps.sequence = sequence;
+    logicSequenceSteps.selected = selectedSteps;
+}
+
 void ClipBoard::copyPattern(int patternIndex) {
     _type = Type::Pattern;
     auto &pattern = _container.as<Pattern>();
@@ -75,6 +87,12 @@ void ClipBoard::copyPattern(int patternIndex) {
             break;
         case Track::TrackMode::Curve:
             pattern.sequences[trackIndex].data.curve = track.curveTrack().sequence(patternIndex);
+            break;
+        case Track::TrackMode::Stochastic:
+            pattern.sequences[trackIndex].data.stochastic = track.stochasticTrack().sequence(patternIndex);
+            break;
+        case Track::TrackMode::Logic:
+            pattern.sequences[trackIndex].data.logic = track.logicTrack().sequence(patternIndex);
             break;
         default:
             break;
@@ -138,6 +156,20 @@ void ClipBoard::pasteStochasticSequenceSteps(StochasticSequence &sequence, const
     }
 }
 
+void ClipBoard::pasteLogicSequence(LogicSequence &sequence) const {
+    if (canPasteLogicSequence()) {
+        Model::WriteLock lock;
+        sequence = _container.as<LogicSequence>();
+    }
+}
+
+void ClipBoard::pasteLogicSequenceSteps(LogicSequence &sequence, const SelectedSteps &selectedSteps) const {
+    if (canPasteLogicSequenceSteps()) {
+        const auto &logicSequenceSteps = _container.as<LogicSequenceSteps>();
+        ModelUtils::copySteps(logicSequenceSteps.sequence.steps(), logicSequenceSteps.selected, sequence.steps(), selectedSteps);
+    }
+}
+
 void ClipBoard::pastePattern(int patternIndex) const {
     if (canPastePattern()) {
         Model::WriteLock lock;
@@ -151,6 +183,12 @@ void ClipBoard::pastePattern(int patternIndex) const {
                     break;
                 case Track::TrackMode::Curve:
                     track.curveTrack().sequence(patternIndex) = pattern.sequences[trackIndex].data.curve;
+                    break;
+                case Track::TrackMode::Stochastic:
+                    track.stochasticTrack().sequence(patternIndex) = pattern.sequences[trackIndex].data.stochastic;
+                    break;
+                case Track::TrackMode::Logic:
+                    track.logicTrack().sequence(patternIndex) = pattern.sequences[trackIndex].data.logic;
                     break;
                 default:
                     break;
@@ -192,6 +230,14 @@ bool ClipBoard::canPasteStochasticSequence() const {
 
 bool ClipBoard::canPasteStochasticSequenceSteps() const {
     return _type == Type::StochasticSequenceSteps;
+}
+
+bool ClipBoard::canPasteLogicSequence() const {
+    return _type == Type::LogicSequence;
+}
+
+bool ClipBoard::canPasteLogicSequenceSteps() const {
+    return _type == Type::LogicSequenceSteps;
 }
 
 bool ClipBoard::canPastePattern() const {

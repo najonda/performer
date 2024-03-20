@@ -62,7 +62,9 @@ public:
         LengthBias,
         NoteProbabilityBias,
         ShapeProbabilityBias,
-        TrackLast = ShapeProbabilityBias,
+        CurveMin,
+        CurveMax,
+        TrackLast = CurveMax,
 
         // Sequence targets
         SequenceFirst,
@@ -72,6 +74,7 @@ public:
         Divisor,
         Scale,
         RootNote,
+        CurrentRecordStep,
         Reseed,
         RestProbability2,
         RestProbability4,
@@ -114,6 +117,8 @@ public:
         case Target::LengthBias:                return "Length Bias";
         case Target::NoteProbabilityBias:       return "Note P. Bias";
         case Target::ShapeProbabilityBias:      return "Shape P. Bias";
+        case Target::CurveMin:                  return "Curve Min";
+        case Target::CurveMax:                  return "Curve Max";
 
         case Target::FirstStep:                 return "First Step";
         case Target::LastStep:                  return "Last Step";
@@ -121,6 +126,8 @@ public:
         case Target::Divisor:                   return "Divisor";
         case Target::Scale:                     return "Scale";
         case Target::RootNote:                  return "Root Note";
+        case Target::CurrentRecordStep:         return "REC Step";
+
         case Target::Reseed:                    return "Reseed";
         case Target::RestProbability2:          return "Rest Prob. 2";
         case Target::RestProbability4:          return "Rest Prob. 4";
@@ -182,7 +189,10 @@ public:
         case Target::RestProbability2:          return 34;
         case Target::RestProbability4:          return 35;
         case Target::RestProbability8:          return 36;
-        case Target::LengthModifier:            return 37;        
+        case Target::LengthModifier:            return 37;    
+        case Target::CurrentRecordStep:         return 38;    
+        case Target::CurveMin:                  return 39;
+        case Target::CurveMax:                  return 40;
 
         case Target::Last:                      break;
         }
