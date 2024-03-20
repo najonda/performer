@@ -676,9 +676,9 @@ If a track is in _Note_ mode, the following parameters are available:
 | Retrig P. Bias | -100% - +100%                        | Retrigger probability bias that is added to the sequence.                                                                                                                                                                                                                                                                                                             |
 | Length Bias | -100% - +100%                        | Length bias bias that is added to the sequence.                                                                                                                                                                                                                                                                                                                       |
 | Note P. Bias | -100% - +100%                        | Note variation probability bias that is added to the sequence.                                                                                                                                                                                                                                                                                                        |
-| Pattern Follow | Off, Display, Launchpad, Display+LP  | Enable pattern follow Use `PAGE`+`S16` tio cycle between modes                                                                                                                                                                                                                                                                                                                                                  |
-| Logic Track | 1 - 8                                | Select the _Logic_ track to outout its values |
-| Logic Track In | 1 -2 | Select the inout of the logic track |
+| Pattern Follow | Off, Display, Launchpad, Display+LP  | Enable pattern follow Use `PAGE`+`S16` tio cycle between modes                                                                                                                                                                                                                                                                                                        |
+| Logic Track | 1 - 8                                | Select the _Logic_ track to outout its values                                                                                                                                                                                                                                                                                                                         |
+| Logic Track In | 1 -2 | Select the input of the logic track                                                                                                                                                                                                                                                                                                                                   |
 
 > Note: _Slide Time_, _Octave_, _Transpose_, _Rotate_, _Gate P. Bias_, _Retrig P. Bias_, _Length Bias_ and _Note P. Bias_ are routable parameters. These parameters are great for live performance, as they allow to change how the sequence is played back without actually changing the sequence itself.
 
@@ -778,8 +778,9 @@ If a track is in _Logic_ mode, the following parameters are available:
 | Length Bias    | -100% - +100%                        | Length bias bias that is added to the sequence.                                                                                                                                                                                                                                                                                                                       |
 | Note P. Bias   | -100% - +100%                        | Note variation probability bias that is added to the sequence.                                                                                                                                                                                                                                                                                                        |
 | Pattern Follow | Off, Display, Launchpad, Display+LP  | Enable pattern follow Use `PAGE`+`S16` tio cycle between modes                                                                                                                                                                                                                                                                                                        |
-| Input Track 1  | not selectable                       | Show the related _Note_ track as inout 1                                                                                                                                                                                                                                                                                                                              |
-| Input Track 2  | not selectable                       | Show the related _Note_ track as inout 2                                                                                                                                                                                                                                                                                                                              |
+| Input Track 1  | not selectable                       | Show the related _Note_ track as input 1                                                                                                                                                                                                                                                                                                                              |
+| Input Track 2  | not selectable                       | Show the related _Note_ track as input 2                                                                                                                                                                                                                                                                                                                              |
+| Detailed View | Yes, No | Show a detailed view of the logic track including representation of the two inputs tracks. It is an experimental function and you can experience some glitches. Quick access with `PAGE`+`S5`                                                                                                                                                                         |
 
 > Note: _Slide Time_, _Octave_, _Transpose_, _Rotate_, _Gate P. Bias_, _Retrig P. Bias_, _Length Bias_ and _Note P. Bias_ are routable parameters. These parameters are great for live performance, as they allow to change how the sequence is played back without actually changing the sequence itself.
 
@@ -800,11 +801,11 @@ For quick access to most of the sequence parameters, there is also a quick edit 
 
 Hold `SHIFT` + `PAGE` or double click `PAGE` (context menu will least for 2 seconds)  to open the context menu and access the following functions:
 
-| Button | Function | Description |
-| :--- | :--- | :--- |
-| `F1` | Init | Initialize the selected sequence and all its content to the default state. |
-| `F2` | Copy | Copy the selected sequence and all its content to the clipboard. |
-| `F3` | Paste | Paste the clipboard to the selected sequence. |
+| Button | Function | Description                                                                                                                           |
+| :--- | :--- |:--------------------------------------------------------------------------------------------------------------------------------------|
+| `F1` | Init | Initialize the selected sequence and all its content to the default state.                                                            |
+| `F2` | Copy | Copy the selected sequence and all its content to the clipboard.                                                                      |
+| `F3` | Paste | Paste the clipboard to the selected sequence.                                                                                         |
 | `F4` | Duplicate | Copy the selected sequence to the next sequence on the selected track. For example copy of the first sequence to the second sequence. |
 
 On _Note_ or _Curve_ track double click `SHIFT` will enter the save/load context menu:
@@ -891,7 +892,7 @@ The _Steps_ page is entered using `PAGE` + `STEPS`.
 
 This page allows editing the currently selected sequence on the currently selected track. Depending on the track mode of the selected track, this page shows a different graphical representation of the sequence. If track mode is set to _MIDI/CV_, the page is not available and selecting it will jump to the [Track](#pages-track) page.
 
-In a _Logic_ track a visual representation of the inputs track is visible for each step: a dot means input track 1 has gate on, an empty square means inout track 2 has gate on, a combination of dot and empty square means both input tracks has gate on and finally the full square means logic gate is on. A visual feedback will be visualized when the logic gate out is on.
+In a _Logic_ track if _detailed view_ is enabled a visual representation of the inputs track is visible for each step: a dot means input track 1 has gate on, an empty square means input track 2 has gate on, a combination of dot and empty square means both input tracks has gate on and finally the full square means logic gate is on. A visual feedback will be visualized when the logic gate out is on.
 
 
 <h4>Layer Selection</h4>
