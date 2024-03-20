@@ -234,9 +234,6 @@ TrackEngine::TickResult LogicTrackEngine::tick(uint32_t tick) {
                 int abstoluteStep = int(relativeTick / divisor);
                 _sequenceState.advanceAligned(abstoluteStep, sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
 
-                if (abstoluteStep == 0 ||abstoluteStep >= _model.project().recordDelay()+1) {
-                    recordStep(tick+1, divisor);
-                }
                 triggerStep(tick, divisor);
                 const auto &step = sequence.step(_sequenceState.step());
                 if (step.gateOffset()<0) {
@@ -265,7 +262,6 @@ TrackEngine::TickResult LogicTrackEngine::tick(uint32_t tick) {
                         sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
                 }
 
-                recordStep(tick, divisor);
                 const auto &step = sequence.step(_sequenceState.step());
                 bool isLastStageStep = ((int) (step.stageRepeats()+1) - (int) _currentStageRepeat) <= 0;
 
