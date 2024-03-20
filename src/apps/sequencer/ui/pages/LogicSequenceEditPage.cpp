@@ -199,18 +199,6 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
            
         }
 
-        // record step
-        if (stepIndex == currentRecordStep) {
-            // draw circle
-            canvas.setColor(step.gate() ? Color::None : Color::Bright);
-            canvas.fillRect(x + 6, y + 6, stepWidth - 12, stepWidth - 12);
-            canvas.setColor(Color::Medium);
-            canvas.hline(x + 7, y + 5, 2);
-            canvas.hline(x + 7, y + 10, 2);
-            canvas.vline(x + 5, y + 7, 2);
-            canvas.vline(x + 10, y + 7, 2);
-        }
-
         switch (layer()) {
         case Layer::Gate:
             break;
