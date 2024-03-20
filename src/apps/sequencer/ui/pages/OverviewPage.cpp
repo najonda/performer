@@ -188,7 +188,7 @@ static void drawCurveTrack(Canvas &canvas, int trackIndex, const CurveTrackEngin
         drawCurve(canvas, x, y + 1, 8, 6, lastY, function, min, max);
     }
 
-    if (trackEngine.currentStep() >= 0) {
+    if (trackEngine.currentStep() >= 0 && trackEngine.currentStep() < 16+(16*sequence.section())) {
         int x = 76 + ((trackEngine.currentStep() - stepOffset) + trackEngine.currentStepFraction()) * 8;
         canvas.setBlendMode(BlendMode::Set);
         canvas.setColor(Color::Bright);
