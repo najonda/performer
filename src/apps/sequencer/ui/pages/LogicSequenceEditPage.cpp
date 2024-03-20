@@ -15,7 +15,9 @@
 
 #include "core/utils/StringBuilder.h"
 #include <bitset>
+#include <cstdint>
 #include <iostream>
+
 
 enum class ContextAction {
     Init,
@@ -130,7 +132,7 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
     canvas.setColor(Color::Bright);
     SequencePainter::drawLoopStart(canvas, (sequence.firstStep() - stepOffset) * stepWidth + 1, loopY, stepWidth - 2);
     SequencePainter::drawLoopEnd(canvas, (sequence.lastStep() - stepOffset) * stepWidth + 1, loopY, stepWidth - 2);
-
+    
     for (int i = 0; i < StepCount; ++i) {
         int stepIndex = stepOffset + i;
         const auto &step = sequence.step(stepIndex);
@@ -156,20 +158,23 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
         canvas.drawRect(x + 2, y + 2, stepWidth - 4, stepWidth - 4);
         if (step.gate()) {
             canvas.setColor(_context.model.settings().userSettings().get<DimSequenceSetting>(SettingDimSequence)->getValue() ? Color::Low : Color::Bright);
-            if (trackEngine.gateOutput(stepIndex) && stepIndex == currentStep) {
-                canvas.fillRect(x + 6, y + 6, stepWidth - 12, stepWidth - 12);
-                canvas.setColor(Color::Medium);
-                canvas.hline(x + 7, y + 5, 2);
-                canvas.hline(x + 7, y + 10, 2);
-                canvas.vline(x + 5, y + 7, 2);
-                canvas.vline(x + 10, y + 7, 2);
-               
+            if (stepIndex == currentStep) {
+                if (trackEngine.gateOutput(currentStep)) {
+                    canvas.fillRect(x + 6, y + 6, stepWidth - 12, stepWidth - 12);
+                    canvas.setColor(Color::Medium);
+                    canvas.hline(x + 7, y + 5, 2);
+                    canvas.hline(x + 7, y + 10, 2);
+                    canvas.vline(x + 5, y + 7, 2);
+                    canvas.vline(x + 10, y + 7, 2);
+                } else {
+                    canvas.fillRect(x + 4, y + 4, stepWidth - 8, stepWidth - 8);
+                }
             } else {
                 canvas.fillRect(x + 4, y + 4, stepWidth - 8, stepWidth - 8);
             }
         } else {
             if (track.inputTrack1() != -1) {
-                int currentStep1 = trackEngine.input1TrackEngine().currentStep();
+                const int currentStep1 = trackEngine.input1TrackEngine().currentStep();
                 int stepIndex1 = currentStep1 != -1 ? (currentStep1 - currentStep) + stepIndex : stepIndex;
                 const auto &noteTrack = _project.track(track.inputTrack1()).noteTrack();
                 const auto &inputSeq1 = noteTrack.sequence(_project.selectedPatternIndex());

@@ -33,7 +33,13 @@ public:
     virtual const TrackLinkData *linkData() const override { return &_linkData; }
 
     virtual bool activity() const override { return _activity; }
-    virtual bool gateOutput(int index) const override { return _gateOutput; }
+    virtual bool gateOutput(int index) const override { 
+        if (index == _currentStep) {
+            return _gateOutput; 
+        } else {
+            return false;
+        }
+    }
     virtual float cvOutput(int index) const override { return _cvOutput; }
     virtual float sequenceProgress() const override {
         return _currentStep < 0 ? 0.f : float(_currentStep - _sequence->firstStep()) / (_sequence->lastStep() - _sequence->firstStep());

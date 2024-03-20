@@ -15,7 +15,6 @@
 #include "ui/MatrixMap.h"
 #include <algorithm>
 #include <climits>
-#include <iostream>
 #include <ctime>
 
 static Random rng;
@@ -470,7 +469,7 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
     const auto &noteTrack1 = _model.project().track(_logicTrack.inputTrack1()).noteTrack();
     const auto &inputSequence1 = noteTrack1.sequence(_model.project().selectedPatternIndex());
 
-    int currentStep1 = _input1TrackEngine->currentStep();
+    const int currentStep1 = _input1TrackEngine->currentStep();
     int stepIndex1 = currentStep1 != -1 ? (currentStep1 - _currentStep) + stepIndex : stepIndex;
     int idx1 = SequenceUtils::rotateStep(stepIndex1, inputSequence1.firstStep(), inputSequence1.lastStep(), noteTrack1.rotate());
 
@@ -478,7 +477,7 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
     const auto &noteTrack2 = _model.project().track(_logicTrack.inputTrack2()).noteTrack();
     const auto &inputSequence2 = noteTrack2.sequence(_model.project().selectedPatternIndex());
-    int currentStep2 = _input2TrackEngine->currentStep();
+    const int currentStep2 = _input2TrackEngine->currentStep();
     int stepIndex2 = currentStep2 != -1 ? (currentStep2 - _currentStep) + stepIndex : stepIndex;
     int idx2 = SequenceUtils::rotateStep(stepIndex2, inputSequence2.firstStep(), inputSequence2.lastStep(), noteTrack2.rotate());
 
