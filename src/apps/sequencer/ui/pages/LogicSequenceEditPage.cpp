@@ -111,7 +111,6 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
 
     auto &sequence = _project.selectedLogicSequence();
     int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
-    int currentRecordStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentRecordStep() : -1;
 
     const int stepWidth = Width / StepCount;
     const int stepOffset = this->stepOffset();
