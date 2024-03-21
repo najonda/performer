@@ -207,11 +207,11 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
                 }
                 if (evalStep.input2Step()) {
                     canvas.hline(x + 4, y + 4, 8);
-                        canvas.hline(x + 4, y + 11, 8);
-                        canvas.vline(x + 4, y + 4, 8);
-                        canvas.vline(x + 11, y + 4, 7);
-                    } 
-                }
+                    canvas.hline(x + 4, y + 11, 8);
+                    canvas.vline(x + 4, y + 4, 8);
+                    canvas.vline(x + 11, y + 4, 7);
+                } 
+            }
         }
         const auto &step = sequence.step(stepIndex);
 
