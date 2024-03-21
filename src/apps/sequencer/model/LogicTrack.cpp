@@ -48,7 +48,7 @@ void LogicTrack::clear() {
     setRetriggerProbabilityBias(0);
     setLengthBias(0);
     setNoteProbabilityBias(0);
-    setDetailedView(false);
+    setDetailedView(true);
 
     for (auto &sequence : _sequences) {
         sequence.clear();

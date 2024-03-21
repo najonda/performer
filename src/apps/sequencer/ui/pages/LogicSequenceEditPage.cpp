@@ -14,6 +14,7 @@
 #include "os/os.h"
 
 #include "core/utils/StringBuilder.h"
+#include <array>
 #include <bitset>
 #include <cstdint>
 #include <iostream>
@@ -131,11 +132,38 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
     canvas.setColor(Color::Bright);
     SequencePainter::drawLoopStart(canvas, (sequence.firstStep() - stepOffset) * stepWidth + 1, loopY, stepWidth - 2);
     SequencePainter::drawLoopEnd(canvas, (sequence.lastStep() - stepOffset) * stepWidth + 1, loopY, stepWidth - 2);
+
+    std::array<EvalStep, CONFIG_STEP_COUNT> evalSteps;
+    for (int i = 0; i< StepCount; ++i) {
+        int stepIndex = stepOffset + i;
+        const auto &step = sequence.step(stepIndex);
+        EvalStep es = EvalStep();
+        es.setLogicStep(step.gate());
+
+        if (track.inputTrack1() != -1) {
+            const int currentStep1 = trackEngine.input1TrackEngine().currentStep();
+            int stepIndex1 = currentStep1 != -1 ? (currentStep1 - currentStep) + stepIndex : stepIndex;
+            const auto &noteTrack = _project.track(track.inputTrack1()).noteTrack();
+            const auto &inputSeq1 = noteTrack.sequence(_project.selectedPatternIndex());
+            int idx = SequenceUtils::rotateStep(stepIndex1, inputSeq1.firstStep(), inputSeq1.lastStep(), noteTrack.rotate());
+            es.setInput1Step(inputSeq1.step(idx).gate());            
+        }
+
+        if (track.inputTrack2() != -1) {
+            const int currentStep2 = trackEngine.input2TrackEngine().currentStep();
+            int stepIndex2 = currentStep2 != -1 ? (currentStep2 - currentStep) + stepIndex : stepIndex;
+            const auto &noteTrack = _project.track(track.inputTrack2()).noteTrack();
+            const auto &inputSeq2 = noteTrack.sequence(_project.selectedPatternIndex());
+            int idx = SequenceUtils::rotateStep(stepIndex2, inputSeq2.firstStep(), inputSeq2.lastStep(), noteTrack.rotate());
+            es.setInput2Step(inputSeq2.step(idx).gate());            
+        }
+
+        evalSteps[stepIndex] = es;
+    }
     
     for (int i = 0; i < StepCount; ++i) {
         int stepIndex = stepOffset + i;
-        const auto &step = sequence.step(stepIndex);
-
+        EvalStep evalStep = evalSteps[stepIndex];
         int x = i * stepWidth;
         int y = 20;
 
@@ -155,7 +183,7 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
         // step gate
         canvas.setColor(stepIndex == currentStep ? Color::Bright : Color::Medium);
         canvas.drawRect(x + 2, y + 2, stepWidth - 4, stepWidth - 4);
-        if (step.gate()) {
+        if (evalStep.logicStep()) {
             canvas.setColor(_context.model.settings().userSettings().get<DimSequenceSetting>(SettingDimSequence)->getValue() ? Color::Low : Color::Bright);
             if (stepIndex == currentStep) {
                 if (trackEngine.gateOutput(currentStep)) {
@@ -173,32 +201,19 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
             }
         } else {
             if (track.detailedView()) {
-                if (track.inputTrack1() != -1) {
-                    const int currentStep1 = trackEngine.input1TrackEngine().currentStep();
-                    int stepIndex1 = currentStep1 != -1 ? (currentStep1 - currentStep) + stepIndex : stepIndex;
-                    const auto &noteTrack = _project.track(track.inputTrack1()).noteTrack();
-                    const auto &inputSeq1 = noteTrack.sequence(_project.selectedPatternIndex());
-                    int idx = SequenceUtils::rotateStep(stepIndex1, inputSeq1.firstStep(), inputSeq1.lastStep(), noteTrack.rotate());
-                    if (inputSeq1.step(idx).gate()) {
-                        canvas.fillRect(x + 6, y + 6, 4, 4);
-                    } 
+
+                if (evalStep.input1Step()) {
+                    canvas.fillRect(x + 6, y + 6, 4, 4);
                 }
-                if (track.inputTrack2() != -1) {
-                    const int currentStep2 = trackEngine.input2TrackEngine().currentStep();
-                    int stepIndex2 = currentStep2 != -1 ? (currentStep2 - currentStep) + stepIndex : stepIndex;
-                    const auto &noteTrack = _project.track(track.inputTrack2()).noteTrack();
-                    const auto &inputSeq2 = noteTrack.sequence(_project.selectedPatternIndex());
-                    int idx = SequenceUtils::rotateStep(stepIndex2, inputSeq2.firstStep(), inputSeq2.lastStep(), noteTrack.rotate());
-                    if (inputSeq2.step(idx).gate()) {
-                        canvas.hline(x + 4, y + 4, 8);
+                if (evalStep.input2Step()) {
+                    canvas.hline(x + 4, y + 4, 8);
                         canvas.hline(x + 4, y + 11, 8);
                         canvas.vline(x + 4, y + 4, 8);
                         canvas.vline(x + 11, y + 4, 7);
                     } 
                 }
-            }
-           
         }
+        const auto &step = sequence.step(stepIndex);
 
         switch (layer()) {
         case Layer::Gate:

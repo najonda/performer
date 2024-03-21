@@ -10,6 +10,30 @@
 
 #include "core/utils/Container.h"
 
+class EvalStep {
+    public:
+        EvalStep() {}
+
+        int stepIndex() { return _stepIndex;}
+        bool logicStep() { return _logicStep;}
+        bool input1Step() { return _input1Step;}
+        bool input2Step() { return _input2Step;}
+
+        void setStepIndex(int value) { _stepIndex = value; }
+        void setLogicStep(bool value) {_logicStep = value; }
+        void setInput1Step(bool value) {_input1Step = value; }
+        void setInput2Step(bool value) {_input2Step = value; }
+
+
+    private:
+        uint8_t _stepIndex;
+        bool _logicStep = false;
+        bool _input1Step = false;
+        bool _input2Step = false; 
+
+
+};
+
 class LogicSequenceEditPage : public BasePage {
 public:
     LogicSequenceEditPage(PageManager &manager, PageContext &context);
