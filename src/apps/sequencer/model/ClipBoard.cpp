@@ -2,7 +2,6 @@
 
 #include "Model.h"
 #include "ModelUtils.h"
-#include "StochasticSequence.h"
 
 ClipBoard::ClipBoard(Project &project) :
     _project(project)
@@ -73,6 +72,18 @@ void ClipBoard::copyLogicSequenceSteps(const LogicSequence &sequence, const Sele
     auto &logicSequenceSteps = _container.as<LogicSequenceSteps>();
     logicSequenceSteps.sequence = sequence;
     logicSequenceSteps.selected = selectedSteps;
+}
+
+void ClipBoard::copyArpSequence(const ArpSequence &sequence) {
+    _type = Type::ArpSequence;
+    _container.as<ArpSequence>() = sequence;
+}
+
+void ClipBoard::copyArpSequenceSteps(const ArpSequence &sequence, const SelectedSteps &selectedSteps) {
+    _type = Type::ArpSequenceSteps;
+    auto &arpSequenceSteps = _container.as<ArpSequenceSteps>();
+    arpSequenceSteps.sequence = sequence;
+    arpSequenceSteps.selected = selectedSteps;
 }
 
 void ClipBoard::copyPattern(int patternIndex) {
@@ -170,6 +181,20 @@ void ClipBoard::pasteLogicSequenceSteps(LogicSequence &sequence, const SelectedS
     }
 }
 
+void ClipBoard::pasteArpSequence(ArpSequence &sequence) const {
+    if (canPasteArpSequence()) {
+        Model::WriteLock lock;
+        sequence = _container.as<ArpSequence>();
+    }
+}
+
+void ClipBoard::pasteArpSequenceSteps(ArpSequence &sequence, const SelectedSteps &selectedSteps) const {
+    if (canPasteArpSequenceSteps()) {
+        const auto &arpSequenceSteps = _container.as<ArpSequenceSteps>();
+        ModelUtils::copySteps(arpSequenceSteps.sequence.steps(), arpSequenceSteps.selected, sequence.steps(), selectedSteps);
+    }
+}
+
 void ClipBoard::pastePattern(int patternIndex) const {
     if (canPastePattern()) {
         Model::WriteLock lock;
@@ -238,6 +263,14 @@ bool ClipBoard::canPasteLogicSequence() const {
 
 bool ClipBoard::canPasteLogicSequenceSteps() const {
     return _type == Type::LogicSequenceSteps;
+}
+
+bool ClipBoard::canPasteArpSequence() const {
+    return _type == Type::ArpSequence;
+}
+
+bool ClipBoard::canPasteArpSequenceSteps() const {
+    return _type == Type::ArpSequenceSteps;
 }
 
 bool ClipBoard::canPastePattern() const {

@@ -433,6 +433,9 @@ void Engine::updateTrackSetups() {
             case Track::TrackMode::Logic:
                 trackEngine = trackContainer.create<LogicTrackEngine>(*this, _model, track, linkedTrackEngine);
                 break;
+            case Track::TrackMode::Arp:
+                trackEngine = trackContainer.create<ArpTrackEngine>(*this, _model, track, linkedTrackEngine);
+                break;
             case Track::TrackMode::Last:
                 break;
             }

@@ -12,6 +12,7 @@ enum class FileType : uint8_t {
     NoteSequence= 2,
     CurveSequence=3,
     LogicSequence=4,
+    ArpSequence=5,
     Settings    = 255
 };
 

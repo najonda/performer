@@ -88,7 +88,7 @@ public:
         if (column == 1) {
             _trackModes[row] = ModelUtils::adjustedEnum(_trackModes[row], value);
             if (row < 2 && _trackModes[row] == Track::TrackMode::Logic) {
-                _trackModes[row] = Track::TrackMode::Stochastic;
+                _trackModes[row] = Track::TrackMode::Arp;
             }
         }
     }

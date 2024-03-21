@@ -7,6 +7,7 @@
 #include "Track.h"
 #include "NoteSequence.h"
 #include "CurveSequence.h"
+#include "ArpSequence.h"
 #include "Project.h"
 #include "UserScale.h"
 
@@ -32,6 +33,8 @@ public:
     void copyStochasticSequenceSteps(const StochasticSequence &noteSequence, const SelectedSteps &selectedSteps);
     void copyLogicSequence(const LogicSequence &noteSequence);
     void copyLogicSequenceSteps(const LogicSequence &noteSequence, const SelectedSteps &selectedSteps);
+    void copyArpSequence(const ArpSequence &noteSequence);
+    void copyArpSequenceSteps(const ArpSequence &noteSequence, const SelectedSteps &selectedSteps);
     void copyPattern(int patternIndex);
     void copyUserScale(const UserScale &userScale);
 
@@ -44,6 +47,8 @@ public:
     void pasteStochasticSequenceSteps(StochasticSequence &noteSequence, const SelectedSteps &selectedSteps) const;
     void pasteLogicSequence(LogicSequence &noteSequence) const;
     void pasteLogicSequenceSteps(LogicSequence &noteSequence, const SelectedSteps &selectedSteps) const;
+    void pasteArpSequence(ArpSequence &noteSequence) const;
+    void pasteArpSequenceSteps(ArpSequence &noteSequence, const SelectedSteps &selectedSteps) const;    
     void pastePattern(int patternIndex) const;
     void pasteUserScale(UserScale &userScale) const;
 
@@ -56,6 +61,8 @@ public:
     bool canPasteStochasticSequenceSteps() const;
     bool canPasteLogicSequence() const;
     bool canPasteLogicSequenceSteps() const;
+    bool canPasteArpSequence() const;
+    bool canPasteArpSequenceSteps() const;    
     bool canPastePattern() const;
     bool canPasteUserScale() const;
 
@@ -71,6 +78,8 @@ private:
         StochasticSequenceSteps,
         LogicSequence,
         LogicSequenceSteps,
+        ArpSequence,
+        ArpSequenceSteps,        
         Pattern,
         UserScale,
     };
@@ -95,6 +104,11 @@ private:
         SelectedSteps selected;
     };
 
+    struct ArpSequenceSteps {
+        ArpSequence sequence;
+        SelectedSteps selected;
+    };
+
     struct Pattern {
         struct {
             Track::TrackMode trackMode;
@@ -103,11 +117,12 @@ private:
                 CurveSequence curve;
                 StochasticSequence stochastic;
                 LogicSequence logic;
+                ArpSequence arp;
             } data;
         } sequences[CONFIG_TRACK_COUNT];
     };
 
     Project &_project;
     Type _type = Type::None;
-    Container<Track, NoteSequence, NoteSequenceSteps, CurveSequence, CurveSequenceSteps, StochasticSequence, StochasticSequenceSteps, LogicSequence, LogicSequenceSteps, Pattern, UserScale> _container;
+    Container<Track, NoteSequence, NoteSequenceSteps, CurveSequence, CurveSequenceSteps, StochasticSequence, StochasticSequenceSteps, LogicSequence, LogicSequenceSteps, ArpSequence, ArpSequenceSteps, Pattern, UserScale> _container;
 };

@@ -33,7 +33,8 @@ FileTypeInfo fileTypeInfos[] = {
     { "SCALES", "SCA" },
     {"SEQS", "NSQ"},
     {"SEQS", "CSQ"},
-    {"SEQS", "LSQ"}
+    {"SEQS", "LSQ"},
+    {"SEQS", "ASQ"}
 };
 
 static void slotPath(StringBuilder &str, FileType type, int slot) {
@@ -143,6 +144,18 @@ fs::Error FileManager::writeLogicSequence(const LogicSequence &noteSequence, int
 fs::Error FileManager::readLogicSequence(LogicSequence &noteSequence, int slot) {
     return readFile(FileType::LogicSequence, slot, [&] (const char *path) {
         return readLogicSequence(noteSequence, path);
+    });
+}
+
+fs::Error FileManager::writeArpSequence(const ArpSequence &noteSequence, int slot) {
+    return writeFile(FileType::ArpSequence, slot, [&] (const char *path) {
+        return writeArpSequence(noteSequence, path);
+    });
+}
+
+fs::Error FileManager::readArpSequence(ArpSequence &noteSequence, int slot) {
+    return readFile(FileType::ArpSequence, slot, [&] (const char *path) {
+        return readArpSequence(noteSequence, path);
     });
 }
 
@@ -338,6 +351,49 @@ fs::Error FileManager::writeLogicSequence(const LogicSequence &noteSequence, con
 }
 
 fs::Error FileManager::readLogicSequence(LogicSequence &noteSequence, const char *path) {
+    fs::FileReader fileReader(path);
+    if (fileReader.error() != fs::OK) {
+        return fileReader.error();
+    }
+
+    FileHeader header;
+    fileReader.read(&header, sizeof(header));
+
+    VersionedSerializedReader reader(
+        [&fileReader] (void *data, size_t len) { fileReader.read(data, len); },
+        ProjectVersion::Latest
+    );
+
+    bool success = noteSequence.read(reader);
+
+    auto error = fileReader.finish();
+    if (error == fs::OK && !success) {
+        error = fs::INVALID_CHECKSUM;
+    }
+
+    return error;
+}
+
+fs::Error FileManager::writeArpSequence(const ArpSequence &noteSequence, const char *path) {
+    fs::FileWriter fileWriter(path);
+    if (fileWriter.error() != fs::OK) {
+        return fileWriter.error();
+    }
+
+    FileHeader header(FileType::ArpSequence, 0, noteSequence.name());
+    fileWriter.write(&header, sizeof(header));
+
+    VersionedSerializedWriter writer(
+        [&fileWriter] (const void *data, size_t len) { fileWriter.write(data, len); },
+        ProjectVersion::Latest
+    );
+
+    noteSequence.write(writer);
+
+    return fileWriter.finish();
+}
+
+fs::Error FileManager::readArpSequence(ArpSequence &noteSequence, const char *path) {
     fs::FileReader fileReader(path);
     if (fileReader.error() != fs::OK) {
         return fileReader.error();

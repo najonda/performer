@@ -448,6 +448,9 @@ public:
                 case Track::TrackMode::Logic:
                     StringUtils::copy(_selectedTrackName, selectedTrack().logicTrack().name(), sizeof(_selectedTrackName));
                     break;
+                case Track::TrackMode::Arp:
+                    StringUtils::copy(_selectedTrackName, selectedTrack().arpTrack().name(), sizeof(_selectedTrackName));
+                    break;
                 case Track::TrackMode::Last:
                     break;
             }
@@ -492,6 +495,11 @@ public:
     LogicSequence::Layer selectedLogicSequenceLayer() const { return _selectedLogicSequenceLayer; }
     void setSelectedLogicSequenceLayer(LogicSequence::Layer layer) { _selectedLogicSequenceLayer = layer; }
 
+    // selectedArpSequenceLayer
+
+    ArpSequence::Layer selectedArpSequenceLayer() const { return _selectedArpSequenceLayer; }
+    void setSelectedArpSequenceLayer(ArpSequence::Layer layer) { _selectedArpSequenceLayer = layer; }
+    
     // selectedCurveSequenceLayer
 
     CurveSequence::Layer selectedCurveSequenceLayer() const { return _selectedCurveSequenceLayer; }
@@ -552,6 +560,20 @@ public:
 
     void setselectedLogicSequence(LogicSequence seq) {
         _tracks[_selectedTrackIndex].logicTrack().setSequence(selectedPatternIndex(), seq);
+    }
+
+    // arpSequence
+    
+    const ArpSequence &arpSequence(int trackIndex, int patternIndex) const { return _tracks[trackIndex].arpTrack().sequence(patternIndex); }
+          ArpSequence &arpSequence(int trackIndex, int patternIndex)       { return _tracks[trackIndex].arpTrack().sequence(patternIndex); }
+
+    // selectedArpSequence
+
+    const ArpSequence &selectedArpSequence() const { return arpSequence(_selectedTrackIndex, selectedPatternIndex()); }
+          ArpSequence &selectedArpSequence()       { return arpSequence(_selectedTrackIndex, selectedPatternIndex()); }          
+
+    void setSelectedArpSequence(ArpSequence seq) {
+        _tracks[_selectedTrackIndex].arpTrack().setSequence(selectedPatternIndex(), seq);
     }
 
     //----------------------------------------
@@ -629,6 +651,7 @@ private:
     CurveSequence::Layer _selectedCurveSequenceLayer = CurveSequence::Layer(0);
     StochasticSequence::Layer _selectedStochasticSequenceLayer = StochasticSequence::Layer(10);
     LogicSequence::Layer _selectedLogicSequenceLayer = LogicSequence::Layer(0);
+    ArpSequence::Layer _selectedArpSequenceLayer = ArpSequence::Layer(0);
 
     Observable<Event, 2> _observable;
 };

@@ -109,6 +109,13 @@ void TrackPage::keyPress(KeyPressEvent &event) {
                     }
                  });
             break;  
+            case Track::TrackMode::Arp:
+                _manager.pages().textInput.show("NAME:", _arpTrack->name(), ArpTrack::NameLength, [this] (bool result, const char *text) {
+                    if (result) {
+                        _project.selectedTrack().arpTrack().setName(text);
+                    }
+                 });
+            break;  
             case Track::TrackMode::Last:
                 break;     
         }
@@ -209,7 +216,12 @@ void TrackPage::setTrack(Track &track) {
         _logicTrackListModel.setTrack(track.logicTrack());
         newListModel = &_logicTrackListModel;
         _logicTrack = &track.logicTrack();
-        break;    
+        break;   
+    case Track::TrackMode::Arp:
+        _arpTrackListModel.setTrack(track.arpTrack());
+        newListModel = &_arpTrackListModel;
+        _arpTrack = &track.arpTrack();
+        break;   
     case Track::TrackMode::Last:
         ASSERT(false, "invalid track mode");
         break;

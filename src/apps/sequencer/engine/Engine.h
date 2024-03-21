@@ -14,6 +14,7 @@
 #include "MidiOutputEngine.h"
 #include "StochasticEngine.h"
 #include "LogicTrackEngine.h"
+#include "ArpTrackEngine.h"
 #include "MidiPort.h"
 #include "MidiLearn.h"
 #include "CvGateToMidiConverter.h"
@@ -35,7 +36,7 @@
 
 class Engine : private Clock::Listener {
 public:
-    typedef Container<NoteTrackEngine, CurveTrackEngine, MidiCvTrackEngine, StochasticEngine, LogicTrackEngine> TrackEngineContainer;
+    typedef Container<NoteTrackEngine, CurveTrackEngine, MidiCvTrackEngine, StochasticEngine, LogicTrackEngine, ArpTrackEngine> TrackEngineContainer;
     typedef std::array<TrackEngineContainer, CONFIG_TRACK_COUNT> TrackEngineContainerArray;
     typedef std::array<TrackEngine *, CONFIG_TRACK_COUNT> TrackEngineArray;
     typedef std::array<UpdateReducer<os::time::ms(25)>, CONFIG_TRACK_COUNT> TrackUpdateReducerArray;

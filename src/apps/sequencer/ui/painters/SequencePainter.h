@@ -4,6 +4,8 @@
 #include "model/NoteSequence.h"
 #include "model/StochasticSequence.h"
 #include "model/LogicSequence.h"
+#include "model/ArpSequence.h"
+
 
 
 class SequencePainter {

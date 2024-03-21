@@ -4,6 +4,7 @@
 #include "model/CurveSequence.h"
 #include "model/StochasticSequence.h"
 #include "model/LogicSequence.h"
+#include "model/ArpSequence.h"
 
 class SequenceBuilder {
 public:
@@ -97,3 +98,4 @@ typedef SequenceBuilderImpl<NoteSequence> NoteSequenceBuilder;
 typedef SequenceBuilderImpl<CurveSequence> CurveSequenceBuilder;
 typedef SequenceBuilderImpl<StochasticSequence> StochasticSequenceBuilder;
 typedef SequenceBuilderImpl<LogicSequence> LogicSequenceBuilder;
+typedef SequenceBuilderImpl<ArpSequence> ArpSequenceBuilder;

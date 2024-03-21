@@ -233,6 +233,15 @@ void Routing::writeTarget(Target target, uint8_t tracks, float normalized) {
                         }
                     }
                     break;
+                case Track::TrackMode::Arp:
+                    if (isTrackTarget(target)) {
+                        track.arpTrack().writeRouted(target, intValue, floatValue);
+                    } else {
+                        for (int patternIndex = 0; patternIndex < CONFIG_PATTERN_COUNT; ++patternIndex) {
+                            track.arpTrack().sequence(patternIndex).writeRouted(target, intValue, floatValue);
+                        }
+                    }
+                    break;                   
                 case Track::TrackMode::Last:
                     break;
                 }
