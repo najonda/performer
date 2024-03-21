@@ -116,6 +116,10 @@ void ArpTrackEngine::reset() {
     //_recordHistory.clear();
 
     changePattern();
+
+    _noteIndex = 0;
+    //_noteOrder = 0;
+    _stepIndex = -1;
 }
 
 void ArpTrackEngine::restart() {
@@ -392,6 +396,16 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
 
     if (stepIndex < 0) return;
 
+    if (_noteCount == 0) {
+        return;
+    }
+    
+
+    advanceStep();
+
+    stepIndex = _notes[_noteIndex].index;
+    _currentStep = stepIndex;
+
     const auto &step = evalSequence.step(stepIndex);
 
     int gateOffset = ((int) divisor * step.gateOffset()) / (ArpSequence::GateOffset::Max + 1);
@@ -556,5 +570,129 @@ int ArpTrackEngine::noteFromMidiNote(uint8_t midiNote) const {
         return scale.noteFromVolts((midiNote - 60 - rootNote) * (1.f / 12.f));
     } else {
         return scale.noteFromVolts((midiNote - 60) * (1.f / 12.f));
+    }
+}
+
+void ArpTrackEngine::addNote(int note, int index) {
+    // exit if note set is full
+    if (_noteCount >= MaxNotes) {
+        return;
+    }
+
+    // find insert position
+    int pos = 0;
+    while (pos < _noteCount && note > _notes[pos].note) {
+        ++pos;
+    }
+
+    // exit if note is already in note set
+    if (pos < _noteCount && note == _notes[pos].note) {
+        return;
+    }
+
+    // insert into ordered note set
+    ++_noteCount;
+    ++_noteHoldCount;
+    for (int i = _noteCount - 1; i > pos; --i) {
+        _notes[i] = _notes[i - 1];
+    }
+    _notes[pos].note = note;
+    _notes[pos].order = _noteOrder++;
+    _notes[pos].index = index;
+}
+
+
+void ArpTrackEngine::removeNote(int note) {
+    for (int i = 0; i < _noteCount; ++i) {
+        if (note == _notes[i].note) {
+            _noteHoldCount = _noteHoldCount > 0 ? _noteHoldCount - 1 : 0;
+            // do not remove note in hold mode
+            //if (_arpeggiator.hold()) {
+            //    return;
+            //}
+            --_noteCount;
+            for (int j = i; j < _noteCount; ++j) {
+                _notes[j] = _notes[j + 1];
+            }
+            return;
+        }
+    }
+}
+
+int ArpTrackEngine::noteIndexFromOrder(int order) {
+    // search note index of note with given relative order
+    for (int noteIndex = 0; noteIndex < _noteCount; ++noteIndex) {
+        int currentOrder = 0;
+        for (int i = 0; i < _noteCount; ++i) {
+            if (_notes[i].order < _notes[noteIndex].order) {
+                ++currentOrder;
+            }
+        }
+        if (currentOrder == order) {
+            return noteIndex;
+        }
+    }
+    return 0;
+}
+
+void ArpTrackEngine::advanceStep() {
+    _noteIndex = 0;
+
+    auto mode = _arpeggiator.mode();
+
+    switch (mode) {
+    case Arpeggiator::Mode::PlayOrder:
+        _stepIndex = (_stepIndex + 1) % _noteCount;
+        _noteIndex = noteIndexFromOrder(_stepIndex);
+        break;
+    case Arpeggiator::Mode::Up:
+    case Arpeggiator::Mode::Down:
+        _stepIndex = (_stepIndex + 1) % _noteCount;
+        _noteIndex = _stepIndex;
+        break;
+    case Arpeggiator::Mode::UpDown:
+    case Arpeggiator::Mode::DownUp:
+        if (_noteCount >= 2) {
+            _stepIndex = (_stepIndex + 1) % ((_noteCount - 1) * 2);
+            _noteIndex = _stepIndex % (_noteCount - 1);
+            _noteIndex = _stepIndex < _noteCount - 1 ? _noteIndex : _noteCount - _noteIndex - 1;
+        } else {
+            _stepIndex = 0;
+        }
+        break;
+    case Arpeggiator::Mode::UpAndDown:
+    case Arpeggiator::Mode::DownAndUp:
+        _stepIndex = (_stepIndex + 1) % (_noteCount * 2);
+        _noteIndex = _stepIndex % _noteCount;
+        _noteIndex = _stepIndex < _noteCount ? _noteIndex : _noteCount - _noteIndex - 1;
+        break;
+    case Arpeggiator::Mode::Converge:
+        _stepIndex = (_stepIndex + 1) % _noteCount;
+        _noteIndex = _stepIndex / 2;
+        if (_stepIndex % 2 == 1) {
+            _noteIndex = _noteCount - _noteIndex - 1;
+        }
+        break;
+    case Arpeggiator::Mode::Diverge:
+        _stepIndex = (_stepIndex + 1) % _noteCount;
+        _noteIndex = _stepIndex / 2;
+        _noteIndex = _noteCount / 2 + ((_stepIndex % 2 == 0) ? _noteIndex : - _noteIndex - 1);
+        break;
+    case Arpeggiator::Mode::Random:
+        _stepIndex = (_stepIndex + 1) % _noteCount;
+        _noteIndex = rng.nextRange(_noteCount);
+        break;
+    case Arpeggiator::Mode::Last:
+        break;
+    }
+
+    switch (mode) {
+    case Arpeggiator::Mode::Down:
+    case Arpeggiator::Mode::DownUp:
+    case Arpeggiator::Mode::DownAndUp:
+        _noteIndex = _noteCount - _noteIndex - 1;
+        break;
+    default:
+        break;
     }
 }

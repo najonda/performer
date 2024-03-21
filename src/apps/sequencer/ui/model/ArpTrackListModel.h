@@ -87,6 +87,7 @@ private:
         PatternFollow,
         LogicTrack,
         LogicTrackInput,
+        ArpeggiatorMode,
         Last
     };
 
@@ -108,6 +109,7 @@ private:
         case PatternFollow: return "Pattern Follow";
         case LogicTrack: return "Logic Track";
         case LogicTrackInput: return "Logic Track In";
+        case ArpeggiatorMode:       return "Mode";
         case Last:      break;
         }
         return nullptr;
@@ -118,6 +120,7 @@ private:
     }
 
     void formatValue(Item item, StringBuilder &str) const {
+        const auto &arpeggiator = _track->arpeggiator();
         switch (item) {
         case TrackName:
             str(_track->name());
@@ -167,12 +170,16 @@ private:
         case LogicTrackInput:
             _track->printLogicTrackInput(str);
             break;
+        case ArpeggiatorMode:
+            arpeggiator.printMode(str);
+            break;
         case Last:
             break;
         }
     }
 
     void editValue(Item item, int value, bool shift) {
+        auto &arpeggiator = _track->arpeggiator();
         switch (item) {
 
         case TrackName:
@@ -265,6 +272,9 @@ private:
                     return;
                 }
                 _track->editLogicTrackInput(value, shift);
+                break;
+            case ArpeggiatorMode:
+                arpeggiator.editMode(value, shift);
                 break;
         case Last:
             break;

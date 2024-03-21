@@ -444,10 +444,18 @@ void ArpSequenceEditPage::keyPress(KeyPressEvent &event) {
     if (!key.shiftModifier() && key.isStep()) {
         int stepIndex = stepOffset() + key.step();
         switch (layer()) {
-        case Layer::Gate:
+        case Layer::Gate: {
             _inMemorySequence = _project.selectedArpSequence();
+            
+            auto &trackEngine = _engine.selectedTrackEngine().as<ArpTrackEngine>();
+            if (sequence.step(stepIndex).gate()) {
+                trackEngine.removeNote(sequence.step(stepIndex).note());
+            } else {
+                trackEngine.addNote(sequence.step(stepIndex).note(), stepIndex);
+            }
             sequence.step(stepIndex).toggleGate();
             event.consume();
+        }
             break;
         default:
             break;

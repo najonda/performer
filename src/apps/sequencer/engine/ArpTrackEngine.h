@@ -7,12 +7,14 @@
 #include "RecordHistory.h"
 #include "model/ArpSequence.h"
 #include "StepRecorder.h"
+#include "model/Arpeggiator.h"
 
 class ArpTrackEngine : public TrackEngine {
 public:
     ArpTrackEngine(Engine &engine, Model &model, Track &track, const TrackEngine *linkedTrackEngine) :
         TrackEngine(engine, model, track, linkedTrackEngine),
-        _arpTrack(track.arpTrack())
+        _arpTrack(track.arpTrack()),
+        _arpeggiator(track.arpTrack().arpeggiator())
     {
         reset();
     }
@@ -55,12 +57,18 @@ public:
         return _sequenceState;
     }
 
+    void addNote(int note, int index);
+    void removeNote(int note);
+
 
 private:
     void triggerStep(uint32_t tick, uint32_t divisor, bool nextStep);
     void triggerStep(uint32_t tick, uint32_t divisor);
     void recordStep(uint32_t tick, uint32_t divisor);
     int noteFromMidiNote(uint8_t midiNote) const;
+
+    int noteIndexFromOrder(int order);
+    void advanceStep();
 
     bool fill() const {
         return (_arpTrack.fillMuted() || !TrackEngine::mute()) ? TrackEngine::fill() : false;
@@ -90,6 +98,25 @@ private:
     float _cvOutputTarget;
     bool _slideActive;
     unsigned int _currentStageRepeat;
+
+    const Arpeggiator &_arpeggiator;
+
+    struct Note {
+        uint8_t note;
+        uint32_t order;
+        uint8_t index;
+    };
+
+     static constexpr int MaxNotes = 8;
+
+    std::array<Note, MaxNotes> _notes;
+    int _stepIndex;
+    int _noteIndex;
+    uint32_t _noteOrder;
+    int8_t _noteCount;
+    int8_t _noteHoldCount;
+
+
 
     struct Gate {
         uint32_t tick;

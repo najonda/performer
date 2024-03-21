@@ -295,7 +295,7 @@ void ArpSequence::clear() {
     setResetMeasure(0);
     setRunMode(Types::RunMode::Forward);
     setFirstStep(0);
-    setLastStep(15);
+    setLastStep(11);
     setCurrentRecordStep(0);
 
     clearSteps();
@@ -304,6 +304,10 @@ void ArpSequence::clear() {
 void ArpSequence::clearSteps() {
     for (auto &step : _steps) {
         step.clear();
+    }
+
+    for (int i = 0; i < 12; ++i) {
+        _steps[i].setNote(i);
     }
 }
 
