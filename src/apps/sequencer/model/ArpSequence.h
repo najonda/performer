@@ -560,6 +560,16 @@ public:
         _section = section;
     }
 
+    const bool hasSteps() const {
+        for (int i = 0; i < 12; ++i) {
+            auto s = _steps[i];
+            if (s.gate()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 private:
     void setTrackIndex(int trackIndex) { _trackIndex = trackIndex; }
 

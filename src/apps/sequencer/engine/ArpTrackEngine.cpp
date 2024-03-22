@@ -402,6 +402,14 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
 
     if (stepIndex < 0) return;
 
+    if (_noteCount == 0 && sequence.hasSteps()) {
+        for (int i = 0; i < 12; ++i) {
+            if (sequence.step(i).gate()) {
+                addNote(sequence.step(i).note(), i);
+            }
+        }
+    }
+
     if (_noteCount == 0) {
         return;
     }
@@ -616,9 +624,9 @@ void ArpTrackEngine::removeNote(int note) {
         if (note == _notes[i].note) {
             _noteHoldCount = _noteHoldCount > 0 ? _noteHoldCount - 1 : 0;
             // do not remove note in hold mode
-            //if (_arpeggiator.hold()) {
-            //    return;
-            //}
+            if (_arpeggiator.hold()) {
+                return;
+            }
             --_noteCount;
             for (int j = i; j < _noteCount; ++j) {
                 _notes[j] = _notes[j + 1];
