@@ -15,13 +15,67 @@
 #include <climits>
 #include <iostream>
 #include <ctime>
+#include <random>
+
 
 static Random rng;
+
+bool sortTaskByProbRev(const ArpStep& lhs, const ArpStep& rhs) {
+    return lhs.probability() > rhs.probability();
+}
 
 // evaluate if step gate is active
 static bool evalStepGate(const ArpSequence::Step &step, int probabilityBias) {
     int probability = clamp(step.gateProbability() + probabilityBias, -1, ArpSequence::GateProbability::Max);
+    if (probability==0) {
+        return false;
+    }
     return step.gate() && int(rng.nextRange(ArpSequence::GateProbability::Range)) <= probability;
+}
+
+// evaluate if step gate is active
+ int ArpTrackEngine::evalRestProbability(ArpSequence &sequence) {
+    int sum = 0;
+    std::vector<ArpStep> probability;
+    for (int i = 0; i < 4; i++) {
+
+        switch (i) {
+            case 0: {
+                probability.insert(probability.end(), ArpStep(i, sequence.restProbability()));
+            }
+                break;
+            case 1: {
+                probability.insert(probability.end(), ArpStep(i, sequence.restProbability2()));
+                break;
+            }
+            case 2: {
+                probability.insert(probability.end(), ArpStep(i, sequence.restProbability4()));
+                break;
+            }
+            case 3: {
+                probability.insert(probability.end(), ArpStep(i, sequence.restProbability8()));
+                break;
+            }
+            default:
+                break;
+        }
+
+        sum = sum + probability.at(i).probability();
+    }
+    if (sum==0) { return -1;}
+    std::sort (std::begin(probability), std::end(probability), sortTaskByProbRev);
+    int stepIndex = getNextWeightedPitch(probability, probability.size());
+    switch (stepIndex) {
+        case 0:
+            return 0;
+        case 1:
+            return 1;
+        case 2:
+            return 3;
+        case 3:
+            return 7;
+    }
+    return -1;
 }
 
 // evaluate step condition
@@ -73,33 +127,47 @@ static int evalTransposition(const Scale &scale, int octave, int transpose) {
 }
 
 // evaluate note voltage
-static float evalStepNote(const ArpSequence::Step &step, int probabilityBias, const Scale &scale, int rootNote, int octave, int transpose, bool useVariation = true) {
-
-
+static float evalStepNote(const ArpSequence::Step &step, int probabilityBias, const Scale &scale, int rootNote, int octave, int transpose, ArpSequence sequence, bool useVariation = true) {
     if (step.bypassScale()) {
         const Scale &bypassScale = Scale::get(0);
         int note = step.note() + evalTransposition(bypassScale, octave, transpose);
-        int probability = clamp(step.noteVariationProbability() + probabilityBias, -1, ArpSequence::NoteVariationProbability::Max);
-        if (useVariation && int(rng.nextRange(ArpSequence::NoteVariationProbability::Range)) <= probability) {
-            int offset = step.noteVariationRange() == 0 ? 0 : rng.nextRange(std::abs(step.noteVariationRange()) + 1);
-            if (step.noteVariationRange() < 0) {
-                offset = -offset;
-            }
-            note = ArpSequence::Note::clamp(note + offset);
+        int probability = clamp(step.noteOctaveProbability() + probabilityBias, -1, ArpSequence::NoteOctaveProbability::Max);
+        if (step.noteOctaveProbability()==0) {
+            probability = 0;
+        }
+        if (useVariation && int(rng.nextRange(ArpSequence::NoteOctaveProbability::Range)) <= probability && probability!= 0) {
+            int oct = step.noteOctave() + sequence.lowOctaveRange() + ( std::rand() % ( sequence.highOctaveRange() - sequence.lowOctaveRange() + 1 ) );
+            note = ArpSequence::Note::clamp(note + (bypassScale.notesPerOctave()*oct));
         }
         return bypassScale.noteToVolts(note) + (bypassScale.isChromatic() ? rootNote : 0) * (1.f / 12.f);
     }
     int note = step.note() + evalTransposition(scale, octave, transpose);
-    int probability = clamp(step.noteVariationProbability() + probabilityBias, -1, ArpSequence::NoteVariationProbability::Max);
-    if (useVariation && int(rng.nextRange(ArpSequence::NoteVariationProbability::Range)) <= probability) {
-        int offset = step.noteVariationRange() == 0 ? 0 : rng.nextRange(std::abs(step.noteVariationRange()) + 1);
-        if (step.noteVariationRange() < 0) {
-            offset = -offset;
-        }
-        note = ArpSequence::Note::clamp(note + offset);
+    int probability = clamp(step.noteOctaveProbability() + probabilityBias, -1, ArpSequence::NoteOctaveProbability::Max);
+    if (useVariation && int(rng.nextRange(ArpSequence::NoteOctaveProbability::Range)) <= probability && probability != 0) {
+        int oct = step.noteOctave() + sequence.lowOctaveRange() + ( std::rand() % ( sequence.highOctaveRange() - sequence.lowOctaveRange() + 1 ) );
+        note = ArpSequence::Note::clamp(note + (scale.notesPerOctave()*oct));
     }
     return scale.noteToVolts(note) + (scale.isChromatic() ? rootNote : 0) * (1.f / 12.f);
 }
+
+int ArpTrackEngine::getNextWeightedPitch(std::vector<ArpStep> distr, int notesPerOctave) {
+        int total_weights = 0;
+
+        for(int i = 0; i < notesPerOctave; i++) {
+            total_weights += distr.at(i % notesPerOctave).probability();
+        }
+
+        int rnd = rng.nextRange(total_weights);
+
+        for(int i = 0; i < notesPerOctave; i++) {
+            int weight = distr.at(i % notesPerOctave).probability();
+            if (rnd <= weight && weight > 0) {
+                return distr.at(i % notesPerOctave).index();
+            }
+            rnd -= weight;
+        }
+        return -1;
+    }
 
 void ArpTrackEngine::reset() {
     _freeRelativeTick = 0;
@@ -172,15 +240,15 @@ TrackEngine::TickResult ArpTrackEngine::tick(uint32_t tick) {
         case Types::PlayMode::Aligned:
             if (relativeTick % divisor == 0) {
                 int abstoluteStep = int(relativeTick / divisor);
-                _sequenceState.advanceAligned(abstoluteStep, sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
+                //_sequenceState.advanceAligned(abstoluteStep, sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
 
                 if (abstoluteStep == 0 ||abstoluteStep >= _model.project().recordDelay()+1) {
                     recordStep(tick+1, divisor);
                 }
                 triggerStep(tick, divisor);
 
-                const auto &step = sequence.step(_sequenceState.step());
-                if (step.gateOffset()<0) {
+                /*const auto &step = sequence.step(_sequenceState.step());
+                if (step.gateOffset()<0) { //TODO verify
                     _sequenceState.calculateNextStepAligned(
                             (relativeTick + divisor) / divisor,
                             sequence.runMode(),
@@ -190,46 +258,10 @@ TrackEngine::TickResult ArpTrackEngine::tick(uint32_t tick) {
                         );
                         
                     triggerStep(tick + divisor, divisor, true);
-                }
+                }*/
             }
             break;
         case Types::PlayMode::Free:
-            relativeTick = _freeRelativeTick;
-            if (++_freeRelativeTick >= divisor) {
-                _freeRelativeTick = 0;
-            }
-            if (relativeTick == 0) {
-
-                if (_currentStageRepeat == 1) {
-                     _sequenceState.advanceFree(sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
-                      _sequenceState.calculateNextStepFree(
-                        sequence.runMode(), sequence.firstStep(), sequence.lastStep(), rng);
-                }
-
-                recordStep(tick, divisor);
-                const auto &step = sequence.step(_sequenceState.step());
-                bool isLastStageStep = ((int) (step.stageRepeats()+1) - (int) _currentStageRepeat) <= 0;
-
-                if (step.gateOffset() >= 0) {
-                    triggerStep(tick, divisor);
-                }
-
-                if (!isLastStageStep && step.gateOffset() < 0) {
-                    triggerStep(tick + divisor, divisor, false);
-                }
-
-                if (isLastStageStep 
-                        && sequence.step(_sequenceState.nextStep()).gateOffset() < 0) {
-                    triggerStep(tick + divisor, divisor, true);
-                }
-
-                if (isLastStageStep) {
-                   _currentStageRepeat = 1;
-                } else {
-                    _currentStageRepeat++;
-                }
-
-            }
             break;
         case Types::PlayMode::Last:
             break;
@@ -331,7 +363,7 @@ void ArpTrackEngine::update(float dt) {
 
     if (stepMonitoring) {
         const auto &step = sequence.step(_monitorStepIndex);
-        setOverride(evalStepNote(step, 0, scale, rootNote, octave, transpose, false));
+        setOverride(evalStepNote(step, 0, scale, rootNote, octave, transpose,  sequence, false));
     } else if (liveMonitoring && _recordHistory.isNoteActive()) {
         int note = noteFromMidiNote(_recordHistory.activeNote()) + evalTransposition(scale, octave, transpose);
         setOverride(scale.noteToVolts(note) + (scale.isChromatic() ? rootNote : 0) * (1.f / 12.f));
@@ -386,21 +418,8 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
     bool useFillSequence = fillStep && _arpTrack.fillMode() == ArpTrack::FillMode::NextPattern;
     bool useFillCondition = fillStep && _arpTrack.fillMode() == ArpTrack::FillMode::Condition;
 
-    const auto &sequence = *_sequence;
+    auto &sequence = *_sequence;
     const auto &evalSequence = useFillSequence ? *_fillSequence : *_sequence;
-
-    // TODO do we need to encounter rotate?
-    _currentStep = SequenceUtils::rotateStep(_sequenceState.step(), sequence.firstStep(), sequence.lastStep(), rotate);
-
-    int stepIndex;
-
-    if (forNextStep) {
-        stepIndex = _sequenceState.nextStep();
-    } else {
-        stepIndex = _currentStep;
-    }
-
-    if (stepIndex < 0) return;
 
     if (_noteCount == 0 && sequence.hasSteps()) {
         for (int i = 0; i < 12; ++i) {
@@ -410,17 +429,33 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
         }
     }
 
+    uint32_t resetDivisor = sequence.resetMeasure() * _engine.measureDivisor();
+    uint32_t relativeTick = resetDivisor == 0 ? tick : tick % resetDivisor;
+    auto abstoluteStep = relativeTick / divisor;
+    
+    int index = abstoluteStep % _noteCount;
+
     if (_noteCount == 0) {
         return;
     }
-    
+    if (_skips != 0 && index > 0 && !useFillGates) {
+        --_skips;
+        return;
+    }
 
+    if (index == 0 || index % 2 == 0) {
+        int rest = evalRestProbability(sequence);
+        if (rest != -1) {
+            _skips = rest;
+        }
+    }
+    
     advanceStep();
     if (_stepIndex == 0) {
         advanceOctave();
     }
 
-    stepIndex = _notes[_noteIndex].index;
+    int stepIndex = _notes[_noteIndex].index;
     _currentStep = stepIndex;
 
     const auto &step = evalSequence.step(stepIndex);
@@ -432,57 +467,18 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
     if (stepGate) {
         stepGate = evalStepCondition(step, _sequenceState.iteration(), useFillCondition, _prevCondition);
     }
-    switch (step.stageRepeatMode()) {
-        case Types::StageRepeatMode::Each:
-            break;
-        case Types::StageRepeatMode::First:
-            stepGate = stepGate && _currentStageRepeat == 1;
-            break;
-        case Types::StageRepeatMode::Last:
-            stepGate = stepGate && _currentStageRepeat == step.stageRepeats()+1;
-            break;
-        case Types::StageRepeatMode::Middle:
-            stepGate = stepGate && _currentStageRepeat == (step.stageRepeats()+1)/2;
-            break;
-        case Types::StageRepeatMode::Odd:
-            stepGate = stepGate && _currentStageRepeat % 2 != 0;
-            break;
-        case Types::StageRepeatMode::Even:
-            stepGate = stepGate && _currentStageRepeat % 2 == 0;
-            break;
-        case Types::StageRepeatMode::Triplets:
-            stepGate = stepGate && (_currentStageRepeat - 1) % 3 == 0;
-            break;
-        case Types::StageRepeatMode::Random:
-                int rndMode = rng.nextRange(6);
-                switch (rndMode) {
-                    case 0:
-                        break;
-                    case 1:
-                        stepGate = stepGate && _currentStageRepeat == 1;
-                        break;
-                    case 2:
-                        stepGate = stepGate && _currentStageRepeat == step.stageRepeats()+1;
-                        break;
-                    case 3:
-                        stepGate = stepGate && _currentStageRepeat % ((step.stageRepeats()+1)/2)+1 == 0;
-                        break;
-                    case 4:
-                        stepGate = stepGate && _currentStageRepeat % 2 != 0;
-                        break;
-                    case 5:
-                        stepGate = stepGate && _currentStageRepeat % 2 == 0;
-                        break;
-                    case 6:
-                        stepGate = stepGate && (_currentStageRepeat - 1) % 3 == 0;
-                        break;
-
-                }
-                break;
-    }
 
     if (stepGate) {
         uint32_t stepLength = (divisor * evalStepLength(step, _arpTrack.lengthBias())) / ArpSequence::Length::Range;
+        int rnd = 0;
+        if (sequence.lengthModifier()!= 0) {
+            int m = rng.nextRange(ArpSequence::NoteVariationProbability::Range-1);
+            int mean = sequence.lengthModifier();
+            std::mt19937 e2(m);
+            std::normal_distribution<float> normal_dist(mean, 2);
+            rnd = std::round(normal_dist(e2));
+        }
+        stepLength = stepLength + (rnd*2);
         int stepRetrigger = evalStepRetrigger(step, _arpTrack.retriggerProbabilityBias());
         if (stepRetrigger > 1) {
             uint32_t retriggerLength = divisor / stepRetrigger;
@@ -501,7 +497,7 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
     if (stepGate || _arpTrack.cvUpdateMode() == ArpTrack::CvUpdateMode::Always) {
         const auto &scale = evalSequence.selectedScale(_model.project().scale());
         int rootNote = evalSequence.selectedRootNote(_model.project().rootNote());
-        _cvQueue.push({ Groove::applySwing(stepTick, swing()), evalStepNote(step, _arpTrack.noteProbabilityBias(), scale, rootNote, _octave+octave, transpose), step.slide() });
+        _cvQueue.push({ Groove::applySwing(stepTick, swing()), evalStepNote(step, _arpTrack.noteProbabilityBias(), scale, rootNote, _octave+octave, transpose, sequence), step.slide() });
     }
 }
 
@@ -529,7 +525,7 @@ void ArpTrackEngine::recordStep(uint32_t tick, uint32_t divisor) {
         step.setLengthVariationRange(0);
         step.setLengthVariationProbability(ArpSequence::LengthVariationProbability::Max);
         step.setNote(noteFromMidiNote(note));
-        step.setNoteVariationRange(0);
+        //step.setNoteVariationRange(0);
         step.setNoteVariationProbability(ArpSequence::NoteVariationProbability::Max);
         step.setCondition(Types::Condition::Off);
 

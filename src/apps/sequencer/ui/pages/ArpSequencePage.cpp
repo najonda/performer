@@ -105,7 +105,7 @@ void ArpSequencePage::keyPress(KeyPressEvent &event) {
     }
     if (key.isEncoder()) {
         auto row = ListPage::selectedRow();
-        if (row == 6) {
+        if (row == 5) {
             _listModel.setSelectedScale(_project.scale());
         }
     }

@@ -48,6 +48,7 @@ void ArpTrack::clear() {
     setRetriggerProbabilityBias(0);
     setLengthBias(0);
     setNoteProbabilityBias(0);
+    _arpeggiator.clear();
 
     for (auto &sequence : _sequences) {
         sequence.clear();

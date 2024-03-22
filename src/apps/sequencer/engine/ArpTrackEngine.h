@@ -9,6 +9,29 @@
 #include "StepRecorder.h"
 #include "model/Arpeggiator.h"
 
+
+class ArpStep {
+        public:
+
+            ArpStep() {}
+            ArpStep(int index, int probability) {
+                _index = index;
+                _probability = probability;
+            }
+
+            int index() {
+                return _index;
+            }
+
+            int probability() const {
+                return _probability;
+            }
+
+        private:
+            int _index;
+            int _probability;
+
+    };
 class ArpTrackEngine : public TrackEngine {
 public:
     ArpTrackEngine(Engine &engine, Model &model, Track &track, const TrackEngine *linkedTrackEngine) :
@@ -70,6 +93,8 @@ private:
     int noteIndexFromOrder(int order);
     void advanceStep();
     void advanceOctave();
+    int getNextWeightedPitch(std::vector<ArpStep> distr, int notesPerOctave = 12);
+    int evalRestProbability(ArpSequence &sequence);
 
     bool fill() const {
         return (_arpTrack.fillMuted() || !TrackEngine::mute()) ? TrackEngine::fill() : false;
@@ -99,6 +124,8 @@ private:
     float _cvOutputTarget;
     bool _slideActive;
     unsigned int _currentStageRepeat;
+
+    int _skips;
 
     const Arpeggiator &_arpeggiator;
 

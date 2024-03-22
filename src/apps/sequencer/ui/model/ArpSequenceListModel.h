@@ -14,11 +14,16 @@ public:
         Name,
         FirstStep,
         LastStep,
-        RunMode,
         Divisor,
         ResetMeasure,
         Scale,
         RootNote,
+        RestProbability2,
+        RestProbability4,
+        RestProbability8,
+        LowOctaveRange,
+        HighOctaveRange,
+        LengthModifier,
         Last
     };
 
@@ -86,12 +91,22 @@ public:
             return Routing::Target::FirstStep;
         case LastStep:
             return Routing::Target::LastStep;
-        case RunMode:
-            return Routing::Target::RunMode;
         case Scale:
             return Routing::Target::Scale;
         case RootNote:
             return Routing::Target::RootNote;
+        case RestProbability2:
+            return Routing::Target::RestProbability2;
+        case RestProbability4:
+            return Routing::Target::RestProbability4;
+        case RestProbability8:
+            return Routing::Target::RestProbability8;
+        case LowOctaveRange:
+            return Routing::Target::LowOctaveRange;
+        case HighOctaveRange:
+            return Routing::Target::HighOctaveRange;
+        case LengthModifier:
+            return Routing::Target::LengthModifier;
         default:
             return Routing::Target::None;
         }
@@ -110,11 +125,16 @@ private:
         case Name:              return "Name";
         case FirstStep:         return "First Step";
         case LastStep:          return "Last Step";
-        case RunMode:           return "Run Mode";
         case Divisor:           return "Divisor";
         case ResetMeasure:      return "Reset Measure";
         case Scale:             return "Scale";
         case RootNote:          return "Root Note";
+        case RestProbability2:  return "Rest Prob. 2";
+        case RestProbability4:  return "Rest Prob. 4";
+        case RestProbability8:  return "Rest Prob. 8";
+        case LowOctaveRange:    return "L Oct Range";
+        case HighOctaveRange:   return "H Oct Range";
+        case LengthModifier:    return "Length Mod";
         case Last:              break;
         }
         return nullptr;
@@ -134,9 +154,6 @@ private:
             break;
         case LastStep:
             _sequence->printLastStep(str);
-            break;
-        case RunMode:
-            _sequence->printRunMode(str);
             break;
         case Divisor:
             _sequence->printDivisor(str);
@@ -158,6 +175,24 @@ private:
         case RootNote:
             _sequence->printRootNote(str);
             break;
+        case RestProbability2:
+            _sequence->printRestProbability2(str);
+            break;
+        case RestProbability4:
+            _sequence->printRestProbability4(str);
+            break;
+         case RestProbability8:
+            _sequence->printRestProbability8(str);
+            break;
+        case LowOctaveRange:
+            _sequence->printLowOctaveRange(str);
+            break;
+        case HighOctaveRange:
+            _sequence->printHighOctaveRange(str);
+            break;
+        case LengthModifier:
+            _sequence->printLengthModifier(str);
+            break;
         case Last:
             break;
         }
@@ -172,9 +207,6 @@ private:
             break;
         case LastStep:
             _sequence->editLastStep(value, shift);
-            break;
-        case RunMode:
-            _sequence->editRunMode(value, shift);
             break;
         case Divisor:
             _sequence->editDivisor(value, shift);
@@ -194,6 +226,24 @@ private:
         case RootNote:
             _sequence->editRootNote(value, shift);
             break;
+        case RestProbability2:
+            _sequence->editRestProbability2(value, shift);
+            break;
+        case RestProbability4:
+            _sequence->editRestProbability4(value, shift);
+            break;
+        case RestProbability8:
+            _sequence->editRestProbability8(value, shift);
+            break;
+        case LowOctaveRange:
+            _sequence->editLowOctaveRange(value, shift);
+            break;
+        case HighOctaveRange:
+            _sequence->editHighOctaveRange(value, shift);
+            break;
+        case LengthModifier:
+            _sequence->editLengthModifier(value, shift);
+            break;
         case Last:
             break;
         }
@@ -206,8 +256,6 @@ private:
         case FirstStep:
         case LastStep:
             return 16;
-        case RunMode:
-            return int(Types::RunMode::Last);
         case Divisor:
         case ResetMeasure:
             return 16;
@@ -215,6 +263,13 @@ private:
             return Scale::Count + 1;
         case RootNote:
             return 12 + 1;
+        case RestProbability2:
+        case RestProbability4:
+        case RestProbability8:
+        case LowOctaveRange:
+        case HighOctaveRange:
+        case LengthModifier:
+            return 0;
         case Last:
             break;
         }
@@ -229,8 +284,6 @@ private:
             return _sequence->firstStep();
         case LastStep:
             return _sequence->lastStep();
-        case RunMode:
-            return int(_sequence->runMode());
         case Divisor:
             return _sequence->indexedDivisor();
         case ResetMeasure:
@@ -239,6 +292,18 @@ private:
             return _sequence->indexedScale();
         case RootNote:
             return _sequence->indexedRootNote();
+        case RestProbability2:
+            return _sequence->restProbability2();
+        case RestProbability4:
+            return _sequence->restProbability4();
+        case RestProbability8:
+            return _sequence->restProbability8();
+        case LowOctaveRange:
+            return _sequence->lowOctaveRange();
+        case HighOctaveRange:
+            return _sequence->highOctaveRange();
+        case LengthModifier:
+            return _sequence->lengthModifier();
         case Last:
             break;
         }
@@ -253,8 +318,6 @@ private:
             return _sequence->setFirstStep(index);
         case LastStep:
             return _sequence->setLastStep(index);
-        case RunMode:
-            return _sequence->setRunMode(Types::RunMode(index));
         case Divisor:
             return _sequence->setIndexedDivisor(index);
         case ResetMeasure:
@@ -263,6 +326,18 @@ private:
             return _sequence->setIndexedScale(index);
         case RootNote:
             return _sequence->setIndexedRootNote(index);
+        case RestProbability2:
+            return _sequence->setRestProbability2(index);
+        case RestProbability4:
+            return _sequence->setRestProbability4(index);
+        case RestProbability8:
+            return _sequence->setRestProbability8(index);
+        case LowOctaveRange:
+            return _sequence->setLowOctaveRange(index);
+        case HighOctaveRange:
+            return _sequence->setHighOctaveRange(index);
+        case LengthModifier:
+            return _sequence->setLengthModifier(index);
         case Last:
             break;
         }

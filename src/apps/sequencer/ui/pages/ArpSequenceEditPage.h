@@ -31,7 +31,7 @@ private:
 
     static const int StepCount = 16;
 
-    int stepOffset() const { return _project.selectedArpSequence().section() * StepCount; }
+    int stepOffset() const { return _section * StepCount; }
 
     void switchLayer(int functionKey, bool shift);
     int activeFunctionKey();
@@ -56,12 +56,12 @@ private:
     void setSelectedStepsGate(bool gate);
 
     void setSectionTracking(bool track);
-    bool isSectionTracking();
-    void toggleSectionTracking();
 
     ArpSequence::Layer layer() const { return _project.selectedArpSequenceLayer(); };
     void setLayer(ArpSequence::Layer layer) { _project.setSelectedArpSequenceLayer(layer); }
 
+    int _section = 0;
+    bool _sectionTracking = false;
     bool _showDetail;
     uint32_t _showDetailTicks;
 
@@ -74,5 +74,4 @@ private:
 
     Container<ArpSequenceBuilder> _builderContainer;
 
-    ArpSequence _inMemorySequence;
 };

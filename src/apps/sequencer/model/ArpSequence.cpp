@@ -2,11 +2,8 @@
 #include "ProjectVersion.h"
 
 #include "ModelUtils.h"
-#include "Types.h"
 #include "Routing.h"
-
-#include "os/os.h"
-#include <cstdint>
+#include <iostream>
 
 Types::LayerRange ArpSequence::layerRange(Layer layer) {
     #define CASE(_layer_) \
@@ -17,9 +14,7 @@ Types::LayerRange ArpSequence::layerRange(Layer layer) {
     case Layer::Gate:
         return { 0, 1 };
     case Layer::Slide:
-        return { 0, 1 };
-    case Layer::BypassScale:
-        return {0 ,1 };
+        return { 0, 1 }; 
     CASE(GateOffset)
     CASE(GateProbability)
     CASE(Retrigger)
@@ -27,8 +22,8 @@ Types::LayerRange ArpSequence::layerRange(Layer layer) {
     CASE(Length)
     CASE(LengthVariationRange)
     CASE(LengthVariationProbability)
-    CASE(Note)
-    CASE(NoteVariationRange)
+    CASE(NoteOctave)
+    CASE(NoteOctaveProbability)
     CASE(NoteVariationProbability)
     CASE(Condition)
     CASE(StageRepeats)
@@ -55,8 +50,6 @@ int ArpSequence::layerDefaultValue(Layer layer)
         return step.gateOffset();
     case Layer::Slide:
         return step.slide();
-    case Layer::BypassScale:
-        return step.bypassScale();
     case Layer::Retrigger:
         return step.retrigger();
     case Layer::RetriggerProbability:
@@ -67,10 +60,10 @@ int ArpSequence::layerDefaultValue(Layer layer)
         return step.lengthVariationRange();
     case Layer::LengthVariationProbability:
         return step.lengthVariationProbability();
-    case Layer::Note:
-        return step.note();
-    case Layer::NoteVariationRange:
-        return step.noteVariationRange();
+    case Layer::NoteOctave:
+        return step.noteOctave();
+    case Layer::NoteOctaveProbability:
+        return step.noteOctaveProbability();
     case Layer::NoteVariationProbability:
         return step.noteVariationProbability();
     case Layer::Condition:
@@ -92,8 +85,6 @@ int ArpSequence::Step::layerValue(Layer layer) const {
         return gate() ? 1 : 0;
     case Layer::Slide:
         return slide() ? 1 : 0;
-    case Layer::BypassScale:
-        return bypassScale() ? 1 : 0;
     case Layer::GateProbability:
         return gateProbability();
     case Layer::GateOffset:
@@ -108,10 +99,10 @@ int ArpSequence::Step::layerValue(Layer layer) const {
         return lengthVariationRange();
     case Layer::LengthVariationProbability:
         return lengthVariationProbability();
-    case Layer::Note:
-        return note();
-    case Layer::NoteVariationRange:
-        return noteVariationRange();
+    case Layer::NoteOctave:
+        return noteOctave();
+    case Layer::NoteOctaveProbability:
+        return noteOctaveProbability();
     case Layer::NoteVariationProbability:
         return noteVariationProbability();
     case Layer::Condition:
@@ -135,9 +126,6 @@ void ArpSequence::Step::setLayerValue(Layer layer, int value) {
     case Layer::Slide:
         setSlide(value);
         break;
-    case Layer::BypassScale:
-        setBypassScale(value);
-        break;
     case Layer::GateProbability:
         setGateProbability(value);
         break;
@@ -159,11 +147,11 @@ void ArpSequence::Step::setLayerValue(Layer layer, int value) {
     case Layer::LengthVariationProbability:
         setLengthVariationProbability(value);
         break;
-    case Layer::Note:
-        setNote(value);
+    case Layer::NoteOctave:
+        setNoteOctave(value);
         break;
-    case Layer::NoteVariationRange:
-        setNoteVariationRange(value);
+    case Layer::NoteOctaveProbability:
+        setNoteOctaveProbability(value);
         break;
     case Layer::NoteVariationProbability:
         setNoteVariationProbability(value);
@@ -175,7 +163,7 @@ void ArpSequence::Step::setLayerValue(Layer layer, int value) {
         setStageRepeats(value);
         break;
     case Layer::StageRepeatsMode:
-        setStageRepeatsMode(static_cast<Types::StageRepeatMode>(value));
+        setStageRepeatsMode(static_cast<ArpSequence::StageRepeatMode>(value));
         break;
     case Layer::Last:
         break;
@@ -189,18 +177,19 @@ void ArpSequence::Step::clear() {
     setGateProbability(GateProbability::Max);
     setGateOffset(0);
     setSlide(false);
-    setBypassScale(false);
+    setBypassScale(true);
     setRetrigger(0);
     setRetriggerProbability(RetriggerProbability::Max);
     setLength(Length::Max / 2);
     setLengthVariationRange(0);
     setLengthVariationProbability(LengthVariationProbability::Max);
     setNote(0);
-    setNoteVariationRange(0);
-    setNoteVariationProbability(NoteVariationProbability::Max);
+    setNoteOctave(0);
+    setNoteOctaveProbability(NoteOctaveProbability::Max);
+    setNoteVariationProbability(0);
     setCondition(Types::Condition::Off);
     setStageRepeats(0);
-    setStageRepeatsMode(Types::StageRepeatMode::Each);
+    setStageRepeatsMode(StageRepeatMode::Each);
 }
 
 void ArpSequence::Step::write(VersionedSerializedWriter &writer) const {
@@ -209,7 +198,6 @@ void ArpSequence::Step::write(VersionedSerializedWriter &writer) const {
 }
 
 void ArpSequence::Step::read(VersionedSerializedReader &reader) {
-
     if (reader.dataVersion() < ProjectVersion::Version27) {
         reader.read(_data0.raw);
         reader.readAs<uint16_t>(_data1.raw);
@@ -225,27 +213,12 @@ void ArpSequence::Step::read(VersionedSerializedReader &reader) {
     } else {
         reader.read(_data0.raw);
         reader.read(_data1.raw);
-        if (reader.dataVersion() < ProjectVersion::Version36) {
-            bool bypassScale = (bool)((_data0.raw >> 31) & 0x1);
-
-            _data0.raw = (_data0.raw & 0x3 ) | (((_data0.raw ) & 0xFFFFFFFC) << 1);
-            _data1.raw = 0x7FFFFFFF & (_data1.raw << 1);
-            _data1.bypassScale = bypassScale;
-        }
-
-        if (reader.dataVersion() < ProjectVersion::Version34) {
-            setBypassScale(false);
-        }
-
-
-
     }
 }
 
 void ArpSequence::writeRouted(Routing::Target target, int intValue, float floatValue) {
     switch (target) {
     case Routing::Target::Scale:
-        //_model._selectedScale[0] = intValue;
         setScale(intValue, true);
         break;
     case Routing::Target::RootNote:
@@ -254,33 +227,29 @@ void ArpSequence::writeRouted(Routing::Target target, int intValue, float floatV
     case Routing::Target::Divisor:
         setDivisor(intValue, true);
         break;
-    case Routing::Target::RunMode:
-        setRunMode(Types::RunMode(intValue), true);
-        break;
     case Routing::Target::FirstStep:
         setFirstStep(intValue, true);
         break;
     case Routing::Target::LastStep:
         setLastStep(intValue, true);
         break;
-    case Routing::Target::CurrentRecordStep:
-        if (_gate) {
-            if (floatValue < 2.f) {
-                // gate off
-                _gate = 0;
-                _lastGateOff = os::ticks();
-            }
-        } else {
-            if (floatValue > 3.f) {
-                if (os::ticks() - _lastGateOff >= GateOnDelay) {
-                    // gate on
-                    _gate = 1;
-                    setCurrentRecordStep(currentRecordStep()+1,true);
-                }
-            } else {
-                _lastGateOff = os::ticks();
-            }
-        }
+    case Routing::Target::RestProbability2:
+        setRestProbability2(intValue, true);
+        break;
+    case Routing::Target::RestProbability4:
+        setRestProbability4(intValue, true);
+        break;
+    case Routing::Target::RestProbability8:
+        setRestProbability8(intValue, true);
+        break;
+    case Routing::Target::LowOctaveRange:
+        setLowOctaveRange(intValue, true);
+        break;
+    case Routing::Target::HighOctaveRange:
+        setHighOctaveRange(intValue, true);
+        break;
+    case Routing::Target::LengthModifier:
+        setLengthModifier(intValue, true);
         break;
     default:
         break;
@@ -288,15 +257,18 @@ void ArpSequence::writeRouted(Routing::Target target, int intValue, float floatV
 }
 
 void ArpSequence::clear() {
-    setName("INIT");
     setScale(-1);
     setRootNote(-1);
     setDivisor(12);
     setResetMeasure(0);
-    setRunMode(Types::RunMode::Forward);
     setFirstStep(0);
-    setLastStep(11);
-    setCurrentRecordStep(0);
+    setLastStep(0);
+    setLengthModifier(0);
+    setRestProbability2(0);
+    setRestProbability4(0);
+    setRestProbability8(0);
+    setLowOctaveRange(0);
+    setHighOctaveRange(0);
 
     clearSteps();
 }
@@ -305,27 +277,19 @@ void ArpSequence::clearSteps() {
     for (auto &step : _steps) {
         step.clear();
     }
-
+    
     for (int i = 0; i < 12; ++i) {
         _steps[i].setNote(i);
     }
 }
 
-void ArpSequence::clearStepsSelected(const std::bitset<CONFIG_STEP_COUNT> &selected) {
-    if (selected.any()) {
-        for (size_t i = 0; i < CONFIG_STEP_COUNT; ++i) {
-            if (selected[i]) {
-                _steps[i].clear();
-            }
-    }
-    } else {
-        clearSteps();
-    }
-}
-
 bool ArpSequence::isEdited() const {
     auto clearStep = Step();
-    for (const auto &step : _steps) {
+
+    for (int i = 0; i < 12; ++i) {
+       auto step =  _steps[i];
+        clearStep.setNote(i);
+
         if (step != clearStep) {
             return true;
         }
@@ -353,9 +317,9 @@ void ArpSequence::setNotes(std::initializer_list<int> notes) {
 
 void ArpSequence::shiftSteps(const std::bitset<CONFIG_STEP_COUNT> &selected, int direction) {
     if (selected.any()) {
-        ModelUtils::shiftSteps(_steps, selected, firstStep(), lastStep()+1, direction);
+        ModelUtils::shiftSteps(_steps, selected, firstStep(), lastStep(), direction);
     } else {
-        ModelUtils::shiftSteps(_steps, firstStep(), lastStep()+1, direction);
+        ModelUtils::shiftSteps(_steps, firstStep(), lastStep(), direction);
     }
 }
 
@@ -369,9 +333,14 @@ void ArpSequence::write(VersionedSerializedWriter &writer) const {
     writer.write(_rootNote.base);
     writer.write(_divisor.base);
     writer.write(_resetMeasure);
-    writer.write(_runMode.base);
-    writer.write(_firstStep.base);
-    writer.write(_lastStep.base);
+    writer.write(_firstStep);
+    writer.write(_lastStep);
+    writer.write(_restProbability2);  
+    writer.write(_restProbability4);
+    writer.write(_restProbability8);
+    writer.write(_lengthModifier);
+    writer.write(_lowOctaveRange);
+    writer.write(_highOctaveRange);
 
     writeArray(writer, _steps);
     writer.write(_name, NameLength + 1);
@@ -388,22 +357,23 @@ bool ArpSequence::read(VersionedSerializedReader &reader) {
         reader.read(_divisor.base);
     }
     reader.read(_resetMeasure);
-    reader.read(_runMode.base);
-    reader.read(_firstStep.base);
-    reader.read(_lastStep.base);
-
+    reader.read(_firstStep);
+    reader.read(_lastStep);
+    reader.read(_restProbability2);  
+    reader.read(_restProbability4);
+    reader.read(_restProbability8);
+    reader.read(_lengthModifier);
+    reader.read(_lowOctaveRange);
+    reader.read(_highOctaveRange);
+    
     readArray(reader, _steps);
 
-    if (reader.dataVersion() >= ProjectVersion::Version35) {
-        reader.read(_name, NameLength + 1, ProjectVersion::Version35);
-        reader.read(_slot);
-        bool success = reader.checkHash();
-        if (!success) {
-            clear();
-        }
-
-        return success;
-    } else {
-        return true;
+    reader.read(_name, NameLength + 1);
+    reader.read(_slot);
+    bool success = reader.checkHash();
+    if (!success) {
+        clear();
     }
+
+    return success;
 }
