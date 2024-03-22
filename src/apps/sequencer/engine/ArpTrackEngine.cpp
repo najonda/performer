@@ -378,7 +378,7 @@ void ArpTrackEngine::setMonitorStep(int index) {
     }
 }
 void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextStep) {
-    //int octave = _arpTrack.octave();
+    int octave = _arpTrack.octave();
     int transpose = _arpTrack.transpose();
     int rotate = _arpTrack.rotate();
     bool fillStep = fill() && (rng.nextRange(100) < uint32_t(fillAmount()));
@@ -493,7 +493,7 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
     if (stepGate || _arpTrack.cvUpdateMode() == ArpTrack::CvUpdateMode::Always) {
         const auto &scale = evalSequence.selectedScale(_model.project().scale());
         int rootNote = evalSequence.selectedRootNote(_model.project().rootNote());
-        _cvQueue.push({ Groove::applySwing(stepTick, swing()), evalStepNote(step, _arpTrack.noteProbabilityBias(), scale, rootNote, _octave, transpose), step.slide() });
+        _cvQueue.push({ Groove::applySwing(stepTick, swing()), evalStepNote(step, _arpTrack.noteProbabilityBias(), scale, rootNote, _octave+octave, transpose), step.slide() });
     }
 }
 
