@@ -85,8 +85,6 @@ private:
         LengthBias,
         NoteProbabilityBias,
         PatternFollow,
-        LogicTrack,
-        LogicTrackInput,
         ArpeggiatorMode,
         ArpeggiatorOctaves,
         Last
@@ -108,8 +106,6 @@ private:
         case LengthBias: return "Length Bias";
         case NoteProbabilityBias: return "Note P. Bias";
         case PatternFollow: return "Pattern Follow";
-        case LogicTrack: return "Logic Track";
-        case LogicTrackInput: return "Logic Track In";
         case ArpeggiatorMode:       return "Mode";
         case ArpeggiatorOctaves:    return "Octaves";
         case Last:      break;
@@ -166,12 +162,6 @@ private:
         case PatternFollow:
             _track->printPatternFollow(str);
             break;
-        case LogicTrack:
-            _track->printLogicTrack(str);
-            break;
-        case LogicTrackInput:
-            _track->printLogicTrackInput(str);
-            break;
         case ArpeggiatorMode:
             arpeggiator.printMode(str);
             break;
@@ -190,7 +180,6 @@ private:
         case TrackName:
             break;
         case PlayMode:
-            _track->editPlayMode(value, shift);
             break;
         case FillMode:
             _track->editFillMode(value, shift);
@@ -228,62 +217,12 @@ private:
         case PatternFollow:
             _track->editPatternFollow(value, shift);
             break;
-        case LogicTrack: {
-
-                if (_availableLogicTracks.size() == 0) {
-                    break;
-                }
-                
-                if (_track->logicTrackInput() != -1) {
-                    break;
-                }
-                if (value == -1 && _selectedTrack[_track->trackIndex()] == -1) {
-                    break;
-                }
-
-                if (value == -1 && _selectedTrack[_track->trackIndex()] == _availableLogicTracks.front()) {
-                    _track->setLogicTrack(-1);
-                    _selectedTrack[_track->trackIndex()] = -1;
-                    break;
-                }
-
-                if (value == 1 && _selectedTrack[_track->trackIndex()] == _availableLogicTracks.back()) {
-                    break;
-                }
-
-                if (value == 1) {
-                    for (int i = 0; i < 8; ++i ) {
-                        if (std::find(_availableLogicTracks.begin(), _availableLogicTracks.end(), i) != _availableLogicTracks.end() && i != _selectedTrack[_track->trackIndex()]) {
-                            _track->setLogicTrack(i);
-                            _selectedTrack[_track->trackIndex()] = i;
-                            break;
-                        }
-                    }
-                } else {
-                    for (int i = 7; i > 0; --i ) {
-                        if (std::find(_availableLogicTracks.begin(), _availableLogicTracks.end(), i) != _availableLogicTracks.end() && i != _selectedTrack[_track->trackIndex()]) {
-                            _track->setLogicTrack(i);
-                            _selectedTrack[_track->trackIndex()] = i;
-                            break;
-                        }
-                    }
-                }
-
-                
-            }
+        case ArpeggiatorMode:
+            arpeggiator.editMode(value, shift);
             break;
-            case LogicTrackInput:
-                if (_track->logicTrack()==-1) {
-                    return;
-                }
-                _track->editLogicTrackInput(value, shift);
-                break;
-            case ArpeggiatorMode:
-                arpeggiator.editMode(value, shift);
-                break;
-            case ArpeggiatorOctaves:
-                arpeggiator.editOctaves(value, shift);
-                break;
+        case ArpeggiatorOctaves:
+            arpeggiator.editOctaves(value, shift);
+            break;
         case Last:
             break;
         }
