@@ -181,7 +181,7 @@ void ArpTrackEngine::reset() {
     _slideActive = false;
     _gateQueue.clear();
     _cvQueue.clear();
-    //_recordHistory.clear();
+    _recordHistory.clear();
 
     changePattern();
 
@@ -429,15 +429,17 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
         }
     }
 
+    if (_noteCount == 0) {
+        return;
+    }
+
     uint32_t resetDivisor = sequence.resetMeasure() * _engine.measureDivisor();
     uint32_t relativeTick = resetDivisor == 0 ? tick : tick % resetDivisor;
     auto abstoluteStep = relativeTick / divisor;
     
     int index = abstoluteStep % _noteCount;
 
-    if (_noteCount == 0) {
-        return;
-    }
+
     if (_skips != 0 && index > 0 && !useFillGates) {
         --_skips;
         return;
@@ -465,7 +467,7 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
 
     bool stepGate = evalStepGate(step, _arpTrack.gateProbabilityBias()) || useFillGates;
     if (stepGate) {
-        stepGate = evalStepCondition(step, _sequenceState.iteration(), useFillCondition, _prevCondition);
+        stepGate = evalStepCondition(step, _sequenceState.iteration(), useFillCondition, _prevCondition); //TODO check iteration
     }
 
     if (stepGate) {
@@ -507,16 +509,20 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor) {
 
 void ArpTrackEngine::recordStep(uint32_t tick, uint32_t divisor) {
 
-    if (!_engine.state().recording() || _model.project().recordMode() == Types::RecordMode::StepRecord || _sequenceState.prevStep()==-1) {
+    if (!_engine.state().recording() || _model.project().recordMode() == Types::RecordMode::StepRecord) {
         return;
     }
 
     bool stepWritten = false;
 
-    auto writeStep = [this, divisor, &stepWritten] (int stepIndex, int note, int lengthTicks) {
-        auto &step = _sequence->step(stepIndex);
-        int length = (lengthTicks * ArpSequence::Length::Range) / divisor;
+    auto writeStep = [this, divisor, &stepWritten] (int note, int lengthTicks) {
 
+        int stepNote = noteFromMidiNote(note);
+        int octave = roundDownDivide(stepNote, 12);
+        
+        int stepNoteCleared = stepNote - (octave*12);
+        auto &step = _sequence->step(stepNoteCleared);
+        int length = (lengthTicks * ArpSequence::Length::Range) / divisor;
         step.setGate(true);
         step.setGateProbability(ArpSequence::GateProbability::Max);
         step.setRetrigger(0);
@@ -524,12 +530,14 @@ void ArpTrackEngine::recordStep(uint32_t tick, uint32_t divisor) {
         step.setLength(length);
         step.setLengthVariationRange(0);
         step.setLengthVariationProbability(ArpSequence::LengthVariationProbability::Max);
-        step.setNote(noteFromMidiNote(note));
+        step.setNote(stepNoteCleared);
+        step.setNoteOctave(octave);
+        step.setNoteOctaveProbability(ArpSequence::NoteOctaveProbability::Max);
         //step.setNoteVariationRange(0);
         step.setNoteVariationProbability(ArpSequence::NoteVariationProbability::Max);
         step.setCondition(Types::Condition::Off);
 
-
+        addNote(stepNoteCleared, stepNoteCleared);
         stepWritten = true;
     };
 
@@ -539,10 +547,6 @@ void ArpTrackEngine::recordStep(uint32_t tick, uint32_t divisor) {
         step.clear();
     };
 
-    uint32_t stepStart = tick - divisor;
-    uint32_t stepEnd = tick;
-    uint32_t margin = divisor / 2;
-
     for (size_t i = 0; i < _recordHistory.size(); ++i) {
         if (_recordHistory[i].type != RecordHistory::Type::NoteOn) {
             continue;
@@ -551,24 +555,10 @@ void ArpTrackEngine::recordStep(uint32_t tick, uint32_t divisor) {
         int note = _recordHistory[i].note;
         uint32_t noteStart = _recordHistory[i].tick;
         uint32_t noteEnd = i + 1 < _recordHistory.size() ? _recordHistory[i + 1].tick : tick;
-
-        if (noteStart >= stepStart - margin && noteStart < stepStart + margin) {
-            // note on during step start phase
-            if (noteEnd >= stepEnd) {
-                // note hold during step
-                int length = std::min(noteEnd, stepEnd) - stepStart;
-                writeStep(_sequenceState.prevStep(), note, length);
-            } else {
-                // note released during step
-                int length = noteEnd - noteStart;
-                writeStep(_sequenceState.prevStep(), note, length);
-            }
-        } else if (noteStart < stepStart && noteEnd > stepStart) {
-            // note on during previous step
-            int length = std::min(noteEnd, stepEnd) - stepStart;
-            writeStep(_sequenceState.prevStep(), note, length);
-        }
+        int length = noteEnd - noteStart;
+        writeStep(note, length);
     }
+    _recordHistory.clear();
 
     if (isSelected() && !stepWritten && _model.project().recordMode() == Types::RecordMode::Overwrite) {
         clearStep(_sequenceState.prevStep());
