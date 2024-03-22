@@ -88,6 +88,7 @@ private:
         LogicTrack,
         LogicTrackInput,
         ArpeggiatorMode,
+        ArpeggiatorOctaves,
         Last
     };
 
@@ -110,6 +111,7 @@ private:
         case LogicTrack: return "Logic Track";
         case LogicTrackInput: return "Logic Track In";
         case ArpeggiatorMode:       return "Mode";
+        case ArpeggiatorOctaves:    return "Octaves";
         case Last:      break;
         }
         return nullptr;
@@ -172,6 +174,9 @@ private:
             break;
         case ArpeggiatorMode:
             arpeggiator.printMode(str);
+            break;
+        case ArpeggiatorOctaves:
+            arpeggiator.printOctaves(str);
             break;
         case Last:
             break;
@@ -275,6 +280,9 @@ private:
                 break;
             case ArpeggiatorMode:
                 arpeggiator.editMode(value, shift);
+                break;
+            case ArpeggiatorOctaves:
+                arpeggiator.editOctaves(value, shift);
                 break;
         case Last:
             break;

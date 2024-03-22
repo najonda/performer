@@ -69,6 +69,7 @@ private:
 
     int noteIndexFromOrder(int order);
     void advanceStep();
+    void advanceOctave();
 
     bool fill() const {
         return (_arpTrack.fillMuted() || !TrackEngine::mute()) ? TrackEngine::fill() : false;
@@ -115,6 +116,8 @@ private:
     uint32_t _noteOrder;
     int8_t _noteCount;
     int8_t _noteHoldCount;
+    int8_t _octave;
+    int8_t _octaveDirection;
 
 
 

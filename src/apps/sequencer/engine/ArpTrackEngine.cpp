@@ -117,9 +117,15 @@ void ArpTrackEngine::reset() {
 
     changePattern();
 
-    _noteIndex = 0;
-    //_noteOrder = 0;
     _stepIndex = -1;
+    _noteIndex = 0;
+    _noteOrder = 0;
+
+    _octave = 0;
+    _octaveDirection = 0;
+
+    //_noteCount = 0;
+    _noteHoldCount = 0;
 }
 
 void ArpTrackEngine::restart() {
@@ -372,7 +378,7 @@ void ArpTrackEngine::setMonitorStep(int index) {
     }
 }
 void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextStep) {
-    int octave = _arpTrack.octave();
+    //int octave = _arpTrack.octave();
     int transpose = _arpTrack.transpose();
     int rotate = _arpTrack.rotate();
     bool fillStep = fill() && (rng.nextRange(100) < uint32_t(fillAmount()));
@@ -402,6 +408,9 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
     
 
     advanceStep();
+    if (_stepIndex == 0) {
+        advanceOctave();
+    }
 
     stepIndex = _notes[_noteIndex].index;
     _currentStep = stepIndex;
@@ -484,7 +493,7 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
     if (stepGate || _arpTrack.cvUpdateMode() == ArpTrack::CvUpdateMode::Always) {
         const auto &scale = evalSequence.selectedScale(_model.project().scale());
         int rootNote = evalSequence.selectedRootNote(_model.project().rootNote());
-        _cvQueue.push({ Groove::applySwing(stepTick, swing()), evalStepNote(step, _arpTrack.noteProbabilityBias(), scale, rootNote, octave, transpose), step.slide() });
+        _cvQueue.push({ Groove::applySwing(stepTick, swing()), evalStepNote(step, _arpTrack.noteProbabilityBias(), scale, rootNote, _octave, transpose), step.slide() });
     }
 }
 
@@ -694,5 +703,50 @@ void ArpTrackEngine::advanceStep() {
         break;
     default:
         break;
+    }
+}
+
+void ArpTrackEngine::advanceOctave() {
+    int octaves = _arpeggiator.octaves();
+
+    bool bothDirections = false;
+    if (octaves > 5) {
+        octaves -= 5;
+        bothDirections = true;
+    }
+    if (octaves < -5) {
+        octaves += 5;
+        bothDirections = true;
+    }
+
+    if (octaves == 0) {
+        _octave = 0;
+        _octaveDirection = 0;
+    } else if (octaves > 0) {
+        if (_octaveDirection == 0) {
+            _octaveDirection = 1;
+        } else {
+            _octave += _octaveDirection;
+            if (_octave > octaves) {
+                _octave = bothDirections ? octaves : 0;
+                _octaveDirection = bothDirections ? -1 : 1;
+            } else if (_octave < 0) {
+                _octave = 0;
+                _octaveDirection = 1;
+            }
+        }
+    } else if (octaves < 0) {
+        if (_octaveDirection == 0) {
+            _octaveDirection = -1;
+        } else {
+            _octave += _octaveDirection;
+            if (_octave < octaves) {
+                _octave = bothDirections ? octaves : 0;
+                _octaveDirection = bothDirections ? 1 : -1;
+            } else if (_octave > 0) {
+                _octave = 0;
+                _octaveDirection = -1;
+            }
+        }
     }
 }
