@@ -533,7 +533,7 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
 
     bool stepGate = evalStepGate(step, _arpTrack.gateProbabilityBias()) || useFillGates;
     if (stepGate) {
-        stepGate = evalStepCondition(step, _sequenceState.iteration(), useFillCondition, _prevCondition); //TODO check iteration
+        stepGate = evalStepCondition(step, _iteration, useFillCondition, _prevCondition); //TODO check iteration
     }
 
     if (stepGate) {
@@ -707,6 +707,10 @@ int ArpTrackEngine::noteIndexFromOrder(int order) {
 
 void ArpTrackEngine::advanceStep() {
     _noteIndex = 0;
+    uint32_t divisor = sequence.divisor() * (CONFIG_PPQN / CONFIG_SEQUENCE_PPQN);
+    uint32_t resetDivisor = sequence.resetMeasure() * _engine.measureDivisor();
+    uint32_t relativeTick = resetDivisor == 0 ? tick : tick % resetDivisor;
+    int absoluteStep = int(relativeTick / divisor);
 
     auto mode = _arpeggiator.mode();
 
@@ -714,11 +718,13 @@ void ArpTrackEngine::advanceStep() {
     case Arpeggiator::Mode::PlayOrder:
         _stepIndex = (_stepIndex + 1) % _noteCount;
         _noteIndex = noteIndexFromOrder(_stepIndex);
+        _iteration = relativeTick / _noteCount;
         break;
     case Arpeggiator::Mode::Up:
     case Arpeggiator::Mode::Down:
         _stepIndex = (_stepIndex + 1) % _noteCount;
         _noteIndex = _stepIndex;
+        _iteration = absoluteStep / _noteCount;
         break;
     case Arpeggiator::Mode::UpDown:
     case Arpeggiator::Mode::DownUp:
@@ -726,6 +732,7 @@ void ArpTrackEngine::advanceStep() {
             _stepIndex = (_stepIndex + 1) % ((_noteCount - 1) * 2);
             _noteIndex = _stepIndex % (_noteCount - 1);
             _noteIndex = _stepIndex < _noteCount - 1 ? _noteIndex : _noteCount - _noteIndex - 1;
+            _iteration = absoluteStep / (2 * stepCount);
         } else {
             _stepIndex = 0;
         }
@@ -735,6 +742,7 @@ void ArpTrackEngine::advanceStep() {
         _stepIndex = (_stepIndex + 1) % (_noteCount * 2);
         _noteIndex = _stepIndex % _noteCount;
         _noteIndex = _stepIndex < _noteCount ? _noteIndex : _noteCount - _noteIndex - 1;
+        _iteration = absoluteStep / (2 * stepCount - 2);
         break;
     case Arpeggiator::Mode::Converge:
         _stepIndex = (_stepIndex + 1) % _noteCount;

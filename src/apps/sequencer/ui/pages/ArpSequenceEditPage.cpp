@@ -271,10 +271,16 @@ void ArpSequenceEditPage::draw(Canvas &canvas) {
             if (step.bypassScale()) {
                 const Scale &bypassScale = std::ref(Scale::get(0));
                 bypassScale.noteName(str, step.note(), rootNote, Scale::Short1);
-            
+                 if (scale.isNotePresent(step.note())) {
+                    canvas.setColor(Color::Bright);
+                } else {
+                    canvas.setColor(Color::Low);
+                }
                 canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
                 str.reset();
+                
                 bypassScale.noteName(str, step.note(), rootNote, Scale::Short2);
+               
                 canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
                 break;
             } 

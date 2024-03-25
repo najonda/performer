@@ -1342,10 +1342,6 @@ void LaunchpadController::sequenceDrawLayer() {
         for (int i = 0; i < arpSequenceLayerMapSize; ++i) {
             const auto &item = arpSequenceLayerMap[i];
             bool selected = i == int(_project.selectedArpSequenceLayer());
-            auto playMode = _engine.selectedTrackEngine().as<ArpTrackEngine>().playMode();
-            if (playMode == Types::PlayMode::Aligned && (i == 5 || i == 6)) {
-                continue;
-            } 
             setGridLed(item.row, item.col, selected ? colorYellow() : colorGreen());
         }
         break;

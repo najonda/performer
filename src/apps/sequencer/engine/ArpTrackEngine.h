@@ -114,6 +114,7 @@ private:
     SequenceState _sequenceState;
     int _currentStep;
     bool _prevCondition;
+    int _iteration;
 
     int _monitorStepIndex = -1;
 
