@@ -13,6 +13,7 @@
 #include "model/Scale.h"
 #include "ui/MatrixMap.h"
 #include <climits>
+#include <cstdint>
 #include <iostream>
 #include <ctime>
 #include <random>
@@ -192,7 +193,7 @@ void ArpTrackEngine::reset() {
     _octave = 0;
     _octaveDirection = 0;
 
-    //_noteCount = 0;
+    _noteCount = 0;
     _noteHoldCount = 0;
 }
 
@@ -364,9 +365,33 @@ void ArpTrackEngine::update(float dt) {
     if (stepMonitoring) {
         const auto &step = sequence.step(_monitorStepIndex);
         setOverride(evalStepNote(step, 0, scale, rootNote, octave, transpose,  sequence, false));
-    } else if (liveMonitoring && _recordHistory.isNoteActive()) {
-        int note = noteFromMidiNote(_recordHistory.activeNote()) + evalTransposition(scale, octave, transpose);
-        setOverride(scale.noteToVolts(note) + (scale.isChromatic() ? rootNote : 0) * (1.f / 12.f));
+    } else if (liveMonitoring && _noteCount != 0) {
+
+
+
+
+        uint32_t divisor = _arpeggiator.divisor() * (CONFIG_PPQN / CONFIG_SEQUENCE_PPQN);
+        uint32_t resetDivisor = sequence.resetMeasure() * _engine.measureDivisor();
+        uint32_t relativeTick = resetDivisor == 0 ? _engine.tick() : _engine.tick() % resetDivisor;
+
+         uint32_t length = std::max(uint32_t(1), uint32_t((divisor * _arpeggiator.gateLength()) / 100));
+            // delay note off if gate length is at maximum to enable legato style playback
+            length += _arpeggiator.gateLength() == 100 ? 1u : 0u;
+
+        if (relativeTick == 0) {
+            reset();
+        }
+        if (relativeTick % divisor == 0) {
+            int stepIndex = _notes[_noteIndex].index;
+            const auto &step = sequence.step(stepIndex);
+            setOverride(evalStepNote(step, _arpTrack.noteProbabilityBias(), scale, rootNote, _octave+octave, transpose, sequence));
+        } else if ((relativeTick+length) % divisor == 0) { // TODO use length
+            clearOverride();
+            advanceStep();
+            if (_stepIndex == 0) {
+                advanceOctave();
+            }  
+        } 
     } else {
         clearOverride();
     }
@@ -386,6 +411,34 @@ void ArpTrackEngine::changePattern() {
 void ArpTrackEngine::monitorMidi(uint32_t tick, const MidiMessage &message) {
     _recordHistory.write(tick, message);
 
+    const auto &sequence = *_sequence;
+    const auto &scale = sequence.selectedScale(_model.project().scale());
+    int rootNote = sequence.selectedRootNote(_model.project().rootNote());
+    int octave = _arpTrack.octave();
+    int transpose = _arpTrack.transpose();
+
+    if (message.isNoteOff()) {
+        int note = noteFromMidiNote(message.note())  + evalTransposition(scale, octave, transpose);
+        removeNote(note);
+    }
+
+    if (message.isNoteOn()) {
+        int note = noteFromMidiNote(message.note()) + evalTransposition(scale, octave, transpose);
+
+        bool isPresent = false;
+        for (int i=0; i <_noteCount; ++i) {
+            if (_notes[i].note == uint8_t(note)) {
+                isPresent = true;
+                break;
+            }
+        }
+
+        if (!isPresent) {
+            int octave = roundDownDivide(note, scale.notesPerOctave());
+            int stepNoteCleared = note - (octave*scale.notesPerOctave());
+            addNote(note, stepNoteCleared);
+        }
+    }
     /*if (_engine.recording() && _model.project().recordMode() == Types::RecordMode::StepRecord) {
         _stepRecorder.process(message, *_sequence, [this] (int midiNote) { return noteFromMidiNote(midiNote); });
         if (Routing::isRouted(Routing::Target::CurrentRecordStep, _model.project().selectedTrackIndex())) {
@@ -438,7 +491,6 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
     auto abstoluteStep = relativeTick / divisor;
     
     int index = abstoluteStep % _noteCount;
-
 
     if (_skips != 0 && index > 0 && !useFillGates) {
         --_skips;

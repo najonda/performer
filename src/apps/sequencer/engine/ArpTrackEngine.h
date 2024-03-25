@@ -135,7 +135,7 @@ private:
         uint8_t index;
     };
 
-     static constexpr int MaxNotes = 8;
+    static constexpr int MaxNotes = 8;
 
     std::array<Note, MaxNotes> _notes;
     int _stepIndex;

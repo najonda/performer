@@ -794,7 +794,9 @@ void Engine::monitorMidi(const MidiMessage &message) {
     if (message.isNoteOn()) {
         // detect if a different note is still active => send note off
         if (_midiMonitoring.lastNote != -1 && _midiMonitoring.lastNote != message.note()) {
-            sendMidi(currentTrack, MidiMessage::makeNoteOff(0, _midiMonitoring.lastNote));
+            if (_project.selectedTrack().trackMode()!=Track::TrackMode::Arp) {
+                sendMidi(currentTrack, MidiMessage::makeNoteOff(0, _midiMonitoring.lastNote)); //TOD verify this
+            }
         }
         // send note on
         sendMidi(currentTrack, MidiMessage::makeNoteOn(0, message.note(), message.velocity()));

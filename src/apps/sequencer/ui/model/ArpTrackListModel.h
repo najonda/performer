@@ -87,6 +87,8 @@ private:
         PatternFollow,
         ArpeggiatorMode,
         ArpeggiatorOctaves,
+        ArpeggiatorGateLength,
+        ArpeggiatorDivisor,
         Last
     };
 
@@ -108,6 +110,8 @@ private:
         case PatternFollow: return "Pattern Follow";
         case ArpeggiatorMode:       return "Mode";
         case ArpeggiatorOctaves:    return "Octaves";
+        case ArpeggiatorDivisor:    return "Divisor";
+        case ArpeggiatorGateLength: return "Gate Length";
         case Last:      break;
         }
         return nullptr;
@@ -168,6 +172,12 @@ private:
         case ArpeggiatorOctaves:
             arpeggiator.printOctaves(str);
             break;
+        case ArpeggiatorDivisor:
+            arpeggiator.printDivisor(str);
+            break;
+        case ArpeggiatorGateLength:
+            arpeggiator.printGateLength(str);
+            break;
         case Last:
             break;
         }
@@ -222,6 +232,12 @@ private:
             break;
         case ArpeggiatorOctaves:
             arpeggiator.editOctaves(value, shift);
+            break;
+        case ArpeggiatorDivisor:
+            arpeggiator.editDivisor(value, shift);
+            break;
+        case ArpeggiatorGateLength:
+            arpeggiator.editGateLength(value, shift);
             break;
         case Last:
             break;
