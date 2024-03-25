@@ -140,6 +140,13 @@ static float evalStepNote(const ArpSequence::Step &step, int probabilityBias, co
             int oct = step.noteOctave() + sequence.lowOctaveRange() + ( std::rand() % ( sequence.highOctaveRange() - sequence.lowOctaveRange() + 1 ) );
             note = ArpSequence::Note::clamp(note + (bypassScale.notesPerOctave()*oct));
         }
+        if (useVariation && int(rng.nextRange(ArpSequence::NoteVariationProbability::Range)) <= probability) {
+            int offset = step.noteVariationRange() == 0 ? 0 : rng.nextRange(std::abs(step.noteVariationRange()) + 1);
+            if (step.noteVariationRange() < 0) {
+                offset = -offset;
+            }
+            note = NoteSequence::Note::clamp(note + offset);
+        }
         return bypassScale.noteToVolts(note) + (bypassScale.isChromatic() ? rootNote : 0) * (1.f / 12.f);
     }
     int note = step.note() + evalTransposition(scale, octave, transpose);
@@ -147,6 +154,13 @@ static float evalStepNote(const ArpSequence::Step &step, int probabilityBias, co
     if (useVariation && int(rng.nextRange(ArpSequence::NoteOctaveProbability::Range)) <= probability && probability != 0) {
         int oct = step.noteOctave() + sequence.lowOctaveRange() + ( std::rand() % ( sequence.highOctaveRange() - sequence.lowOctaveRange() + 1 ) );
         note = ArpSequence::Note::clamp(note + (scale.notesPerOctave()*oct));
+    }
+    if (useVariation && int(rng.nextRange(ArpSequence::NoteVariationProbability::Range)) <= probability) {
+        int offset = step.noteVariationRange() == 0 ? 0 : rng.nextRange(std::abs(step.noteVariationRange()) + 1);
+        if (step.noteVariationRange() < 0) {
+            offset = -offset;
+        }
+        note = NoteSequence::Note::clamp(note + offset);
     }
     return scale.noteToVolts(note) + (scale.isChromatic() ? rootNote : 0) * (1.f / 12.f);
 }

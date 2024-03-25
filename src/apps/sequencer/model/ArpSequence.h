@@ -35,12 +35,11 @@ public:
     typedef SignedValue<4> LengthVariationRange;
     typedef UnsignedValue<4> LengthVariationProbability;
     typedef SignedValue<7> Note;
+    typedef SignedValue<7> NoteVariationRange;
     typedef UnsignedValue<4> NoteVariationProbability;
     typedef SignedValue<3> NoteOctave;
     typedef UnsignedValue<4> NoteOctaveProbability;
     typedef UnsignedValue<7> Condition;
-    typedef UnsignedValue<3> StageRepeats;
-    typedef UnsignedValue<3> StageRepeatsMode;
 
     static_assert(int(Types::Condition::Last) <= Condition::Max + 1, "Condition enum does not fit");
 
@@ -50,11 +49,11 @@ public:
         GateOffset,
         Retrigger,
         RetriggerProbability,
-        StageRepeats,
-        StageRepeatsMode,
         Length,
         LengthVariationRange,
         LengthVariationProbability,
+        Note,
+        NoteVariationRange,
         NoteVariationProbability,
         NoteOctave,
         NoteOctaveProbability,
@@ -76,10 +75,10 @@ public:
         case Layer::LengthVariationProbability: return "LENGTH PROB";
         case Layer::NoteOctave:                 return "OCTAVE";
         case Layer::NoteOctaveProbability:      return "OCTAVE PROB";
+        case Layer::Note:                       return "NOTE";
+        case Layer::NoteVariationRange:         return "NOTE RANGE";
         case Layer::NoteVariationProbability:   return "NOTE PROB";
         case Layer::Condition:                  return "CONDITION";
-        case Layer::StageRepeats:               return "REPEAT";
-        case Layer::StageRepeatsMode:           return "REPEAT MODE";
         case Layer::Last:                       break;
         }
         return nullptr;
@@ -108,21 +107,6 @@ public:
         //----------------------------------------
         // Properties
         //----------------------------------------
-        
-        // stage
-        void setStageRepeats(int repeats) {
-            _data1.stageRepeats = StageRepeats::clamp(repeats);
-        }
-        unsigned int stageRepeats() const { return _data1.stageRepeats; }
-
-        void setStageRepeatsMode(StageRepeatMode mode) {
-            _data1.stageRepeatMode = mode;
-        }
-
-        StageRepeatMode stageRepeatMode() const { 
-            int value = _data1.stageRepeatMode;
-            return static_cast<StageRepeatMode>(value); 
-        }
 
         // gate
 
@@ -194,6 +178,13 @@ public:
         int note() const { return Note::Min + _data0.note; }
         void setNote(int note) {
             _data0.note = Note::clamp(note) - Note::Min;
+        }
+
+        // noteVariationRange
+
+        int noteVariationRange() const { return NoteVariationRange::Min + _data1.noteVariationRange; }
+        void setNoteVariationRange(int noteVariationRange) {
+            _data1.noteVariationRange = NoteVariationRange::clamp(noteVariationRange) - NoteVariationRange::Min;
         }
 
         // noteOctave
@@ -277,8 +268,7 @@ public:
             BitField<uint32_t, 8, RetriggerProbability::Bits> retriggerProbability;
             BitField<uint32_t, 12, GateOffset::Bits> gateOffset;
             BitField<uint32_t, 16, Condition::Bits> condition;
-            BitField<uint32_t, 23, StageRepeats::Bits> stageRepeats;
-            BitField<uint32_t, 26, StageRepeatsMode::Bits> stageRepeatMode;
+            BitField<uint32_t, 23, NoteVariationRange::Bits> noteVariationRange;
             // 5 bits left
         } _data1;
     };

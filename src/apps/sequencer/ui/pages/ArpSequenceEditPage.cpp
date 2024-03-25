@@ -263,6 +263,35 @@ void ArpSequenceEditPage::draw(Canvas &canvas) {
             canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
             break;
         }
+        case Layer::Note: {
+            int rootNote = sequence.selectedRootNote(_model.project().rootNote());
+            canvas.setColor(Color::Bright);
+            FixedStringBuilder<8> str;
+
+            if (step.bypassScale()) {
+                const Scale &bypassScale = std::ref(Scale::get(0));
+                bypassScale.noteName(str, step.note(), rootNote, Scale::Short1);
+            
+                canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
+                str.reset();
+                bypassScale.noteName(str, step.note(), rootNote, Scale::Short2);
+                canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
+                break;
+            } 
+            scale.noteName(str, step.note(), rootNote, Scale::Short1);
+            
+            canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
+            str.reset();
+            scale.noteName(str, step.note(), rootNote, Scale::Short2);
+            canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
+            break;
+        }
+        case Layer::NoteVariationRange: {
+            canvas.setColor(Color::Bright);
+            FixedStringBuilder<8> str("%d", step.noteVariationRange());
+            canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
+            break;
+        }
         case Layer::NoteVariationProbability: {
             SequencePainter::drawProbability(
                 canvas,
@@ -303,12 +332,6 @@ void ArpSequenceEditPage::draw(Canvas &canvas) {
             str.reset();
             Types::printCondition(str, step.condition(), Types::ConditionFormat::Short2);
             canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 27, str);
-            break;
-        }
-        case Layer::StageRepeats: {
-            break;
-        }
-        case Layer::StageRepeatsMode: {
             break;
         }
         case Layer::Last:
@@ -474,6 +497,7 @@ void ArpSequenceEditPage::keyPress(KeyPressEvent &event) {
 
 void ArpSequenceEditPage::encoder(EncoderEvent &event) {
     auto &sequence = _project.selectedArpSequence();
+    const auto &scale = sequence.selectedScale(_project.scale());
 
     if (!_stepSelection.any())
     {
@@ -489,16 +513,10 @@ void ArpSequenceEditPage::encoder(EncoderEvent &event) {
             setLayer(event.value() > 0 ? Layer::Gate : Layer::GateOffset);
             break;
         case Layer::Retrigger:
-            setLayer(event.value() > 0 ? Layer::RetriggerProbability : Layer::StageRepeatsMode);
+            setLayer(event.value() > 0 ? Layer::RetriggerProbability : Layer::Retrigger);
             break;
         case Layer::RetriggerProbability:
-            setLayer(event.value() > 0 ? Layer::StageRepeats : Layer::Retrigger);
-            break;
-        case Layer::StageRepeats:
-            setLayer(event.value() > 0 ? Layer::StageRepeatsMode : Layer::RetriggerProbability);
-            break;
-        case Layer::StageRepeatsMode:
-            setLayer(event.value() > 0 ? Layer::Retrigger : Layer::StageRepeats);
+            setLayer(event.value() > 0 ? Layer::RetriggerProbability : Layer::Retrigger);
             break;
         case Layer::Length:
             setLayer(event.value() > 0 ? Layer::LengthVariationRange : Layer::LengthVariationProbability);
@@ -509,8 +527,14 @@ void ArpSequenceEditPage::encoder(EncoderEvent &event) {
         case Layer::LengthVariationProbability:
             setLayer(event.value() > 0 ? Layer::Length : Layer::LengthVariationRange);
             break;
+        case Layer::Note:
+            setLayer(event.value() > 0 ? Layer::NoteVariationRange : Layer::Slide);
+            break;
+        case Layer::NoteVariationRange:
+            setLayer(event.value() > 0 ? Layer::Note : Layer::NoteVariationProbability);
+            break;
         case Layer::NoteVariationProbability:
-            setLayer(event.value() > 0 ? Layer::NoteOctave : Layer::Slide);
+            setLayer(event.value() > 0 ? Layer::NoteOctave : Layer::NoteVariationRange);
             break;
         case Layer::NoteOctave:
             setLayer(event.value() > 0 ? Layer::NoteOctaveProbability : Layer::NoteVariationProbability);
@@ -535,6 +559,7 @@ void ArpSequenceEditPage::encoder(EncoderEvent &event) {
     for (size_t stepIndex = 0; stepIndex < sequence.steps().size(); ++stepIndex) {
         if (_stepSelection[stepIndex]) {
             auto &step = sequence.step(stepIndex);
+            bool shift = globalKeyState()[Key::Shift];
             switch (layer()) {
             case Layer::Gate:
                 step.setGate(event.value() > 0);
@@ -567,6 +592,14 @@ void ArpSequenceEditPage::encoder(EncoderEvent &event) {
             case Layer::NoteOctaveProbability:
                 step.setNoteOctaveProbability(step.noteOctaveProbability() + event.value());
                 break;
+            case Layer::Note:
+                step.setNote(step.note() + event.value() * ((shift && scale.isChromatic()) ? scale.notesPerOctave() : 1));
+                updateMonitorStep();
+                break;
+            case Layer::NoteVariationRange:
+                step.setNoteVariationRange(step.noteVariationRange() + event.value() * ((shift && scale.isChromatic()) ? scale.notesPerOctave() : 1));
+                updateMonitorStep();
+                break;
             case Layer::NoteVariationProbability:
                 step.setNoteVariationProbability(step.noteVariationProbability() + event.value());
                 updateMonitorStep();
@@ -576,16 +609,6 @@ void ArpSequenceEditPage::encoder(EncoderEvent &event) {
                 break;
             case Layer::Condition:
                 step.setCondition(ModelUtils::adjustedEnum(step.condition(), event.value()));
-                break;
-            case Layer::StageRepeats:
-                step.setStageRepeats(step.stageRepeats() + event.value());
-                break;
-            case Layer::StageRepeatsMode:
-                step.setStageRepeatsMode(
-                    static_cast<ArpSequence::StageRepeatMode>(
-                        step.stageRepeatMode() + event.value()
-                    )
-                );
                 break;
             case Layer::Last:
                 break;
@@ -630,18 +653,13 @@ void ArpSequenceEditPage::switchLayer(int functionKey, bool shift) {
             setLayer(Layer::GateProbability);
             break;
         case Function::Retrigger:
-            if (engine.playMode() == Types::PlayMode::Free) {
-                setLayer(Layer::StageRepeats);
-                break;
-            }
+            break;
             
         case Function::Length:
-            if (engine.playMode() == Types::PlayMode::Free) {
-                setLayer(Layer::StageRepeatsMode);
-            }
+
             break;
         case Function::Note:
-            setLayer(Layer::NoteVariationProbability);
+            setLayer(Layer::Note);
             break;
         case Function::Condition:
             setLayer(Layer::Condition);
@@ -670,16 +688,8 @@ void ArpSequenceEditPage::switchLayer(int functionKey, bool shift) {
             setLayer(Layer::RetriggerProbability);
             break;
         case Layer::RetriggerProbability:
-            if (engine.playMode() == Types::PlayMode::Free) {
-                setLayer(Layer::StageRepeats);
-                break;
-            }
-            
-        case Layer::StageRepeats:
-            if (engine.playMode() == Types::PlayMode::Free) {
-                setLayer(Layer::StageRepeatsMode);
-                break;
-            }
+
+            break;
         default:
             setLayer(Layer::Retrigger);
             break;
@@ -700,6 +710,12 @@ void ArpSequenceEditPage::switchLayer(int functionKey, bool shift) {
         break;
     case Function::Note:
         switch (layer()) {
+        case Layer::Note:
+            setLayer(Layer::NoteVariationRange);
+            break;
+        case Layer::NoteVariationRange:
+            setLayer(Layer::NoteVariationProbability);
+            break;
         case Layer::NoteVariationProbability:
             setLayer(Layer::NoteOctave);
             break;
@@ -712,7 +728,7 @@ void ArpSequenceEditPage::switchLayer(int functionKey, bool shift) {
         case Layer::Slide:
             setLayer(Layer::NoteVariationProbability);
         default:
-            setLayer(Layer::NoteVariationProbability);
+            setLayer(Layer::Note);
             break;
         }
         break;
@@ -730,8 +746,6 @@ int ArpSequenceEditPage::activeFunctionKey() {
         return 0;
     case Layer::Retrigger:
     case Layer::RetriggerProbability:
-    case Layer::StageRepeats:
-    case Layer::StageRepeatsMode:
         return 1;
     case Layer::Length:
     case Layer::LengthVariationRange:
@@ -741,6 +755,8 @@ int ArpSequenceEditPage::activeFunctionKey() {
     case Layer::NoteVariationProbability:
     case Layer::NoteOctaveProbability:
     case Layer::Slide:
+    case Layer::Note:
+    case Layer::NoteVariationRange:
         return 3;
     case Layer::Condition:
         return 4;
@@ -896,46 +912,6 @@ void ArpSequenceEditPage::drawDetail(Canvas &canvas, const ArpSequence::Step &st
         Types::printCondition(str, step.condition(), Types::ConditionFormat::Long);
         canvas.setFont(Font::Small);
         canvas.drawTextCentered(64 + 32, 16, 96, 32, str);
-        break;
-    case Layer::StageRepeats:
-        str.reset();
-        str("x%d", step.stageRepeats()+1);
-        canvas.setFont(Font::Small);
-        canvas.drawTextCentered(64 + 32, 16, 64, 32, str);
-        break;
-     case Layer::StageRepeatsMode:
-        str.reset();
-        switch (step.stageRepeatMode()) {
-            case ArpSequence::Each:
-                str("EACH");
-                break;
-            case ArpSequence::First:
-                str("FIRST");
-                break;
-            case ArpSequence::Middle:
-                str("MIDDLE");
-                break;
-            case ArpSequence::Last:
-                str("LAST");
-                break;
-            case ArpSequence::Odd:
-                str("ODD");
-                break;
-            case ArpSequence::Even:
-                str("EVEN");
-                break;
-            case ArpSequence::Triplets:
-                str("TRIPLET");
-                break;
-            case ArpSequence::Random:
-                str("RANDOM");
-                break;
-
-            default:
-                break;
-        }
-        canvas.setFont(Font::Small);
-        canvas.drawTextCentered(64 + 32, 16, 64, 32, str);
         break;
     case Layer::Last:
         break;

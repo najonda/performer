@@ -24,10 +24,10 @@ Types::LayerRange ArpSequence::layerRange(Layer layer) {
     CASE(LengthVariationProbability)
     CASE(NoteOctave)
     CASE(NoteOctaveProbability)
+    CASE(Note)
+    CASE(NoteVariationRange)
     CASE(NoteVariationProbability)
     CASE(Condition)
-    CASE(StageRepeats)
-    CASE(StageRepeatsMode)
     case Layer::Last:
         break;
     }
@@ -60,6 +60,10 @@ int ArpSequence::layerDefaultValue(Layer layer)
         return step.lengthVariationRange();
     case Layer::LengthVariationProbability:
         return step.lengthVariationProbability();
+     case Layer::Note:
+        return step.note();
+    case Layer::NoteVariationRange:
+        return step.noteVariationRange();
     case Layer::NoteOctave:
         return step.noteOctave();
     case Layer::NoteOctaveProbability:
@@ -68,10 +72,6 @@ int ArpSequence::layerDefaultValue(Layer layer)
         return step.noteVariationProbability();
     case Layer::Condition:
         return int(step.condition());
-    case Layer::StageRepeats:
-        return step.stageRepeats();
-    case Layer::StageRepeatsMode:
-        return step.stageRepeatMode();
     case Layer::Last:
         break;
     }
@@ -99,6 +99,10 @@ int ArpSequence::Step::layerValue(Layer layer) const {
         return lengthVariationRange();
     case Layer::LengthVariationProbability:
         return lengthVariationProbability();
+    case Layer::Note:
+        return note();
+    case Layer::NoteVariationRange:
+        return noteVariationRange();
     case Layer::NoteOctave:
         return noteOctave();
     case Layer::NoteOctaveProbability:
@@ -107,10 +111,6 @@ int ArpSequence::Step::layerValue(Layer layer) const {
         return noteVariationProbability();
     case Layer::Condition:
         return int(condition());
-    case Layer::StageRepeats:
-        return stageRepeats();
-    case Layer::StageRepeatsMode:
-        return stageRepeatMode();
     case Layer::Last:
         break;
     }
@@ -147,6 +147,12 @@ void ArpSequence::Step::setLayerValue(Layer layer, int value) {
     case Layer::LengthVariationProbability:
         setLengthVariationProbability(value);
         break;
+    case Layer::Note:
+        setNote(value);
+        break;
+    case Layer::NoteVariationRange:
+        setNoteVariationRange(value);
+        break;
     case Layer::NoteOctave:
         setNoteOctave(value);
         break;
@@ -158,12 +164,6 @@ void ArpSequence::Step::setLayerValue(Layer layer, int value) {
         break;
     case Layer::Condition:
         setCondition(Types::Condition(value));
-        break;
-    case Layer::StageRepeats:
-        setStageRepeats(value);
-        break;
-    case Layer::StageRepeatsMode:
-        setStageRepeatsMode(static_cast<ArpSequence::StageRepeatMode>(value));
         break;
     case Layer::Last:
         break;
@@ -186,10 +186,10 @@ void ArpSequence::Step::clear() {
     setNote(0);
     setNoteOctave(0);
     setNoteOctaveProbability(NoteOctaveProbability::Max);
+    setNoteVariationRange(0);
     setNoteVariationProbability(0);
     setCondition(Types::Condition::Off);
-    setStageRepeats(0);
-    setStageRepeatsMode(StageRepeatMode::Each);
+
 }
 
 void ArpSequence::Step::write(VersionedSerializedWriter &writer) const {

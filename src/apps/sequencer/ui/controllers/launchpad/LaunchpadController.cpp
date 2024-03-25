@@ -149,15 +149,15 @@ static const LayerMapItem arpSequenceLayerMap[] = {
     [int(ArpSequence::Layer::GateOffset)]                  =  { 2, 0 },
     [int(ArpSequence::Layer::Retrigger)]                   =  { 0, 1 },
     [int(ArpSequence::Layer::RetriggerProbability)]        =  { 1, 1 },
-    [int(ArpSequence::Layer::StageRepeats)]                =  { 2, 1 },
-    [int(ArpSequence::Layer::StageRepeatsMode)]            =  { 3, 1 },
     [int(ArpSequence::Layer::Length)]                      =  { 0, 2 },
     [int(ArpSequence::Layer::LengthVariationRange)]        =  { 1, 2 },
     [int(ArpSequence::Layer::LengthVariationProbability)]  =  { 2, 2 },
-    [int(ArpSequence::Layer::NoteVariationProbability)]    =  { 0, 3 },
-    [int(ArpSequence::Layer::NoteOctave)]                  =  { 1, 3 },
-    [int(ArpSequence::Layer::NoteOctaveProbability)]       =  { 2, 3 },    
-    [int(ArpSequence::Layer::Slide)]                       =  { 3, 3 },
+    [int(ArpSequence::Layer::Note)]                        =  { 0, 3 },
+    [int(ArpSequence::Layer::NoteVariationRange)]          =  { 1, 3 },
+    [int(ArpSequence::Layer::NoteVariationProbability)]    =  { 2, 3 },
+    [int(ArpSequence::Layer::NoteOctave)]                  =  { 3, 3 },
+    [int(ArpSequence::Layer::NoteOctaveProbability)]       =  { 4, 3 },    
+    [int(ArpSequence::Layer::Slide)]                       =  { 5, 3 },
     [int(ArpSequence::Layer::Condition)]                   =  { 0, 4 },
 };
 
@@ -492,7 +492,7 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
                             sequenceEditStep(button.row, button.col);
                             break;
                         case (Track::TrackMode::Arp): {
-                            if (_project.selectedArpSequenceLayer()==ArpSequence::Layer::NoteVariationProbability) {
+                            if (_project.selectedArpSequenceLayer()==ArpSequence::Layer::Note) {
                                 manageArpCircuitKeyboard(button);    
                             } else {
                                 sequenceEditStep(button.row, button.col);
@@ -748,7 +748,7 @@ void LaunchpadController::manageArpCircuitKeyboard(const Button &button) {
         const Scale &bypasssScale = Scale::get(0);
 
     switch ( _project.selectedArpSequenceLayer()) {
-        case ArpSequence::Layer::NoteVariationProbability:
+        case ArpSequence::Layer::Note:
             
          if (button.row >=3 && button.row <= 4) {
 
@@ -899,6 +899,17 @@ void LaunchpadController::sequenceUpdateNavigation() {
 
         auto range = LogicSequence::layerRange(_project.selectedLogicSequenceLayer());
         _sequence.navigation.top = range.max / 8;
+        _sequence.navigation.bottom = (range.min - 7) / 8;
+
+        break;
+    }
+    case Track::TrackMode::Arp: {
+        auto layer = _project.selectedArpSequenceLayer();
+        _sequence.navigation.left = 0;
+        _sequence.navigation.right = layer == ArpSequence::Layer::Gate || layer == ArpSequence::Layer::Slide || layer == ArpSequence::Layer::Note ? 0 : 1;
+
+        auto range = ArpSequence::layerRange(_project.selectedArpSequenceLayer());
+        _sequence.navigation.top = layer == ArpSequence::Layer::Note ? 0 : range.max / 8;
         _sequence.navigation.bottom = (range.min - 7) / 8;
 
         break;
@@ -1554,7 +1565,7 @@ void LaunchpadController::sequenceDrawArpSequence() {
     case ArpSequence::Layer::Slide:
         drawArpSequenceBits(sequence, layer, currentStep);
         break;
-    case ArpSequence::Layer::NoteVariationProbability:
+    case ArpSequence::Layer::Note:
         drawArpSequenceNotes(sequence, layer, currentStep);
         break;
     case ArpSequence::Layer::Condition:
