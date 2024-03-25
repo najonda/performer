@@ -732,7 +732,7 @@ void ArpTrackEngine::advanceStep() {
             _stepIndex = (_stepIndex + 1) % ((_noteCount - 1) * 2);
             _noteIndex = _stepIndex % (_noteCount - 1);
             _noteIndex = _stepIndex < _noteCount - 1 ? _noteIndex : _noteCount - _noteIndex - 1;
-            _iteration = absoluteStep / (2 * stepCount);
+            _iteration = absoluteStep / (2 * _noteCount);
         } else {
             _stepIndex = 0;
         }
@@ -742,7 +742,7 @@ void ArpTrackEngine::advanceStep() {
         _stepIndex = (_stepIndex + 1) % (_noteCount * 2);
         _noteIndex = _stepIndex % _noteCount;
         _noteIndex = _stepIndex < _noteCount ? _noteIndex : _noteCount - _noteIndex - 1;
-        _iteration = absoluteStep / (2 * stepCount - 2);
+        _iteration = absoluteStep / (2 * _noteCount - 2);
         break;
     case Arpeggiator::Mode::Converge:
         _stepIndex = (_stepIndex + 1) % _noteCount;
