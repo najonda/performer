@@ -65,8 +65,6 @@ ArpSequenceEditPage::ArpSequenceEditPage(PageManager &manager, PageContext &cont
 
 void ArpSequenceEditPage::enter() {
     updateMonitorStep();
-    auto &sequence = _project.selectedArpSequence();
-
     _showDetail = false;
     _section = 0;
 }
