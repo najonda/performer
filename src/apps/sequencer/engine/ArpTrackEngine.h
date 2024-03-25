@@ -84,6 +84,8 @@ public:
     void addNote(int note, int index, int octave = 0);
     void removeNote(int note);
 
+    int currentIndex() const { return _stepIndex; }
+
 
 private:
     void triggerStep(uint32_t tick, uint32_t divisor, bool nextStep);
@@ -140,7 +142,6 @@ private:
     static constexpr int MaxNotes = 8;
 
     std::array<Note, MaxNotes> _notes;
-    std::array<Note, MaxNotes> _midiNotes;
 
     int _stepIndex;
     int _noteIndex;
