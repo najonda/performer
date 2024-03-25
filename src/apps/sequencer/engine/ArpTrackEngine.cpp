@@ -707,9 +707,10 @@ int ArpTrackEngine::noteIndexFromOrder(int order) {
 
 void ArpTrackEngine::advanceStep() {
     _noteIndex = 0;
+    auto &sequence = *_sequence;
     uint32_t divisor = sequence.divisor() * (CONFIG_PPQN / CONFIG_SEQUENCE_PPQN);
     uint32_t resetDivisor = sequence.resetMeasure() * _engine.measureDivisor();
-    uint32_t relativeTick = resetDivisor == 0 ? tick : tick % resetDivisor;
+    uint32_t relativeTick = resetDivisor == 0 ? _engine.tick() : _engine.tick() % resetDivisor;
     int absoluteStep = int(relativeTick / divisor);
 
     auto mode = _arpeggiator.mode();
