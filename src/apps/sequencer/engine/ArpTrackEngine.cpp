@@ -367,31 +367,39 @@ void ArpTrackEngine::update(float dt) {
         setOverride(evalStepNote(step, 0, scale, rootNote, octave, transpose,  sequence, false));
     } else if (liveMonitoring && _noteCount != 0) {
 
-
-
-
         uint32_t divisor = _arpeggiator.divisor() * (CONFIG_PPQN / CONFIG_SEQUENCE_PPQN);
         uint32_t resetDivisor = sequence.resetMeasure() * _engine.measureDivisor();
         uint32_t relativeTick = resetDivisor == 0 ? _engine.tick() : _engine.tick() % resetDivisor;
 
-         uint32_t length = std::max(uint32_t(1), uint32_t((divisor * _arpeggiator.gateLength()) / 100));
-            // delay note off if gate length is at maximum to enable legato style playback
-            length += _arpeggiator.gateLength() == 100 ? 1u : 0u;
+        int l = clamp(_arpeggiator.gateLength(), 10, 100);
+        uint32_t length = std::max(uint32_t(1), uint32_t((divisor * l) / 100));
+        // delay note off if gate length is at maximum to enable legato style playback
+        length += l == 100 ? 1u : 0u;
 
         if (relativeTick == 0) {
             reset();
         }
+        
         if (relativeTick % divisor == 0) {
             int stepIndex = _notes[_noteIndex].index;
             const auto &step = sequence.step(stepIndex);
             setOverride(evalStepNote(step, _arpTrack.noteProbabilityBias(), scale, rootNote, _octave+octave, transpose, sequence));
-        } else if ((relativeTick+length) % divisor == 0) { // TODO use length
+            _realtiveTick = relativeTick;
+        } 
+        if (relativeTick == (_realtiveTick+length)) {
             clearOverride();
             advanceStep();
             if (_stepIndex == 0) {
                 advanceOctave();
             }  
-        } 
+        }
+        /*if ((relativeTick) % divisor == 0) { // TODO FIX IT use length
+            clearOverride();
+            advanceStep();
+            if (_stepIndex == 0) {
+                advanceOctave();
+            }  
+        } */
     } else {
         clearOverride();
     }
@@ -474,6 +482,10 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
     auto &sequence = *_sequence;
     const auto &evalSequence = useFillSequence ? *_fillSequence : *_sequence;
 
+
+    if (1==1) {
+        return;
+    }
     if (_noteCount == 0 && sequence.hasSteps()) {
         for (int i = 0; i < 12; ++i) {
             if (sequence.step(i).gate()) {

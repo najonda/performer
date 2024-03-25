@@ -146,7 +146,7 @@ private:
     int8_t _octave;
     int8_t _octaveDirection;
 
-
+    uint32_t _realtiveTick;
 
     struct Gate {
         uint32_t tick;
