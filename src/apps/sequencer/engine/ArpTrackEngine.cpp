@@ -393,13 +393,6 @@ void ArpTrackEngine::update(float dt) {
                 advanceOctave();
             }  
         }
-        /*if ((relativeTick) % divisor == 0) { // TODO FIX IT use length
-            clearOverride();
-            advanceStep();
-            if (_stepIndex == 0) {
-                advanceOctave();
-            }  
-        } */
     } else {
         clearOverride();
     }
@@ -482,10 +475,6 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
     auto &sequence = *_sequence;
     const auto &evalSequence = useFillSequence ? *_fillSequence : *_sequence;
 
-
-    if (1==1) {
-        return;
-    }
     if (_noteCount == 0 && sequence.hasSteps()) {
         for (int i = 0; i < 12; ++i) {
             if (sequence.step(i).gate()) {
@@ -703,6 +692,7 @@ int ArpTrackEngine::noteIndexFromOrder(int order) {
 }
 
 void ArpTrackEngine::advanceStep() {
+    std::cerr << int(os::ticks()) << "ADV \n";
     _noteIndex = 0;
 
     auto mode = _arpeggiator.mode();
@@ -710,6 +700,7 @@ void ArpTrackEngine::advanceStep() {
     switch (mode) {
     case Arpeggiator::Mode::PlayOrder:
         _stepIndex = (_stepIndex + 1) % _noteCount;
+        std::cerr << int(os::ticks()) << "STEP_INDEX " << _stepIndex << "\n";
         _noteIndex = noteIndexFromOrder(_stepIndex);
         break;
     case Arpeggiator::Mode::Up:
