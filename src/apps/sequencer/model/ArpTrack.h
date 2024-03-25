@@ -269,6 +269,15 @@ public:
         str("%+.1f%%", noteProbabilityBias() * 12.5f);
     }
 
+    // midi keyboard
+    bool midiKeyboard() {
+        return _midiKeyboard;
+    }
+
+    void toggleMidiKeybaord() {
+        _midiKeyboard = !_midiKeyboard;
+    }
+
     // sequences
 
     const ArpSequenceArray &sequences() const { return _sequences; }
@@ -328,6 +337,8 @@ private:
     ArpSequenceArray _sequences;
 
     Arpeggiator _arpeggiator;
+
+    bool _midiKeyboard = false;
 
     friend class Track;
 };

@@ -80,8 +80,14 @@ void ArpSequenceEditPage::draw(Canvas &canvas) {
 
     /* Prepare flags shown before mode name (top right header) */
     auto &sequence = _project.selectedArpSequence();
+    auto &track = _project.selectedTrack().arpTrack();
 
     const char *mode_flags = NULL;
+    if (track.midiKeyboard()) {
+        const char *st_flag = "K";
+        mode_flags = st_flag;
+    }
+
     WindowPainter::drawHeader(canvas, _model, _engine, "STEPS", mode_flags);
 
     WindowPainter::drawActiveFunction(canvas, ArpSequence::layerName(layer()));
@@ -384,6 +390,7 @@ void ArpSequenceEditPage::keyUp(KeyEvent &event) {
 void ArpSequenceEditPage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
     auto &sequence = _project.selectedArpSequence();
+    auto &track = _project.selectedTrack().arpTrack();
 
     if (key.isContextMenu()) {
         contextShow();
@@ -398,7 +405,11 @@ void ArpSequenceEditPage::keyPress(KeyPressEvent &event) {
     }
 
     if (key.isQuickEdit()) {
-        quickEdit(key.quickEdit());
+        if (key.is(Key::Step15)) {
+            track.toggleMidiKeybaord();
+        } else {
+            quickEdit(key.quickEdit());
+        }
         event.consume();
         return;
     }
@@ -438,6 +449,12 @@ void ArpSequenceEditPage::keyPress(KeyPressEvent &event) {
     if (!key.shiftModifier() && key.isStep() && keyPressEvent.count() == 2) {
         int stepIndex = stepOffset() + key.step();
         if (layer() != Layer::Gate) {
+            auto &trackEngine = _engine.selectedTrackEngine().as<ArpTrackEngine>();
+            if (sequence.step(stepIndex).gate()) {
+                trackEngine.removeNote(sequence.step(stepIndex).note());
+            } else {
+                trackEngine.addNote(sequence.step(stepIndex).note(), stepIndex);
+            }
             sequence.step(stepIndex).toggleGate();
             event.consume();
         }

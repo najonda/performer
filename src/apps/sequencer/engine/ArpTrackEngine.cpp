@@ -195,6 +195,7 @@ void ArpTrackEngine::reset() {
 
     _noteCount = 0;
     _noteHoldCount = 0;
+
 }
 
 void ArpTrackEngine::restart() {
@@ -365,7 +366,7 @@ void ArpTrackEngine::update(float dt) {
     if (stepMonitoring) {
         const auto &step = sequence.step(_monitorStepIndex);
         setOverride(evalStepNote(step, 0, scale, rootNote, octave, transpose,  sequence, false));
-    } else if (liveMonitoring && _noteCount != 0) {
+    } else if (liveMonitoring && _noteCount != 0 && _arpTrack.midiKeyboard()) {
 
         uint32_t divisor = _arpeggiator.divisor() * (CONFIG_PPQN / CONFIG_SEQUENCE_PPQN);
         uint32_t resetDivisor = sequence.resetMeasure() * _engine.measureDivisor();
@@ -381,17 +382,14 @@ void ArpTrackEngine::update(float dt) {
         }
         
         if (relativeTick % divisor == 0) {
-            int stepIndex = _notes[_noteIndex].index;
-            const auto &step = sequence.step(stepIndex);
+            int sequenceStepIndex = _notes[_noteIndex].index;
+            _currentStep = sequenceStepIndex;
+            const auto &step = sequence.step(sequenceStepIndex);
             setOverride(evalStepNote(step, _arpTrack.noteProbabilityBias(), scale, rootNote, _octave+octave, transpose, sequence));
             _realtiveTick = relativeTick;
         } 
         if (relativeTick == (_realtiveTick+length)) {
             clearOverride();
-            advanceStep();
-            if (_stepIndex == 0) {
-                advanceOctave();
-            }  
         }
     } else {
         clearOverride();
@@ -412,7 +410,7 @@ void ArpTrackEngine::changePattern() {
 void ArpTrackEngine::monitorMidi(uint32_t tick, const MidiMessage &message) {
     _recordHistory.write(tick, message);
 
-    const auto &sequence = *_sequence;
+    auto &sequence = *_sequence;
     const auto &scale = sequence.selectedScale(_model.project().scale());
     int rootNote = sequence.selectedRootNote(_model.project().rootNote());
     int octave = _arpTrack.octave();
@@ -420,12 +418,14 @@ void ArpTrackEngine::monitorMidi(uint32_t tick, const MidiMessage &message) {
 
     if (message.isNoteOff()) {
         int note = noteFromMidiNote(message.note())  + evalTransposition(scale, octave, transpose);
+        int octave = roundDownDivide(note, scale.notesPerOctave());
+        int stepNoteCleared = note - (octave*scale.notesPerOctave());
+        sequence.step(stepNoteCleared).setNoteOctave(0);
         removeNote(note);
     }
 
     if (message.isNoteOn()) {
         int note = noteFromMidiNote(message.note()) + evalTransposition(scale, octave, transpose);
-
         bool isPresent = false;
         for (int i=0; i <_noteCount; ++i) {
             if (_notes[i].note == uint8_t(note)) {
@@ -437,7 +437,8 @@ void ArpTrackEngine::monitorMidi(uint32_t tick, const MidiMessage &message) {
         if (!isPresent) {
             int octave = roundDownDivide(note, scale.notesPerOctave());
             int stepNoteCleared = note - (octave*scale.notesPerOctave());
-            addNote(note, stepNoteCleared);
+            sequence.step(stepNoteCleared).setNoteOctave(octave);
+            addNote(note, stepNoteCleared, octave);
         }
     }
     /*if (_engine.recording() && _model.project().recordMode() == Types::RecordMode::StepRecord) {
@@ -486,34 +487,32 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
     if (_noteCount == 0) {
         return;
     }
-
-    uint32_t resetDivisor = sequence.resetMeasure() * _engine.measureDivisor();
-    uint32_t relativeTick = resetDivisor == 0 ? tick : tick % resetDivisor;
-    auto abstoluteStep = relativeTick / divisor;
-    
-    int index = abstoluteStep % _noteCount;
-
-    if (_skips != 0 && index > 0 && !useFillGates) {
-        --_skips;
-        return;
-    }
-
-    if (index == 0 || index % 2 == 0) {
-        int rest = evalRestProbability(sequence);
-        if (rest != -1) {
-            _skips = rest;
-        }
-    }
     
     advanceStep();
     if (_stepIndex == 0) {
         advanceOctave();
     }
 
-    int stepIndex = _notes[_noteIndex].index;
-    _currentStep = stepIndex;
+    if (_arpTrack.midiKeyboard()) {
+        return;
+    }
 
-    const auto &step = evalSequence.step(stepIndex);
+    if (_skips != 0 && _stepIndex > 0 && !useFillGates) {
+        --_skips;
+        return;
+    }
+
+    if (_stepIndex == 0 || _stepIndex % 2 == 0) {
+        int rest = evalRestProbability(sequence);
+        if (rest != -1) {
+            _skips = rest;
+        }
+    }
+
+    int sequenceStepIndex = _notes[_noteIndex].index;
+    _currentStep = sequenceStepIndex;
+
+    const auto &step = evalSequence.step(sequenceStepIndex);
 
     int gateOffset = ((int) divisor * step.gateOffset()) / (ArpSequence::GateOffset::Max + 1);
     uint32_t stepTick = (int) tick + gateOffset;
@@ -629,7 +628,7 @@ int ArpTrackEngine::noteFromMidiNote(uint8_t midiNote) const {
     }
 }
 
-void ArpTrackEngine::addNote(int note, int index) {
+void ArpTrackEngine::addNote(int note, int index, int octave) {
     // exit if note set is full
     if (_noteCount >= MaxNotes) {
         return;
@@ -655,6 +654,7 @@ void ArpTrackEngine::addNote(int note, int index) {
     _notes[pos].note = note;
     _notes[pos].order = _noteOrder++;
     _notes[pos].index = index;
+    _notes[pos].octave = octave;
 }
 
 
@@ -692,7 +692,6 @@ int ArpTrackEngine::noteIndexFromOrder(int order) {
 }
 
 void ArpTrackEngine::advanceStep() {
-    std::cerr << int(os::ticks()) << "ADV \n";
     _noteIndex = 0;
 
     auto mode = _arpeggiator.mode();
@@ -700,7 +699,6 @@ void ArpTrackEngine::advanceStep() {
     switch (mode) {
     case Arpeggiator::Mode::PlayOrder:
         _stepIndex = (_stepIndex + 1) % _noteCount;
-        std::cerr << int(os::ticks()) << "STEP_INDEX " << _stepIndex << "\n";
         _noteIndex = noteIndexFromOrder(_stepIndex);
         break;
     case Arpeggiator::Mode::Up:

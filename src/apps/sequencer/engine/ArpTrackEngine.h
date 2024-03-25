@@ -8,6 +8,7 @@
 #include "model/ArpSequence.h"
 #include "StepRecorder.h"
 #include "model/Arpeggiator.h"
+#include <cstdint>
 
 
 class ArpStep {
@@ -80,7 +81,7 @@ public:
         return _sequenceState;
     }
 
-    void addNote(int note, int index);
+    void addNote(int note, int index, int octave = 0);
     void removeNote(int note);
 
 
@@ -130,14 +131,17 @@ private:
     const Arpeggiator &_arpeggiator;
 
     struct Note {
-        uint8_t note;
+        int8_t note;
         uint32_t order;
         uint8_t index;
+        int8_t octave;
     };
 
     static constexpr int MaxNotes = 8;
 
     std::array<Note, MaxNotes> _notes;
+    std::array<Note, MaxNotes> _midiNotes;
+
     int _stepIndex;
     int _noteIndex;
     uint32_t _noteOrder;
