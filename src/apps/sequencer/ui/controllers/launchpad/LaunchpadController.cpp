@@ -1386,10 +1386,10 @@ void LaunchpadController::stochasticDrawRestProbability() {
 
 void LaunchpadController::arpDrawRestProbability() {
     const auto &sequence = _project.selectedArpSequence();
-    drawBar(0, (sequence.restProbability()*2)-1);
-    drawBar(2, (sequence.restProbability2()*2)-1);
-    drawBar(4, (sequence.restProbability4()*2-1));
-    drawBar(6, (sequence.restProbability8()*2)-1);
+    drawBar(0, sequence.restProbability());
+    drawBar(2, sequence.restProbability2());
+    drawBar(4, sequence.restProbability4());
+    drawBar(6, sequence.restProbability8());
 }
 
 void LaunchpadController::sequenceDrawRunMode() {
