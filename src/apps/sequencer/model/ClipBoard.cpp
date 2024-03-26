@@ -21,6 +21,7 @@ void ClipBoard::copyTrack(const Track &track) {
 
 void ClipBoard::copyNoteSequence(const NoteSequence &noteSequence) {
     _type = Type::NoteSequence;
+    _container.as<NoteSequence>().setName(noteSequence.name());
     _container.as<NoteSequence>() = noteSequence;
 }
 
@@ -40,6 +41,7 @@ void ClipBoard::copyNoteSequenceSteps(NoteSequence &noteSequence, const Selected
 
 void ClipBoard::copyCurveSequence(const CurveSequence &curveSequence) {
     _type = Type::CurveSequence;
+    _container.as<CurveSequence>().setName(curveSequence.name());
     _container.as<CurveSequence>() = curveSequence;
 }
 
@@ -64,6 +66,7 @@ void ClipBoard::copyStochasticSequenceSteps(const StochasticSequence &sequence, 
 
 void ClipBoard::copyLogicSequence(const LogicSequence &sequence) {
     _type = Type::LogicSequence;
+    _container.as<LogicSequence>().setName(sequence.name());
     _container.as<LogicSequence>() = sequence;
 }
 
@@ -76,6 +79,7 @@ void ClipBoard::copyLogicSequenceSteps(const LogicSequence &sequence, const Sele
 
 void ClipBoard::copyArpSequence(const ArpSequence &sequence) {
     _type = Type::ArpSequence;
+    _container.as<ArpSequence>().setName(sequence.name());
     _container.as<ArpSequence>() = sequence;
 }
 
@@ -127,6 +131,7 @@ void ClipBoard::pasteTrack(Track &track) const {
 void ClipBoard::pasteNoteSequence(NoteSequence &noteSequence) const {
     if (canPasteNoteSequence()) {
         Model::WriteLock lock;
+        noteSequence.setName(_container.as<NoteSequence>().name());
         noteSequence = _container.as<NoteSequence>();
     }
 }
@@ -141,6 +146,7 @@ void ClipBoard::pasteNoteSequenceSteps(NoteSequence &noteSequence, const Selecte
 void ClipBoard::pasteCurveSequence(CurveSequence &curveSequence) const {
     if (canPasteCurveSequence()) {
         Model::WriteLock lock;
+        curveSequence.setName(_container.as<CurveSequence>().name());
         curveSequence = _container.as<CurveSequence>();
     }
 }
@@ -170,6 +176,7 @@ void ClipBoard::pasteStochasticSequenceSteps(StochasticSequence &sequence, const
 void ClipBoard::pasteLogicSequence(LogicSequence &sequence) const {
     if (canPasteLogicSequence()) {
         Model::WriteLock lock;
+        sequence.setName(_container.as<LogicSequence>().name());
         sequence = _container.as<LogicSequence>();
     }
 }
