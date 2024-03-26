@@ -193,19 +193,19 @@ private:
         case CvGateInput:
             _project.editCvGateInput(value, shift);
             break;
-        case StepsToStop: {
+        case StepsToStop: 
             _project.editStepsToStop(value);
             break;
         case RecordDelay:
             _project.editRecordDelay(value);
             break;
-        }
         //case CurveCvInput:
         //    _project.editCurveCvInput(value, shift);
         //    break;
         case Last:
             break;
         }
+    
     }
 
     virtual void setSelectedScale(int defaultScale, bool force = false) override {};
