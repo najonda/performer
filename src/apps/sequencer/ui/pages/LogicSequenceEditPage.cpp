@@ -183,7 +183,7 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
         // step gate
         canvas.setColor(stepIndex == currentStep ? Color::Bright : Color::Medium);
         canvas.drawRect(x + 2, y + 2, stepWidth - 4, stepWidth - 4);
-        if (evalStep.logicStep()) {
+        if (evalStep.logicStep() && !globalKeyState()[Key::Shift]) {
             canvas.setColor(_context.model.settings().userSettings().get<DimSequenceSetting>(SettingDimSequence)->getValue() ? Color::Low : Color::Bright);
             if (stepIndex == currentStep) {
                 if (trackEngine.gateOutput(currentStep)) {
