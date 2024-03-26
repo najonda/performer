@@ -403,7 +403,7 @@ void ArpSequenceEditPage::keyDown(KeyEvent &event) {
     _stepSelection.keyDown(event, stepOffset());
     updateMonitorStep();
     auto &track = _project.selectedTrack().arpTrack();
-    if (layer() == Layer::Note && track.midiKeyboard() && _engine.state().running()) {
+    if (track.midiKeyboard() && _engine.state().running() && key.isStep()) {
         auto i = MatrixMap::toStep(key.code());
         auto &arpEngine = _engine.trackEngine(_project.selectedTrackIndex()).as<ArpTrackEngine>();
         arpEngine.addNote(i, i);
@@ -418,7 +418,7 @@ void ArpSequenceEditPage::keyUp(KeyEvent &event) {
     _stepSelection.keyUp(event, stepOffset());
     updateMonitorStep();
     auto &track = _project.selectedTrack().arpTrack();
-    if (layer() == Layer::Note && track.midiKeyboard() && _engine.state().running()) {
+    if (track.midiKeyboard() && _engine.state().running() && key.isStep()) {
         auto i = MatrixMap::toStep(key.code());
         auto &arpEngine = _engine.trackEngine(_project.selectedTrackIndex()).as<ArpTrackEngine>();
         arpEngine.removeNote(i);
@@ -476,7 +476,9 @@ void ArpSequenceEditPage::keyPress(KeyPressEvent &event) {
             } else {
                 trackEngine.addNote(sequence.step(stepIndex).note(), stepIndex);
             }
-            sequence.step(stepIndex).toggleGate();
+            if (!track.midiKeyboard()) {
+                sequence.step(stepIndex).toggleGate();
+            }
             event.consume();
         }
             break;
@@ -496,7 +498,9 @@ void ArpSequenceEditPage::keyPress(KeyPressEvent &event) {
             } else {
                 trackEngine.addNote(sequence.step(stepIndex).note(), stepIndex);
             }
-            sequence.step(stepIndex).toggleGate();
+            if (!track.midiKeyboard()) {
+                sequence.step(stepIndex).toggleGate();
+            }
             event.consume();
         }
     }
