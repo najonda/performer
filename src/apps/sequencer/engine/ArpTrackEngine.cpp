@@ -379,7 +379,7 @@ void ArpTrackEngine::update(float dt) {
 
     if (stepMonitoring) {
         const auto &step = sequence.step(_monitorStepIndex);
-        setOverride(evalStepNote(step, 0, scale, rootNote, octave, transpose,  sequence, false));
+        setOverride(evalStepNote(step, 0, scale, rootNote, octave, transpose,  sequence, true));
     } else if (liveMonitoring && _noteCount != 0 && _arpTrack.midiKeyboard()) {
 
         uint32_t divisor = _arpeggiator.divisor() * (CONFIG_PPQN / CONFIG_SEQUENCE_PPQN);
