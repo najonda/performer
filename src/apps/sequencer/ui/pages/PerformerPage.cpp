@@ -192,6 +192,9 @@ void PerformerPage::keyUp(KeyEvent &event) {
 
 void PerformerPage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
+
+    functionShortcuts(event);
+
     auto &playState = _project.playState();
 
     if (key.pageModifier()) {

@@ -344,6 +344,8 @@ void CurveSequenceEditPage::keyPress(KeyPressEvent &event) {
     auto &sequence = _project.selectedCurveSequence();
     auto &track = _project.selectedTrack().curveTrack();
 
+    functionShortcuts(event);
+
     if (key.isContextMenu()) {
         contextShow();
         event.consume();

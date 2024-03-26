@@ -53,6 +53,8 @@ void StochasticSequencePage::updateLeds(Leds &leds) {
 void StochasticSequencePage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
 
+    functionShortcuts(event);
+
     if (key.isContextMenu()) {
         contextShow();
         event.consume();

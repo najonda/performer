@@ -224,6 +224,9 @@ void PatternPage::keyUp(KeyEvent &event) {
 
 void PatternPage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
+
+    functionShortcuts(event); 
+    
     auto &playState = _project.playState();
 
     if (key.isContextMenu() && !_modal) {

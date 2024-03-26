@@ -35,7 +35,7 @@ void LayoutPage::draw(Canvas &canvas) {
 void LayoutPage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
 
-    functionShortcuts(event);
+    //functionShortcuts(event);
 
     if (key.isFunction()) {
         if (key.function() == 4 && _mode == Mode::TrackMode && !_trackModeListModel.sameAsProject(_project)) {

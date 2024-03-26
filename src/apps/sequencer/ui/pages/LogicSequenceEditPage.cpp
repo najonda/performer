@@ -399,6 +399,8 @@ void LogicSequenceEditPage::keyPress(KeyPressEvent &event) {
     auto &sequence = _project.selectedLogicSequence();
     auto &track = _project.selectedTrack().logicTrack();
 
+    functionShortcuts(event);
+
     if (key.isContextMenu()) {
         contextShow();
         event.consume();

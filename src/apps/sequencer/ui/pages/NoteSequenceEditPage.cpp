@@ -364,6 +364,8 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
     auto &sequence = _project.selectedNoteSequence();
     auto &track = _project.selectedTrack().noteTrack();
 
+    functionShortcuts(event);
+
     auto &trackEngine = _engine.selectedTrackEngine().as<NoteTrackEngine>();
 
     if (key.isContextMenu()) {

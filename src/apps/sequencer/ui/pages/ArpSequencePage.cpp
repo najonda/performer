@@ -67,6 +67,8 @@ void ArpSequencePage::updateLeds(Leds &leds) {
 void ArpSequencePage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
 
+      functionShortcuts(event);
+
     if (key.shiftModifier() && event.count() == 2) {
         saveContextShow();
         event.consume();

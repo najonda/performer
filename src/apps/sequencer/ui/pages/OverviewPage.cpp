@@ -563,6 +563,7 @@ void OverviewPage::keyUp(KeyEvent &event) {
 void OverviewPage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
     
+    functionShortcuts(event);
 
     if (key.isGlobal()) {
         return;

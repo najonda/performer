@@ -64,7 +64,7 @@ void ProjectPage::keyPress(KeyPressEvent &event) {
         return;
     }
 
-    functionShortcuts(event);
+    //functionShortcuts(event);
 
     if (key.pageModifier()) {
         // easter egg

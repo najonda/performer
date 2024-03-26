@@ -66,6 +66,8 @@ void LogicSequencePage::updateLeds(Leds &leds) {
 
 void LogicSequencePage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
+    
+    functionShortcuts(event);
 
     if (key.shiftModifier() && event.count() == 2) {
         saveContextShow();
