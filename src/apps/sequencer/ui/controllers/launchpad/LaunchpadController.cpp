@@ -1043,13 +1043,9 @@ void LaunchpadController::sequenceSetRests(Button button) {
     int val = 0;
 
     if (button.row % 2 == 0) {
-        if (button.col == 0) {
-            val = 0;
-        } else {
-            val = (button.col /2)+1;
-        }
+        val = (button.col);
     } else {
-        val = (button.col/2) + 5;
+        val = (button.col) + 8;
     }
 
     if (_project.selectedTrack().trackMode() == Track::TrackMode::Stochastic) {
@@ -1382,10 +1378,10 @@ void LaunchpadController::sequenceDrawStepRange(int highlight) {
 
 void LaunchpadController::stochasticDrawRestProbability() {
     const auto &sequence = _project.selectedStochasticSequence();
-    drawBar(0, (sequence.restProbability()*2)-1);
-    drawBar(2, (sequence.restProbability2()*2)-1);
-    drawBar(4, (sequence.restProbability4()*2-1));
-    drawBar(6, (sequence.restProbability8()*2)-1);
+    drawBar(0, sequence.restProbability());
+    drawBar(2, sequence.restProbability2());
+    drawBar(4, sequence.restProbability4());
+    drawBar(6, sequence.restProbability8());
 }
 
 void LaunchpadController::arpDrawRestProbability() {

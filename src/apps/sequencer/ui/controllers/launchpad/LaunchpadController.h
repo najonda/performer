@@ -194,7 +194,7 @@ private:
             int p = amount;
             if (i<p) {
                 setGridLed(row, i, colorYellow());    
-            } else if (i==p) {
+            } else if (i==p && p != 0) {
                 setGridLed(row, i, colorGreen());
             } else {
                 setGridLed(row, i, colorOff());
