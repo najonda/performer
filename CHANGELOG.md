@@ -1,5 +1,10 @@
 # Changelog
 
+# v0.3.0 ()
+- Arpeggiator Track
+- increase rest proability to 15 steps 
+- logic track fast inout visulaization (press shift)
+
 # v0.2.2 (20 March 2024)
 - Logic Track
     - per step gate logic operators
