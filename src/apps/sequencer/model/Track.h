@@ -80,12 +80,6 @@ public:
 
     int trackIndex() const { return _trackIndex; }
 
-    // trackName
-    const char *name() const { return _name; }
-    void setName(const char *name) {
-        StringUtils::copy(_name, name, sizeof(_name));
-    }
-
     // trackMode
 
     TrackMode trackMode() const { return _trackMode; }
@@ -180,7 +174,6 @@ private:
     void initContainer();
 
     uint8_t _trackIndex = -1;
-    char _name[NameLength + 1];
     TrackMode _trackMode;
     int8_t _linkTrack;
 

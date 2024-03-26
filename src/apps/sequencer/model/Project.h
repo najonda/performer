@@ -393,7 +393,10 @@ public:
     }
 
     void editStepsToStop(int steps) {
-        setStepsToStop(steps + stepsToStop());
+        int val = (steps + stepsToStop());
+        if (val > 64) val  = 0;
+        if (val < 0) val = 64;
+        setStepsToStop(val);
     }
 
     void printStepsToStop(StringBuilder &str) const {
@@ -412,7 +415,10 @@ public:
     }
 
     void editRecordDelay(int steps) {
-        setRecordDelay(steps + recordDelay());
+        int val = (steps + recordDelay()) % 64;
+        if (val > 64) val  = 0;
+        if (val < 0) val = 64;
+        setRecordDelay(val);
     }
 
     void printRecordDelay(StringBuilder &str) const {
