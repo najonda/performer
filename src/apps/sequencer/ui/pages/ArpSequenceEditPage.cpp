@@ -403,6 +403,12 @@ void ArpSequenceEditPage::keyDown(KeyEvent &event) {
     }
     _stepSelection.keyDown(event, stepOffset());
     updateMonitorStep();
+    auto &track = _project.selectedTrack().arpTrack();
+    if (layer() == Layer::Note && track.midiKeyboard() && _engine.state().running()) {
+        auto i = MatrixMap::toStep(key.code());
+        auto &arpEngine = _engine.trackEngine(_project.selectedTrackIndex()).as<ArpTrackEngine>();
+        arpEngine.addNote(i, i);
+    }
 }
 
 void ArpSequenceEditPage::keyUp(KeyEvent &event) {
@@ -412,6 +418,13 @@ void ArpSequenceEditPage::keyUp(KeyEvent &event) {
     }
     _stepSelection.keyUp(event, stepOffset());
     updateMonitorStep();
+    auto &track = _project.selectedTrack().arpTrack();
+    if (layer() == Layer::Note && track.midiKeyboard() && _engine.state().running()) {
+        auto i = MatrixMap::toStep(key.code());
+        auto &arpEngine = _engine.trackEngine(_project.selectedTrackIndex()).as<ArpTrackEngine>();
+        arpEngine.removeNote(i);
+    }
+
 }
 
 void ArpSequenceEditPage::keyPress(KeyPressEvent &event) {
@@ -777,7 +790,7 @@ void ArpSequenceEditPage::updateMonitorStep() {
     auto &trackEngine = _engine.selectedTrackEngine().as<ArpTrackEngine>();
 
     // TODO should we monitor an all layers not just note?
-    if (layer() == Layer::NoteVariationProbability && !_stepSelection.isPersisted() && _stepSelection.any()) {
+    if (layer() == Layer::Note && !_stepSelection.isPersisted() && _stepSelection.any()) {
         trackEngine.setMonitorStep(_stepSelection.first());
     } else {
         trackEngine.setMonitorStep(-1);
