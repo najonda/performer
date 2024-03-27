@@ -501,7 +501,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
             } else {
                 _inMemorySequence = _project.selectedNoteSequence();
                 sequence.shiftSteps(_stepSelection.selected(), -1);
-                _stepSelection.shiftLeft(sequence.lastStep()+1);
+                _stepSelection.shiftLeft(sequence.firstStep(), sequence.lastStep()+1);
             }
         } else {
              track.setPatternFollowDisplay(false);
@@ -521,7 +521,7 @@ void NoteSequenceEditPage::keyPress(KeyPressEvent &event) {
             } else {
                 _inMemorySequence = _project.selectedNoteSequence();
                 sequence.shiftSteps(_stepSelection.selected(), 1);
-                _stepSelection.shiftRight(sequence.lastStep()+1);
+                _stepSelection.shiftRight(sequence.firstStep(), sequence.lastStep()+1);
             }
         } else {
             track.setPatternFollowDisplay(false);
