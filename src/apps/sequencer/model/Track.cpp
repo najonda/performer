@@ -220,7 +220,9 @@ void Track::setContainerTrackIndex(int trackIndex) {
         break;
      case TrackMode::Arp:
         _track.arp->setTrackIndex(trackIndex);
-        _track.arp->setName(str);    case TrackMode::Last:
+        _track.arp->setName(str);   
+        break;
+    case TrackMode::Last:
         break;
     }
 }
