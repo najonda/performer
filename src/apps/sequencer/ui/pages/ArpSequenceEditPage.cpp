@@ -555,7 +555,7 @@ void ArpSequenceEditPage::encoder(EncoderEvent &event) {
             setLayer(event.value() > 0 ? Layer::NoteVariationRange : Layer::Slide);
             break;
         case Layer::NoteVariationRange:
-            setLayer(event.value() > 0 ? Layer::Note : Layer::NoteVariationProbability);
+            setLayer(event.value() > 0 ? Layer::NoteVariationProbability : Layer::Note);
             break;
         case Layer::NoteVariationProbability:
             setLayer(event.value() > 0 ? Layer::NoteOctave : Layer::NoteVariationRange);
@@ -567,7 +567,7 @@ void ArpSequenceEditPage::encoder(EncoderEvent &event) {
             setLayer(event.value() > 0 ? Layer::Slide : Layer::NoteOctave);
             break;
         case Layer::Slide:
-            setLayer(event.value() > 0 ? Layer::NoteVariationProbability : Layer::NoteOctaveProbability);
+            setLayer(event.value() > 0 ? Layer::Note : Layer::NoteOctaveProbability);
             break;
         default:
             break;
@@ -677,9 +677,7 @@ void ArpSequenceEditPage::switchLayer(int functionKey, bool shift) {
             break;
         case Function::Retrigger:
             break;
-            
         case Function::Length:
-
             break;
         case Function::Note:
             setLayer(Layer::Note);
@@ -709,9 +707,6 @@ void ArpSequenceEditPage::switchLayer(int functionKey, bool shift) {
         switch (layer()) {
         case Layer::Retrigger:
             setLayer(Layer::RetriggerProbability);
-            break;
-        case Layer::RetriggerProbability:
-
             break;
         default:
             setLayer(Layer::Retrigger);
