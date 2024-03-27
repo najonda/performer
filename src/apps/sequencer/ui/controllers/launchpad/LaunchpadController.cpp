@@ -518,6 +518,52 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
         if (button.is<Fill>()) {
             _project.playState().fillAll(false);
         }
+        if (button.isGrid()) {
+            switch (_project.selectedTrack().trackMode()) {
+                case (Track::TrackMode::Arp): {
+                        if (_project.selectedArpSequenceLayer()==ArpSequence::Layer::Note) {
+                            if (button.row >=3 && button.row <= 4) {
+                                auto &arpTrack = _project.selectedTrack().arpTrack();
+                                if (arpTrack.midiKeyboard()) {
+                                    auto currentOctave = arpTrack.octave();
+                                    const auto &sequence = _project.selectedArpSequence();
+                                    const auto &scale = sequence.selectedScale(_project.scale());
+                                    const Scale &bypasssScale = Scale::get(0);
+
+                                    int ft = -1;
+                                    if (button.row == 3) {
+                                        ft = getMapValue(semitones, button.col);
+                                    } else if (button.row == 4) {
+                                        ft = getMapValue(tones, button.col);
+                                    }
+                                    if (scale.isNotePresent(ft)) {
+                                        int noteIndex = scale.getNoteIndex(ft);
+                                        selectedNote = noteIndex + (scale.notesPerOctave()*selectedOctave);
+                                        if (button.col == 7) {
+                                            selectedNote = selectedNote + scale.notesPerOctave();
+
+                                        }
+                                        fullNoteSelected = false;
+                                    } else {
+                                        fullNoteSelected = true;
+
+                                    }
+                                    int noteIndex = bypasssScale.getNoteIndex(ft);
+                                    fullSelectedNote = noteIndex + (bypasssScale.notesPerOctave()*selectedOctave); 
+
+                                    auto &trackEngine = _engine.trackEngine(_project.selectedTrackIndex()).as<ArpTrackEngine>();
+                                        
+                                    trackEngine.removeNote(fullSelectedNote);
+                                }
+                            }
+                        }
+
+                    }
+                    break;
+                default:
+                    break;
+             }
+        }
     } else if (action == ButtonAction::DoublePress) {
         if (!buttonState<Shift>() &&
             !buttonState<Navigate>() &&
@@ -745,7 +791,7 @@ void LaunchpadController::manageStochasticCircuitKeyboard(const Button &button) 
 void LaunchpadController::manageArpCircuitKeyboard(const Button &button) {
     auto &sequence = _project.selectedArpSequence();
     const auto &scale = sequence.selectedScale(_project.scale());
-        const Scale &bypasssScale = Scale::get(0);
+    const Scale &bypasssScale = Scale::get(0);
 
     switch ( _project.selectedArpSequenceLayer()) {
         case ArpSequence::Layer::Note:
@@ -783,14 +829,18 @@ void LaunchpadController::manageArpCircuitKeyboard(const Button &button) {
 
                 }
                 int noteIndex = bypasssScale.getNoteIndex(ft);
-                fullSelectedNote = noteIndex + (bypasssScale.notesPerOctave()*selectedOctave);                         
+                fullSelectedNote = noteIndex + (bypasssScale.notesPerOctave()*selectedOctave); 
+                if (arpTrack.midiKeyboard()) {
+                    auto &trackEngine = _engine.trackEngine(_project.selectedTrackIndex()).as<ArpTrackEngine>();
+                    trackEngine.addNote(fullSelectedNote, noteIndex, (bypasssScale.notesPerOctave()*selectedOctave));
+                }
                     
                 break;
             } else if (button.row >= 0 && button.row < 2) {
                 auto &sequence = _project.selectedArpSequence();
                 int linearIndex = button.col  + (button.row*8);
 
-                sequence.step(fullSelectedNote).setNoteVariationProbability(linearIndex);
+                sequence.step(fullSelectedNote).setGateProbability(linearIndex);
 
                 break;
             } else if (button.row == 6) {
@@ -823,7 +873,11 @@ void LaunchpadController::manageArpCircuitKeyboard(const Button &button) {
                         break;
                 }
             
-            } else if (button.row == 6) {
+            } else if (button.row == 7) {
+                if (button.col == 0) {
+                    auto &track = _project.selectedTrack().arpTrack();
+                    track.toggleMidiKeybaord();
+                }
                 break;
             }
         default:
@@ -2031,8 +2085,8 @@ void LaunchpadController::performerButton(const Button &button, ButtonAction act
                 }
             } 
         } else if (button.isScene()) {
-                _project.setSelectedTrackIndex(button.scene());
-            }
+            _project.setSelectedTrackIndex(button.scene());
+        }
     } else if (action == ButtonAction::Up) {
         if (button.isGrid() && (!buttonState<FirstStep>() && !buttonState<LastStep>())) {
             if (_performButton.firstStepButton.row != -1 && !buttonState(_performButton.firstStepButton.row, _performButton.firstStepButton.col )) {
@@ -2749,205 +2803,208 @@ void LaunchpadController::drawArpSequenceBars(const ArpSequence &sequence, ArpSe
 }
 
 void LaunchpadController::drawArpSequenceNotes(const ArpSequence &sequence, ArpSequence::Layer layer, int currentStep) {
- const auto &scale = sequence.selectedScale(_project.scale());
-      const Scale &bypassScale = Scale::get(0);
-        int stepIndex = fullSelectedNote;
-        const auto &step = sequence.step(stepIndex);  
-        if (step.noteVariationProbability() > 7) { 
-            drawBarH(0, step.noteVariationProbability(), true, false);
-            drawBarH(1, step.noteVariationProbability()-8, true, false);
-        } else {
-            drawBarH(0, step.noteVariationProbability(), true, false);
-        }
+    const auto &scale = sequence.selectedScale(_project.scale());
+    const auto &track = _project.selectedTrack().arpTrack();
+    const Scale &bypassScale = Scale::get(0);
+    int stepIndex = fullSelectedNote;
+    const auto &step = sequence.step(stepIndex);  
+    if (step.gateProbability() > 7) { 
+        drawBarH(0, step.gateProbability(), true, false);
+        drawBarH(1, step.gateProbability()-8, true, false);
+    } else {
+        drawBarH(0, step.gateProbability(), true, false);
+    }
 
-        auto arpEngine = _engine.selectedTrackEngine().as<ArpTrackEngine>();
-        for (int col = 0; col < 8; ++col) {
-            if (col == arpEngine.currentIndex()%8) {
-                if (arpEngine.currentIndex()<8) {
-                    setCustomGridLed(2, col, Color(1,0));
-                } else if (arpEngine.currentIndex() >=8 && arpEngine.currentIndex() <16) {
-                    setCustomGridLed(2, col, Color(1,1));
-                } else if (arpEngine.currentIndex() >=16 && arpEngine.currentIndex() <24) {
-                    setCustomGridLed(2, col, Color(1,2));
-                } else if (arpEngine.currentIndex() >=24 && arpEngine.currentIndex() <32) { 
-                    setCustomGridLed(2, col, Color(1,3));
-                } else if (arpEngine.currentIndex() >=40 && arpEngine.currentIndex() <48) {
-                    setCustomGridLed(2, col, Color(2,0));
-                } else if (arpEngine.currentIndex() >=48 && arpEngine.currentIndex() <56) {
-                    setCustomGridLed(2, col, Color(2,1));
-                } else {
-                    setCustomGridLed(2, col, Color(2,2));
-                }
+    auto arpEngine = _engine.selectedTrackEngine().as<ArpTrackEngine>();
+    for (int col = 0; col < 8; ++col) {
+        if (col == arpEngine.currentIndex()%8) {
+            if (arpEngine.currentIndex()<8) {
+                setCustomGridLed(2, col, Color(1,0));
+            } else if (arpEngine.currentIndex() >=8 && arpEngine.currentIndex() <16) {
+                setCustomGridLed(2, col, Color(1,1));
+            } else if (arpEngine.currentIndex() >=16 && arpEngine.currentIndex() <24) {
+                setCustomGridLed(2, col, Color(1,2));
+            } else if (arpEngine.currentIndex() >=24 && arpEngine.currentIndex() <32) { 
+                setCustomGridLed(2, col, Color(1,3));
+            } else if (arpEngine.currentIndex() >=40 && arpEngine.currentIndex() <48) {
+                setCustomGridLed(2, col, Color(2,0));
+            } else if (arpEngine.currentIndex() >=48 && arpEngine.currentIndex() <56) {
+                setCustomGridLed(2, col, Color(2,1));
             } else {
-                setGridLed(2, col, colorOff());
+                setCustomGridLed(2, col, Color(2,2));
             }
+        } else {
+            setGridLed(2, col, colorOff());
         }
+    }
 
-        int rootNote = sequence.selectedRootNote(_model.project().rootNote());
+    int rootNote = sequence.selectedRootNote(_model.project().rootNote());
 
-        // draw keyboard
-        for (int row = 3; row<=4; ++row) {
-            for (int col = 0; col < 8; col++) {
-                int index = (col+((row-3)*8));
-            
-                if (noteGridValues[index]==1) {
-                    int n = getMapValue(semitones, index);
-                    if (row == 4) {
-                        n = getMapValue(tones, col);
+    // draw keyboard
+    for (int row = 3; row<=4; ++row) {
+        for (int col = 0; col < 8; col++) {
+            int index = (col+((row-3)*8));
+        
+            if (noteGridValues[index]==1) {
+                int n = getMapValue(semitones, index);
+                if (row == 4) {
+                    n = getMapValue(tones, col);
+                }
+                if (scale.isNotePresent(n)) {
+                    n = scale.getNoteIndex(n);
+                    if (col == 7) {
+                        n = n + scale.notesPerOctave();
                     }
-                    if (scale.isNotePresent(n)) {
-                        n = scale.getNoteIndex(n);
-                        if (col == 7) {
-                            n = n + scale.notesPerOctave();
-                        }
-                        int stepIndex = -1;
-                        if (row == 3) {
-                            stepIndex = getMapValue(semitones, col);
-                        } else if (row == 4) {
-                            stepIndex = getMapValue(tones, col);
-                        }
-                        const auto &step = sequence.step(stepIndex);
-                        Color alternate = colorGreen(2);
-                        if (step.gate()) {
-                            alternate = colorYellow(1);
-                        }
-
-                        Color color = (selectedNote - (scale.notesPerOctave()*selectedOctave))== n && !fullNoteSelected ? colorYellow() : alternate;
-                        setGridLed(row, col, color);
-                    } else {
-                        int stepIndex = -1;
-                        if (row == 3) {
-                            stepIndex = getMapValue(semitones, col);
-                        } else if (row == 4) {
-                            stepIndex = getMapValue(tones, col);
-                        }
-                        const auto &step = sequence.step(stepIndex);
-                        Color alternate = colorGreen(1);
-                        if (step.gate()) {
-                            alternate = colorYellow(1);
-                        }
-                        n = bypassScale.getNoteIndex(n);
-                        Color color = (fullSelectedNote - (bypassScale.notesPerOctave()*selectedOctave))== n && fullNoteSelected ? colorYellow() : alternate;
-                        setGridLed(row, col, color);
-                        
+                    int stepIndex = -1;
+                    if (row == 3) {
+                        stepIndex = getMapValue(semitones, col);
+                    } else if (row == 4) {
+                        stepIndex = getMapValue(tones, col);
                     }
-                }
-                if (_engine.state().running()) {
-                    const auto &step = sequence.step(currentStep);
-
-                    if (step.bypassScale()) {
-                        drawRunningArpKeyboardCircuit(row, col, step, bypassScale, rootNote);
-                    } else {
-                        drawRunningArpKeyboardCircuit(row, col, step, scale, rootNote);
+                    const auto &step = sequence.step(stepIndex);
+                    Color alternate = colorGreen(2);
+                    if (step.gate()) {
+                        alternate = colorYellow(1);
                     }
+
+                    Color color = (selectedNote - (scale.notesPerOctave()*selectedOctave))== n && !fullNoteSelected ? colorYellow() : alternate;
+                    setGridLed(row, col, color);
+                } else {
+                    int stepIndex = -1;
+                    if (row == 3) {
+                        stepIndex = getMapValue(semitones, col);
+                    } else if (row == 4) {
+                        stepIndex = getMapValue(tones, col);
+                    }
+                    const auto &step = sequence.step(stepIndex);
+                    Color alternate = colorGreen(1);
+                    if (step.gate()) {
+                        alternate = colorYellow(1);
+                    }
+                    n = bypassScale.getNoteIndex(n);
+                    Color color = (fullSelectedNote - (bypassScale.notesPerOctave()*selectedOctave))== n && fullNoteSelected ? colorYellow() : alternate;
+                    setGridLed(row, col, color);
+                    
                 }
-
-                Color transposeUpColor = colorOff();
-                switch (_project.selectedTrack().arpTrack().octave()) {
-                    case 0:
-                        transposeUpColor = colorOff();
-                        break;
-                    case 1:
-                        transposeUpColor = Color(0,1);
-                        break;
-                    case 2:
-                        transposeUpColor = Color(0,2);
-                        break;
-                    case 3:
-                        transposeUpColor = Color(0,3);
-                        break;
-                    case 4:
-                        transposeUpColor = Color(1,0);
-                        break;
-                    case 5:
-                        transposeUpColor = Color(1,1);
-                        break;
-                    case 6:
-                        transposeUpColor = Color(1,2);
-                        break;
-                    case 7:
-                        transposeUpColor = Color(1, 3);
-                        break;
-                    case 8:
-                        transposeUpColor = Color(2, 0);
-                        break;
-                    case 9:
-                        transposeUpColor = Color(2,1);
-                        break;
-                    case 10:
-                        transposeUpColor = Color(2,2);
-                        break;
-                }
-
-                setCustomGridLed(3, 7,  transposeUpColor);
-
-                Color transposeDownColor = colorOff();
-                switch (_project.selectedTrack().arpTrack().octave()) {
-                    case 0:
-                        transposeDownColor = colorOff();
-                        break;
-                    case -1:
-                        transposeDownColor = Color(0,1);
-                        break;
-                    case -2:
-                        transposeDownColor = Color(0,2);
-                        break;
-                    case -3:
-                        transposeDownColor = Color(0,3);
-                        break;
-                    case -4:
-                        transposeDownColor = Color(1,0);
-                        break;
-                    case -5:
-                        transposeDownColor = Color(1,1);
-                        break;
-                    case -6:
-                        transposeDownColor = Color(1,2);
-                        break;
-                    case -7:
-                        transposeDownColor = Color(1, 3);
-                        break;
-                    case -8:
-                        transposeDownColor = Color(2, 0);
-                        break;
-                    case -9:
-                        transposeDownColor = Color(2,1);
-                        break;
-                    case -10:
-                        transposeDownColor = Color(2,2);
-                        break;
-                }
-
-                setCustomGridLed(4, 7,  transposeDownColor);
             }
-        }
-
-        // draw octave
-        for (int col = 0; col < 8; ++col) {
-            int o = getMapValue(octaveMap, col);
-            setGridLed(6, col, o==selectedOctave ? colorYellow(): colorYellow(1));
-
             if (_engine.state().running()) {
                 const auto &step = sequence.step(currentStep);
-                int s = step.note();
 
-                int octave = 0;
                 if (step.bypassScale()) {
-                    const Scale &bypassScale = Scale::get(0);
-                    octave = s / bypassScale.notesPerOctave();
+                    drawRunningArpKeyboardCircuit(row, col, step, bypassScale, rootNote);
                 } else {
-                    octave = s / scale.notesPerOctave();
+                    drawRunningArpKeyboardCircuit(row, col, step, scale, rootNote);
                 }
-                for (auto const& x : octaveMap)
-                    {
-                        if (step.gate() && octave == x.second) {
-                            setGridLed(6, x.first, step.gate() && octave == x.second ? colorRed() : colorYellow(1));
-                            break;
-                        }
-                    
-                    }
             }
+
+            Color transposeUpColor = colorOff();
+            switch (_project.selectedTrack().arpTrack().octave()) {
+                case 0:
+                    transposeUpColor = colorOff();
+                    break;
+                case 1:
+                    transposeUpColor = Color(0,1);
+                    break;
+                case 2:
+                    transposeUpColor = Color(0,2);
+                    break;
+                case 3:
+                    transposeUpColor = Color(0,3);
+                    break;
+                case 4:
+                    transposeUpColor = Color(1,0);
+                    break;
+                case 5:
+                    transposeUpColor = Color(1,1);
+                    break;
+                case 6:
+                    transposeUpColor = Color(1,2);
+                    break;
+                case 7:
+                    transposeUpColor = Color(1, 3);
+                    break;
+                case 8:
+                    transposeUpColor = Color(2, 0);
+                    break;
+                case 9:
+                    transposeUpColor = Color(2,1);
+                    break;
+                case 10:
+                    transposeUpColor = Color(2,2);
+                    break;
+            }
+
+            setCustomGridLed(3, 7,  transposeUpColor);
+
+            Color transposeDownColor = colorOff();
+            switch (_project.selectedTrack().arpTrack().octave()) {
+                case 0:
+                    transposeDownColor = colorOff();
+                    break;
+                case -1:
+                    transposeDownColor = Color(0,1);
+                    break;
+                case -2:
+                    transposeDownColor = Color(0,2);
+                    break;
+                case -3:
+                    transposeDownColor = Color(0,3);
+                    break;
+                case -4:
+                    transposeDownColor = Color(1,0);
+                    break;
+                case -5:
+                    transposeDownColor = Color(1,1);
+                    break;
+                case -6:
+                    transposeDownColor = Color(1,2);
+                    break;
+                case -7:
+                    transposeDownColor = Color(1, 3);
+                    break;
+                case -8:
+                    transposeDownColor = Color(2, 0);
+                    break;
+                case -9:
+                    transposeDownColor = Color(2,1);
+                    break;
+                case -10:
+                    transposeDownColor = Color(2,2);
+                    break;
+            }
+
+            setCustomGridLed(4, 7,  transposeDownColor);
         }
+    }
+
+    // draw octave
+    for (int col = 0; col < 8; ++col) {
+        int o = getMapValue(octaveMap, col);
+        setGridLed(6, col, o==selectedOctave ? colorYellow(): colorYellow(1));
+
+        if (_engine.state().running()) {
+            const auto &step = sequence.step(currentStep);
+            int s = step.note();
+
+            int octave = 0;
+            if (step.bypassScale()) {
+                const Scale &bypassScale = Scale::get(0);
+                octave = s / bypassScale.notesPerOctave();
+            } else {
+                octave = s / scale.notesPerOctave();
+            }
+            for (auto const& x : octaveMap)
+                {
+                    if (step.gate() && octave == x.second) {
+                        setGridLed(6, x.first, step.gate() && octave == x.second ? colorRed() : colorYellow(1));
+                        break;
+                    }
+                
+                }
+        }
+    }
+    // draw options
+    setGridLed(7, 0, track.midiKeyboard() ? colorYellow(): colorYellow(1));
 }
 
 void LaunchpadController::drawArpSequenceDots(const ArpSequence &sequence, ArpSequence::Layer layer, int currentStep) {

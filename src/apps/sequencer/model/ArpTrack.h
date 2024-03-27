@@ -270,7 +270,7 @@ public:
     }
 
     // midi keyboard
-    bool midiKeyboard() {
+    const bool midiKeyboard() const {
         return _midiKeyboard;
     }
 
