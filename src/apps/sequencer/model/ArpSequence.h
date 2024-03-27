@@ -58,7 +58,6 @@ public:
         NoteOctave,
         NoteOctaveProbability,
         Slide,
-        BypassScale,
         Condition,
         Last
     };
@@ -69,7 +68,6 @@ public:
         case Layer::GateProbability:            return "GATE PROB";
         case Layer::GateOffset:                 return "GATE OFFSET";
         case Layer::Slide:                      return "SLIDE";
-        case Layer::BypassScale:                 return "BYPASS SCALE";
         case Layer::Retrigger:                  return "RETRIG";
         case Layer::RetriggerProbability:       return "RETRIG PROB";
         case Layer::Length:                     return "LENGTH";

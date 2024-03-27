@@ -276,11 +276,7 @@ void ArpSequenceEditPage::draw(Canvas &canvas) {
                 }
                 const Scale &bypassScale = std::ref(Scale::get(0));
                 bypassScale.noteName(str, step.note(), rootNote, Scale::Short1);
-                if (scale.isNotePresent(step.note())) {
-                    canvas.setColor(Color::Bright);
-                } else {
-                    canvas.setColor(Color::Low);
-                }   
+            
                 canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
                 str.reset();
                 str("%d", step.noteOctave());
@@ -288,11 +284,7 @@ void ArpSequenceEditPage::draw(Canvas &canvas) {
                 break;
             } 
             scale.noteName(str, step.note(), rootNote, Scale::Short1);
-            if (scale.isNotePresent(step.note())) {
-                canvas.setColor(Color::Bright);
-            } else {
-                canvas.setColor(Color::Low);
-            }
+            
             canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
             str.reset();
             
@@ -302,11 +294,6 @@ void ArpSequenceEditPage::draw(Canvas &canvas) {
         case Layer::NoteVariationRange: {
             canvas.setColor(Color::Bright);
             FixedStringBuilder<8> str("%d", step.noteVariationRange());
-            if (scale.isNotePresent(step.note())) {
-                canvas.setColor(Color::Bright);
-            } else {
-                canvas.setColor(Color::Low);
-            }
             canvas.drawText(x + (stepWidth - canvas.textWidth(str) + 1) / 2, y + 20, str);
             break;
         }
@@ -342,13 +329,6 @@ void ArpSequenceEditPage::draw(Canvas &canvas) {
                 step.slide()
             );
             break;
-        case Layer::BypassScale:
-            SequencePainter::drawBypassScale(
-                canvas,
-                x + 4, y + 18, stepWidth - 8, 4,
-                step.bypassScale()
-            );
-            break;
         case Layer::Condition: {
             canvas.setColor(Color::Bright);
             FixedStringBuilder<8> str;
@@ -367,7 +347,7 @@ void ArpSequenceEditPage::draw(Canvas &canvas) {
     // handle detail display
 
     if (_showDetail) {
-        if (layer() == Layer::Gate || layer() == Layer::Slide || _stepSelection.none() || layer() == Layer::BypassScale) {
+        if (layer() == Layer::Gate || layer() == Layer::Slide || _stepSelection.none()) {
             _showDetail = false;
         }
         if (_stepSelection.isPersisted() && os::ticks() > _showDetailTicks + os::time::ms(500)) {
@@ -491,28 +471,13 @@ void ArpSequenceEditPage::keyPress(KeyPressEvent &event) {
         switch (layer()) {
         case Layer::Gate:{            
             auto &trackEngine = _engine.selectedTrackEngine().as<ArpTrackEngine>();
-
+            if (sequence.step(stepIndex).gate()) {
+                trackEngine.removeNote(sequence.step(stepIndex).note());
+            } else {
+                trackEngine.addNote(sequence.step(stepIndex).note(), stepIndex);
+            }
             if (!track.midiKeyboard()) {
-                if (sequence.step(stepIndex).bypassScale()) {
-                    if (sequence.step(stepIndex).gate()) {
-                        trackEngine.removeNote(sequence.step(stepIndex).note());
-                    } else {
-                        trackEngine.addNote(sequence.step(stepIndex).note(), stepIndex);
-                    }
-                    sequence.step(stepIndex).toggleGate();
-                } else {
-                    const auto &scale = sequence.selectedScale(_project.scale());
-
-                    if (scale.isNotePresent(stepIndex)) {
-                        if (sequence.step(stepIndex).gate()) {
-                            trackEngine.removeNote(sequence.step(stepIndex).note());
-                        } else {
-                            trackEngine.addNote(sequence.step(stepIndex).note(), stepIndex);
-                        }
-                        sequence.step(stepIndex).toggleGate();
-                    }
-                }
-                
+                sequence.step(stepIndex).toggleGate();
             }
             event.consume();
         }
@@ -534,15 +499,7 @@ void ArpSequenceEditPage::keyPress(KeyPressEvent &event) {
                 trackEngine.addNote(sequence.step(stepIndex).note(), stepIndex);
             }
             if (!track.midiKeyboard()) {
-                 if (sequence.step(stepIndex).bypassScale()) {
-                    sequence.step(stepIndex).toggleGate();
-                } else {
-                    const auto &scale = sequence.selectedScale(_project.scale());
-
-                    if (scale.isNotePresent(stepIndex)) {
-                        sequence.step(stepIndex).toggleGate();
-                    }
-                }
+                sequence.step(stepIndex).toggleGate();
             }
             event.consume();
         }
@@ -595,10 +552,10 @@ void ArpSequenceEditPage::encoder(EncoderEvent &event) {
             setLayer(event.value() > 0 ? Layer::Length : Layer::LengthVariationRange);
             break;
         case Layer::Note:
-            setLayer(event.value() > 0 ? Layer::NoteVariationRange : Layer::BypassScale);
+            setLayer(event.value() > 0 ? Layer::NoteVariationRange : Layer::Slide);
             break;
         case Layer::NoteVariationRange:
-            setLayer(event.value() > 0 ? Layer::NoteVariationProbability : Layer::Note);
+            setLayer(event.value() > 0 ? Layer::Note : Layer::NoteVariationProbability);
             break;
         case Layer::NoteVariationProbability:
             setLayer(event.value() > 0 ? Layer::NoteOctave : Layer::NoteVariationRange);
@@ -610,10 +567,8 @@ void ArpSequenceEditPage::encoder(EncoderEvent &event) {
             setLayer(event.value() > 0 ? Layer::Slide : Layer::NoteOctave);
             break;
         case Layer::Slide:
-            setLayer(event.value() > 0 ? Layer::BypassScale : Layer::NoteOctaveProbability);
+            setLayer(event.value() > 0 ? Layer::NoteVariationProbability : Layer::NoteOctaveProbability);
             break;
-        case Layer::BypassScale:
-            setLayer(event.value() > 0 ? Layer::Note : Layer::Slide);
         default:
             break;
         }
@@ -675,9 +630,6 @@ void ArpSequenceEditPage::encoder(EncoderEvent &event) {
                 break;
             case Layer::Slide:
                 step.setSlide(event.value() > 0);
-                break;
-             case Layer::BypassScale:
-                step.setBypassScale(event.value() > 0);
                 break;
             case Layer::Condition:
                 step.setCondition(ModelUtils::adjustedEnum(step.condition(), event.value()));
@@ -758,6 +710,9 @@ void ArpSequenceEditPage::switchLayer(int functionKey, bool shift) {
         case Layer::Retrigger:
             setLayer(Layer::RetriggerProbability);
             break;
+        case Layer::RetriggerProbability:
+
+            break;
         default:
             setLayer(Layer::Retrigger);
             break;
@@ -794,8 +749,7 @@ void ArpSequenceEditPage::switchLayer(int functionKey, bool shift) {
             setLayer(Layer::Slide);
             break;
         case Layer::Slide:
-            setLayer(Layer::BypassScale);
-            break;
+            setLayer(Layer::NoteVariationProbability);
         default:
             setLayer(Layer::Note);
             break;
@@ -826,7 +780,6 @@ int ArpSequenceEditPage::activeFunctionKey() {
     case Layer::Slide:
     case Layer::Note:
     case Layer::NoteVariationRange:
-    case Layer::BypassScale:
         return 3;
     case Layer::Condition:
         return 4;
@@ -873,7 +826,6 @@ void ArpSequenceEditPage::drawDetail(Canvas &canvas, const ArpSequence::Step &st
     switch (layer()) {
     case Layer::Gate:
     case Layer::Slide:
-    case Layer::BypassScale:
         break;
     case Layer::GateProbability:
         SequencePainter::drawProbability(

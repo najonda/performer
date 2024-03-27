@@ -158,7 +158,6 @@ static const LayerMapItem arpSequenceLayerMap[] = {
     [int(ArpSequence::Layer::NoteOctave)]                  =  { 3, 3 },
     [int(ArpSequence::Layer::NoteOctaveProbability)]       =  { 4, 3 },    
     [int(ArpSequence::Layer::Slide)]                       =  { 5, 3 },
-    [int(ArpSequence::Layer::BypassScale)]                 =  { 6, 3 },
     [int(ArpSequence::Layer::Condition)]                   =  { 0, 4 },
 };
 
@@ -593,38 +592,19 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
                     if (button.col == 7) {
                         break;
                     }
-                    const auto track = _project.selectedTrack().arpTrack();
-                    if (!track.midiKeyboard()) {
-
-                        auto &sequence = _project.selectedArpSequence();
-                        auto &trackEngine = _engine.trackEngine(_project.selectedTrackIndex()).as<ArpTrackEngine>();
-                        int octave = roundDownDivide(fullSelectedNote, 12);
-            
-                        int stepNoteCleared = fullSelectedNote - (octave*12);
-                        if (sequence.step(stepNoteCleared).bypassScale()) {
-                            if (sequence.step(stepNoteCleared).gate()) {
-                                trackEngine.removeNote(sequence.step(stepNoteCleared).note());
-                            } else {
-                                trackEngine.addNote(sequence.step(stepNoteCleared).note(), stepNoteCleared, octave);
-                            }
-
-                            sequence.step(stepNoteCleared).toggleGate();
-                            sequence.step(stepNoteCleared).setNoteOctave(octave);
-                        } else {
-                            const auto &scale = sequence.selectedScale(_project.scale());
-                            if (scale.isNotePresent(stepNoteCleared)) {
-                                if (sequence.step(stepNoteCleared).gate()) {
-                                    trackEngine.removeNote(sequence.step(stepNoteCleared).note());
-                                } else {
-                                    trackEngine.addNote(sequence.step(stepNoteCleared).note(), stepNoteCleared, octave);
-                                }
-
-                                sequence.step(stepNoteCleared).toggleGate();
-                                sequence.step(stepNoteCleared).setNoteOctave(octave);
-                            }
-                        }
-
+                    auto &sequence = _project.selectedArpSequence();
+                    auto &trackEngine = _engine.trackEngine(_project.selectedTrackIndex()).as<ArpTrackEngine>();
+                    int octave = roundDownDivide(fullSelectedNote, 12);
+        
+                    int stepNoteCleared = fullSelectedNote - (octave*12);
+                    if (sequence.step(stepNoteCleared).gate()) {
+                        trackEngine.removeNote(sequence.step(stepNoteCleared).note());
+                    } else {
+                        trackEngine.addNote(sequence.step(stepNoteCleared).note(), stepNoteCleared, octave);
                     }
+
+                    sequence.step(stepNoteCleared).toggleGate();
+                    sequence.step(stepNoteCleared).setNoteOctave(octave);
                     
                 }
                 break;
@@ -1349,41 +1329,16 @@ void LaunchpadController::sequenceEditArpStep(int row, int col) {
     int value = (7 - row) + _sequence.navigation.row * 8;
 
     switch (layer) {
-    case ArpSequence::Layer::Gate: {
-            if (gridIndex>11) {
-                return;
-            }
-            const auto track = _project.selectedTrack().arpTrack();
-            if (!track.midiKeyboard()) {
-                if (sequence.step(gridIndex).bypassScale()) {
-                    if (sequence.step(gridIndex).gate()) {
-                        trackEngine.removeNote(sequence.step(gridIndex).note());
-                    } else {
-                        trackEngine.addNote(sequence.step(gridIndex).note(), gridIndex);
-                    }
-                    sequence.step(gridIndex).toggleGate();
-                } else {
-                    const auto &scale = sequence.selectedScale(_project.scale());
-
-                    if (scale.isNotePresent(gridIndex)) {
-                        if (sequence.step(gridIndex).gate()) {
-                            trackEngine.removeNote(sequence.step(gridIndex).note());
-                        } else {
-                            trackEngine.addNote(sequence.step(gridIndex).note(), gridIndex);
-                        }
-                        sequence.step(gridIndex).toggleGate();
-                    }
-                }
-                
-            }
+    case ArpSequence::Layer::Gate:
+        if (sequence.step(gridIndex).gate()) {
+            trackEngine.removeNote(sequence.step(gridIndex).note());
+        } else {
+            trackEngine.addNote(sequence.step(gridIndex).note(), gridIndex);
         }
+        sequence.step(gridIndex).toggleGate();
         break;
-    case ArpSequence::Layer::Slide: {
-            if (gridIndex>11) {
-                return;
-            }
-            sequence.step(gridIndex).toggleSlide();
-        }
+    case ArpSequence::Layer::Slide:
+        sequence.step(gridIndex).toggleSlide();
         break;
     default:
         sequence.step(linearIndex).setLayerValue(layer, value);

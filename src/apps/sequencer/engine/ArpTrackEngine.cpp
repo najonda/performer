@@ -441,15 +441,8 @@ void ArpTrackEngine::monitorMidi(uint32_t tick, const MidiMessage &message) {
         if (!isPresent) {
             int octave = roundDownDivide(note, scale.notesPerOctave());
             int stepNoteCleared = note - (octave*scale.notesPerOctave());
-            if (sequence.step(stepNoteCleared).bypassScale()) {
-                sequence.step(stepNoteCleared).setNoteOctave(octave);
-                addNote(note, stepNoteCleared, octave);
-            } else {
-                if (scale.isNotePresent(note)) {
-                    sequence.step(stepNoteCleared).setNoteOctave(octave);
-                    addNote(note, stepNoteCleared, octave);
-                }
-            }
+            sequence.step(stepNoteCleared).setNoteOctave(octave);
+            addNote(note, stepNoteCleared, octave);
         }
     }
     /*if (_engine.recording() && _model.project().recordMode() == Types::RecordMode::StepRecord) {
@@ -495,7 +488,6 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
     }
 
     if (_noteCount == 0) {
-        _currentStep = -1;
         return;
     }
     

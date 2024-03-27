@@ -15,8 +15,6 @@ Types::LayerRange ArpSequence::layerRange(Layer layer) {
         return { 0, 1 };
     case Layer::Slide:
         return { 0, 1 }; 
-    case Layer::BypassScale:
-        return {0 ,1 };
     CASE(GateOffset)
     CASE(GateProbability)
     CASE(Retrigger)
@@ -52,8 +50,6 @@ int ArpSequence::layerDefaultValue(Layer layer)
         return step.gateOffset();
     case Layer::Slide:
         return step.slide();
-    case Layer::BypassScale:
-        return step.bypassScale();
     case Layer::Retrigger:
         return step.retrigger();
     case Layer::RetriggerProbability:
@@ -89,8 +85,6 @@ int ArpSequence::Step::layerValue(Layer layer) const {
         return gate() ? 1 : 0;
     case Layer::Slide:
         return slide() ? 1 : 0;
-    case Layer::BypassScale:
-        return bypassScale() ? 1 : 0;
     case Layer::GateProbability:
         return gateProbability();
     case Layer::GateOffset:
@@ -131,9 +125,6 @@ void ArpSequence::Step::setLayerValue(Layer layer, int value) {
         break;
     case Layer::Slide:
         setSlide(value);
-        break;
-    case Layer::BypassScale:
-        setBypassScale(value);
         break;
     case Layer::GateProbability:
         setGateProbability(value);
@@ -186,7 +177,7 @@ void ArpSequence::Step::clear() {
     setGateProbability(GateProbability::Max);
     setGateOffset(0);
     setSlide(false);
-    setBypassScale(false);
+    setBypassScale(true);
     setRetrigger(0);
     setRetriggerProbability(RetriggerProbability::Max);
     setLength(Length::Max / 2);
