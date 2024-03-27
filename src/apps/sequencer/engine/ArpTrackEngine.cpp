@@ -140,8 +140,14 @@ static float evalStepNote(const ArpSequence::Step &step, int probabilityBias, co
             int oct = step.noteOctave() + sequence.lowOctaveRange() + ( std::rand() % ( sequence.highOctaveRange() - sequence.lowOctaveRange() + 1 ) );
             note = ArpSequence::Note::clamp(note + (bypassScale.notesPerOctave()*oct));
         }
+        if (step.noteVariationProbability() == 0) {
+             probability = 0;
+        }
         if (useVariation && int(rng.nextRange(ArpSequence::NoteVariationProbability::Range)) <= probability) {
             int offset = step.noteVariationRange() == 0 ? 0 : rng.nextRange(std::abs(step.noteVariationRange()) + 1);
+            while (!scale.isNotePresent(offset)) {
+                offset++;
+            }
             if (step.noteVariationRange() < 0) {
                 offset = -offset;
             }
