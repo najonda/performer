@@ -1,9 +1,14 @@
 #pragma once
 
+#include "ArpTrack.h"
 #include "Config.h"
 
+#include "CurveTrack.h"
 #include "LogicSequence.h"
+#include "LogicTrack.h"
+#include "MidiCvTrack.h"
 #include "StochasticSequence.h"
+#include "StochasticTrack.h"
 #include "Track.h"
 #include "NoteSequence.h"
 #include "CurveSequence.h"
@@ -124,5 +129,5 @@ private:
 
     Project &_project;
     Type _type = Type::None;
-    Container<Track, NoteSequence, NoteSequenceSteps, CurveSequence, CurveSequenceSteps, StochasticSequence, StochasticSequenceSteps, LogicSequence, LogicSequenceSteps, ArpSequence, ArpSequenceSteps, Pattern, UserScale> _container;
+    Container<Track, NoteTrack, CurveTrack, MidiCvTrack, StochasticTrack, LogicTrack, ArpTrack, NoteSequence, NoteSequenceSteps, CurveSequence, CurveSequenceSteps, StochasticSequence, StochasticSequenceSteps, LogicSequence, LogicSequenceSteps, ArpSequence, ArpSequenceSteps, Pattern, UserScale> _container;
 };
