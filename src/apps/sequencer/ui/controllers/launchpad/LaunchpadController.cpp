@@ -525,7 +525,6 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
                             if (button.row >=3 && button.row <= 4) {
                                 auto &arpTrack = _project.selectedTrack().arpTrack();
                                 if (arpTrack.midiKeyboard()) {
-                                    auto currentOctave = arpTrack.octave();
                                     const auto &sequence = _project.selectedArpSequence();
                                     const auto &scale = sequence.selectedScale(_project.scale());
                                     const Scale &bypasssScale = Scale::get(0);
@@ -877,6 +876,10 @@ void LaunchpadController::manageArpCircuitKeyboard(const Button &button) {
                 if (button.col == 0) {
                     auto &track = _project.selectedTrack().arpTrack();
                     track.toggleMidiKeybaord();
+                }
+                if (button.col == 1) {
+                    auto &track = _project.selectedTrack().arpTrack();
+                    track.arpeggiator().setHold(!track.arpeggiator().hold());
                 }
                 break;
             }
@@ -3005,6 +3008,7 @@ void LaunchpadController::drawArpSequenceNotes(const ArpSequence &sequence, ArpS
     }
     // draw options
     setGridLed(7, 0, track.midiKeyboard() ? colorYellow(): colorYellow(1));
+    setGridLed(7, 1, track.arpeggiator().hold() ? colorYellow(): colorYellow(1));
 }
 
 void LaunchpadController::drawArpSequenceDots(const ArpSequence &sequence, ArpSequence::Layer layer, int currentStep) {

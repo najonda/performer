@@ -54,8 +54,6 @@ public:
             return Routing::Target::Octave;
         case Transpose:
             return Routing::Target::Transpose;
-        case Rotate:
-            return Routing::Target::Rotate;
         case GateProbabilityBias:
             return Routing::Target::GateProbabilityBias;
         case RetriggerProbabilityBias:
@@ -79,13 +77,13 @@ private:
         SlideTime,
         Octave,
         Transpose,
-        Rotate,
         GateProbabilityBias,
         RetriggerProbabilityBias,
         LengthBias,
         NoteProbabilityBias,
         PatternFollow,
         ArpeggiatorMode,
+        ArpeggiatorHold,
         ArpeggiatorOctaves,
         ArpeggiatorGateLength,
         ArpeggiatorDivisor,
@@ -102,13 +100,13 @@ private:
         case SlideTime: return "Slide Time";
         case Octave:    return "Octave";
         case Transpose: return "Transpose";
-        case Rotate:    return "Rotate";
         case GateProbabilityBias: return "Gate P. Bias";
         case RetriggerProbabilityBias: return "Retrig P. Bias";
         case LengthBias: return "Length Bias";
         case NoteProbabilityBias: return "Note P. Bias";
         case PatternFollow: return "Pattern Follow";
         case ArpeggiatorMode:       return "Mode";
+        case ArpeggiatorHold:       return "Hold";
         case ArpeggiatorOctaves:    return "Octaves";
         case ArpeggiatorDivisor:    return "Divisor";
         case ArpeggiatorGateLength: return "Gate Length";
@@ -148,9 +146,6 @@ private:
         case Transpose:
             _track->printTranspose(str);
             break;
-        case Rotate:
-            _track->printRotate(str);
-            break;
         case GateProbabilityBias:
             _track->printGateProbabilityBias(str);
             break;
@@ -168,6 +163,9 @@ private:
             break;
         case ArpeggiatorMode:
             arpeggiator.printMode(str);
+            break;
+         case ArpeggiatorHold:
+            arpeggiator.printHold(str);
             break;
         case ArpeggiatorOctaves:
             arpeggiator.printOctaves(str);
@@ -209,9 +207,6 @@ private:
         case Transpose:
             _track->editTranspose(value, shift);
             break;
-        case Rotate:
-            _track->editRotate(value, shift);
-            break;
         case GateProbabilityBias:
             _track->editGateProbabilityBias(value, shift);
             break;
@@ -229,6 +224,9 @@ private:
             break;
         case ArpeggiatorMode:
             arpeggiator.editMode(value, shift);
+            break;
+         case ArpeggiatorHold:
+            arpeggiator.editHold(value, shift);
             break;
         case ArpeggiatorOctaves:
             arpeggiator.editOctaves(value, shift);

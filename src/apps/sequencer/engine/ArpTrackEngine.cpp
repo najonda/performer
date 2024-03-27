@@ -249,7 +249,6 @@ TrackEngine::TickResult ArpTrackEngine::tick(uint32_t tick) {
             reset();
             _currentStageRepeat = 1;
         }
-        auto &sequence = *_sequence;
 
         // advance sequence
         switch (_arpTrack.playMode()) {
@@ -321,24 +320,12 @@ TrackEngine::TickResult ArpTrackEngine::tick(uint32_t tick) {
 
 void ArpTrackEngine::update(float dt) {
     bool running = _engine.state().running();
-    bool recording = _engine.state().recording();
 
     const auto &sequence = *_sequence;
     const auto &scale = sequence.selectedScale(_model.project().scale());
     int rootNote = sequence.selectedRootNote(_model.project().rootNote());
     int octave = _arpTrack.octave();
     int transpose = _arpTrack.transpose();
-
-    // enable/disable step recording mode
-    /*if (recording && _model.project().recordMode() == Types::RecordMode::StepRecord) {
-        if (!_stepRecorder.enabled()) {
-            _stepRecorder.start(sequence);
-        }
-    } else {
-        if (_stepRecorder.enabled()) {
-            _stepRecorder.stop();
-        }
-    }*/
 
     // helper to send gate/cv from monitoring to midi output engine
     auto sendToMidiOutputEngine = [this] (bool gate, float cv = 0.f) {
@@ -394,6 +381,10 @@ void ArpTrackEngine::update(float dt) {
         if (relativeTick == 0) {
             reset();
         }
+
+        if (!_arpeggiator.hold() && _noteHoldCount == 0) {
+            reset();
+        }
         
         if (relativeTick % divisor == 0) {
             int sequenceStepIndex = _notes[_noteIndex].index;
@@ -426,7 +417,6 @@ void ArpTrackEngine::monitorMidi(uint32_t tick, const MidiMessage &message) {
 
     auto &sequence = *_sequence;
     const auto &scale = sequence.selectedScale(_model.project().scale());
-    int rootNote = sequence.selectedRootNote(_model.project().rootNote());
     int octave = _arpTrack.octave();
     int transpose = _arpTrack.transpose();
 
@@ -481,7 +471,6 @@ void ArpTrackEngine::setMonitorStep(int index) {
 void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextStep) {
     int octave = _arpTrack.octave();
     int transpose = _arpTrack.transpose();
-    int rotate = _arpTrack.rotate();
     bool fillStep = fill() && (rng.nextRange(100) < uint32_t(fillAmount()));
     bool useFillGates = fillStep && _arpTrack.fillMode() == ArpTrack::FillMode::Gates;
     bool useFillSequence = fillStep && _arpTrack.fillMode() == ArpTrack::FillMode::NextPattern;

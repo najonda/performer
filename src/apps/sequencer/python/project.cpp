@@ -487,7 +487,6 @@ void register_project(py::module &m) {
         .def_property("slideTime", &ArpTrack::slideTime, &ArpTrack::setSlideTime)
         .def_property("octave", &ArpTrack::octave, &ArpTrack::setOctave)
         .def_property("transpose", &ArpTrack::transpose, &ArpTrack::setTranspose)
-        .def_property("rotate", &ArpTrack::rotate, &ArpTrack::setRotate)
         .def_property("gateProbabilityBias", &ArpTrack::gateProbabilityBias, &ArpTrack::setGateProbabilityBias)
         .def_property("retriggerProbabilityBias", &ArpTrack::retriggerProbabilityBias, &ArpTrack::setRetriggerProbabilityBias)
         .def_property("lengthBias", &ArpTrack::lengthBias, &ArpTrack::setLengthBias)

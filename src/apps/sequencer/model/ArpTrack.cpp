@@ -15,9 +15,6 @@ void ArpTrack::writeRouted(Routing::Target target, int intValue, float floatValu
     case Routing::Target::Transpose:
         setTranspose(intValue, true);
         break;
-    case Routing::Target::Rotate:
-        setRotate(intValue, true);
-        break;
     case Routing::Target::GateProbabilityBias:
         setGateProbabilityBias(intValue, true);
         break;
@@ -43,7 +40,6 @@ void ArpTrack::clear() {
     setSlideTime(50);
     setOctave(0);
     setTranspose(0);
-    setRotate(0);
     setGateProbabilityBias(0);
     setRetriggerProbabilityBias(0);
     setLengthBias(0);
@@ -65,7 +61,6 @@ void ArpTrack::write(VersionedSerializedWriter &writer) const {
     writer.write(_slideTime.base);
     writer.write(_octave.base);
     writer.write(_transpose.base);
-    writer.write(_rotate.base);
     writer.write(_gateProbabilityBias.base);
     writer.write(_retriggerProbabilityBias.base);
     writer.write(_lengthBias.base);
@@ -85,7 +80,6 @@ void ArpTrack::read(VersionedSerializedReader &reader) {
     reader.read(_slideTime.base);
     reader.read(_octave.base);
     reader.read(_transpose.base);
-    reader.read(_rotate.base);
     reader.read(_gateProbabilityBias.base);
     reader.read(_retriggerProbabilityBias.base);
     reader.read(_lengthBias.base);

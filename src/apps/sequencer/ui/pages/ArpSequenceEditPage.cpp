@@ -670,7 +670,6 @@ void ArpSequenceEditPage::midi(MidiEvent &event) {
 
 void ArpSequenceEditPage::switchLayer(int functionKey, bool shift) {
 
-    auto engine = _engine.selectedTrackEngine().as<ArpTrackEngine>();
     if (shift) {
         switch (Function(functionKey)) {
         case Function::Gate:
@@ -804,6 +803,8 @@ void ArpSequenceEditPage::updateMonitorStep() {
 
 void ArpSequenceEditPage::drawDetail(Canvas &canvas, const ArpSequence::Step &step) {
 
+    const auto &sequence = _project.selectedArpSequence();
+    const auto &scale = sequence.selectedScale(_project.scale());
 
     FixedStringBuilder<16> str;
 
@@ -902,6 +903,18 @@ void ArpSequenceEditPage::drawDetail(Canvas &canvas, const ArpSequence::Step &st
         str("%.1f%%", 100.f * (step.lengthVariationProbability()) / (ArpSequence::LengthVariationProbability::Range-1));
         canvas.setColor(Color::Bright);
         canvas.drawTextCentered(64 + 32 + 64, 32 - 4, 32, 8, str);
+        break;
+    case Layer::Note:
+        str.reset();
+        scale.noteName(str, step.note(), sequence.selectedRootNote(_model.project().rootNote()), Scale::Long);
+        canvas.setFont(Font::Small);
+        canvas.drawTextCentered(64 + 32, 16, 64, 32, str);
+        break;
+    case Layer::NoteVariationRange:
+        str.reset();
+        str("%d", step.noteVariationRange());
+        canvas.setFont(Font::Small);
+        canvas.drawTextCentered(64 + 32, 16, 64, 32, str);
         break;
     case Layer::NoteOctave:
         str.reset();

@@ -179,24 +179,6 @@ public:
         str("%+d", transpose());
     }
 
-    // rotate
-
-    int rotate() const { return _rotate.get(isRouted(Routing::Target::Rotate)); }
-    void setRotate(int rotate, bool routed = false) {
-        _rotate.set(clamp(rotate, -64, 64), routed);
-    }
-
-    void editRotate(int value, bool shift) {
-        if (!isRouted(Routing::Target::Rotate)) {
-            setRotate(rotate() + value);
-        }
-    }
-
-    void printRotate(StringBuilder &str) const {
-        printRouted(str, Routing::Target::Rotate);
-        str("%+d", rotate());
-    }
-
     // gateProbabilityBias
 
     int gateProbabilityBias() const { return _gateProbabilityBias.get(isRouted(Routing::Target::GateProbabilityBias)); }
@@ -328,7 +310,6 @@ private:
     Routable<uint8_t> _slideTime;
     Routable<int8_t> _octave;
     Routable<int8_t> _transpose;
-    Routable<int8_t> _rotate;
     Routable<int8_t> _gateProbabilityBias;
     Routable<int8_t> _retriggerProbabilityBias;
     Routable<int8_t> _lengthBias;
