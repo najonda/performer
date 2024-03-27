@@ -41,6 +41,7 @@ void Project::clear() {
     setMidiPgmChangeEnabled(false);
     setCvGateInput(Types::CvGateInput::Off);
     setCurveCvInput(Types::CurveCvInput::Off);
+    setResetCvOnStop(true);
 
     _clockSetup.clear();
 
@@ -115,6 +116,7 @@ void Project::write(VersionedSerializedWriter &writer) const {
     _midiInputSource.write(writer);
     writer.write(_cvGateInput);
     writer.write(_curveCvInput);
+    writer.write(_resetCvOnStop);
 
     _clockSetup.write(writer);
 
@@ -179,6 +181,7 @@ bool Project::read(VersionedSerializedReader &reader) {
 
     reader.read(_selectedTrackIndex);
     reader.read(_selectedPatternIndex);
+    reader.read(_resetCvOnStop, ProjectVersion::Version38);
 
     bool success = reader.checkHash();
     if (success) {

@@ -72,6 +72,7 @@ private:
         CvGateInput,
         StepsToStop,
         RecordDelay,
+        ResetCvOnStop,
         //CurveCvInput,
         Last
     };
@@ -92,6 +93,7 @@ private:
         case CvGateInput:       return "CV/Gate Input";
         case StepsToStop:       return "Steps to stop";
         case RecordDelay:       return "Record Delay";
+        case ResetCvOnStop:     return "Reset CV";
         //case CurveCvInput:      return "Curve CV Input";
         case Last:              break;
         }
@@ -148,6 +150,9 @@ private:
         case RecordDelay:
             _project.printRecordDelay(str);
             break;
+        case ResetCvOnStop:
+            _project.printResetCvOnStop(str);
+            break;
         //case CurveCvInput:
         //    _project.printCurveCvInput(str);
         //    break;
@@ -198,6 +203,9 @@ private:
             break;
         case RecordDelay:
             _project.editRecordDelay(value);
+            break;
+        case ResetCvOnStop:
+            _project.editResetCvOnStop(value);
             break;
         //case CurveCvInput:
         //    _project.editCurveCvInput(value, shift);

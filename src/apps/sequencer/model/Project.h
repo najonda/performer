@@ -429,6 +429,25 @@ public:
         }
     }
 
+    // reset cv on stop
+
+    bool resetCvOnStop() {
+        return _resetCvOnStop;
+    }
+
+    void editResetCvOnStop(int value) {
+        _resetCvOnStop = value == 1;
+    }
+
+    void printResetCvOnStop(StringBuilder &str) const {
+        if (_resetCvOnStop) str("On");
+        else str("Off");
+    }
+
+    void setResetCvOnStop(bool enabled) {
+        _resetCvOnStop = enabled;
+    }
+
     // selectedTrackIndex
 
     int selectedTrackIndex() const { return _selectedTrackIndex; }
@@ -648,6 +667,8 @@ private:
 
     uint8_t _stepsToStop;
     uint8_t _recordDelay;
+
+    bool _resetCvOnStop;
 
     int _selectedTrackIndex = 0;
     int _selectedPatternIndex = 0;

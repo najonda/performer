@@ -201,8 +201,10 @@ void ArpTrackEngine::reset() {
     _prevCondition = false;
     _activity = false;
     _gateOutput = false;
-    //_cvOutput = 0.f;
-    //_cvOutputTarget = 0.f;
+    if (_model.project().resetCvOnStop()) {
+        _cvOutput = 0.f;
+        _cvOutputTarget = 0.f;
+    }
     _slideActive = false;
     _gateQueue.clear();
     _cvQueue.clear();

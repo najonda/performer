@@ -108,6 +108,9 @@ enum ProjectVersion {
     // add logic track
     Version37 = 37,
 
+    // add arp track
+    Version38 = 38,
+
 
     // automatically derive latest version
     Last,
