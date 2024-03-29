@@ -508,13 +508,15 @@ void ArpSequenceEditPage::keyPress(KeyPressEvent &event) {
         switch (layer()) {
         case Layer::Gate:{            
             auto &trackEngine = _engine.selectedTrackEngine().as<ArpTrackEngine>();
+            
+            if (!track.midiKeyboard()) {
+                sequence.step(stepIndex).toggleGate();
+            } else {
             if (sequence.step(stepIndex).gate()) {
                 trackEngine.removeNote(sequence.step(stepIndex).note());
             } else {
                 trackEngine.addNote(sequence.step(stepIndex).note(), stepIndex);
             }
-            if (!track.midiKeyboard()) {
-                sequence.step(stepIndex).toggleGate();
             }
             event.consume();
         }
@@ -530,13 +532,14 @@ void ArpSequenceEditPage::keyPress(KeyPressEvent &event) {
         int stepIndex = stepOffset() + key.step();
         if (layer() != Layer::Gate) {
             auto &trackEngine = _engine.selectedTrackEngine().as<ArpTrackEngine>();
-            if (sequence.step(stepIndex).gate()) {
-                trackEngine.removeNote(sequence.step(stepIndex).note());
-            } else {
-                trackEngine.addNote(sequence.step(stepIndex).note(), stepIndex);
-            }
             if (!track.midiKeyboard()) {
                 sequence.step(stepIndex).toggleGate();
+            } else {
+                if (sequence.step(stepIndex).gate()) {
+                    trackEngine.removeNote(sequence.step(stepIndex).note());
+                } else {
+                    trackEngine.addNote(sequence.step(stepIndex).note(), stepIndex);
+                }
             }
             event.consume();
         }
