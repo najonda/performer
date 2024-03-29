@@ -321,6 +321,85 @@ public:
         str(scale() < 0 ? "Default" : Scale::name(scale()));
     }
 
+    void printScaleAbbr(StringBuilder &str) const {
+        switch (scale()) {
+            case -1:
+                str("DFLT");
+                break;
+            case 0:
+                str("SEMT");
+                break;
+            case 1:
+                str("MJR");
+                break;
+            case 2:
+                str("MIN");
+                break;
+            case 3:
+                str("MJRB");
+                break;
+            case 4:
+                str("MINB");
+                break;
+            case 5:
+                str("MJRP");
+                break;
+            case 6:
+                str("MINP");
+                break;
+            case 7:
+                str("FOLK");
+                break;
+            case 8:
+                str("JAPN");
+                break;
+            case 9:
+                str("GAML");
+                break;
+            case 10:
+                str("GYPS");
+                break;
+            case 11:
+                str("ARAB");
+                break;
+            case 12:
+                str("FLAM");
+                break;
+            case 13:
+                str("WHLT");
+                break;
+            case 14:
+                str("5TET");
+                break;
+            case 15:
+                str("7TET");
+                break;
+            case 16:
+                str("19TET");
+                break;
+            case 17:
+                str("22TET");
+                break;
+            case 18:
+                str("24TET");
+                break;
+            case 19:
+                str("USR1");
+                break;
+            case 20:
+                str("USR2");
+                break;
+            case 21:
+                str("USR3");
+                break;
+            case 22:
+                str("USR4");
+                break;
+            default:
+                break;
+        }
+    }
+
     const Scale &selectedScale(int defaultScale) const {
         return Scale::get(scale() < 0 ? defaultScale : scale());
     }
@@ -453,7 +532,7 @@ public:
     // rest probability 1 step
 
     int restProbability() const { 
-        int prob = 8 - restProbability2() - restProbability4() - restProbability8();
+        int prob = 15 - restProbability2() - restProbability4() - restProbability8();
         if (prob < 0) {
             prob = 0;
         }
@@ -461,14 +540,14 @@ public:
     }
 
     void printRestProbability(StringBuilder &str) const {
-        str("%+.1f%%", restProbability() * 12.5f);
+        str("%+.1f%%", restProbability() * 100.f/15.f);
     }
 
     // rest probability 2 steps
 
     int restProbability2() const { return _restProbability2.get(isRouted(Routing::Target::RestProbability2)); }
     void setRestProbability2(int restProbability, bool routed = false) {
-        _restProbability2.set(clamp(restProbability, 0, 8), routed);
+        _restProbability2.set(clamp(restProbability, 0, 15), routed);
     }
 
     void editRestProbability2(int value, bool shift) {
@@ -479,14 +558,14 @@ public:
 
     void printRestProbability2(StringBuilder &str) const {
         printRouted(str, Routing::Target::RestProbability2);
-        str("%+.1f%%", restProbability2() * 12.5f);
+        str("%+.1f%%", (restProbability2()) * 100.f/15.f);
     }
 
     // rest probability 4 steps
 
     int restProbability4() const { return _restProbability4.get(isRouted(Routing::Target::RestProbability4)); }
     void setRestProbability4(int restProbability, bool routed = false) {
-        _restProbability4.set(clamp(restProbability, 0, 8), routed);
+        _restProbability4.set(clamp(restProbability, 0, 15), routed);
     }
 
     void editRestProbability4(int value, bool shift) {
@@ -497,14 +576,14 @@ public:
 
     void printRestProbability4(StringBuilder &str) const {
         printRouted(str, Routing::Target::RestProbability4);
-        str("%+.1f%%", restProbability4() * 12.5f);
+        str("%+.1f%%", restProbability4() * 100.f/15.f);
     }
 
     // rest probability 8 steps
 
     int restProbability8() const { return _restProbability8.get(isRouted(Routing::Target::RestProbability8)); }
     void setRestProbability8(int restProbability, bool routed = false) {
-        _restProbability8.set(clamp(restProbability, 0, 8), routed);
+        _restProbability8.set(clamp(restProbability, 0, 15), routed);
     }
 
     void editRestProbability8(int value, bool shift) {
@@ -515,7 +594,7 @@ public:
 
     void printRestProbability8(StringBuilder &str) const {
         printRouted(str, Routing::Target::RestProbability8);
-        str("%+.1f%%", restProbability8() * 12.5f);
+        str("%+.1f%%", restProbability8() * 100.f/15.f);
     }
 
     // low octave range

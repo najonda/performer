@@ -32,6 +32,7 @@ int adjustedByDivisor(int value, int offset, bool shift);
 
 void printYesNo(StringBuilder &str, bool value);
 void printDivisor(StringBuilder &str, int value);
+void printDivisorAbbr(StringBuilder &str, int value);
 
 int divisorToIndex(int divisor);
 int indexToDivisor(int index);

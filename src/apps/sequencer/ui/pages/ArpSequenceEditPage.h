@@ -4,6 +4,7 @@
 
 #include "ui/StepSelection.h"
 #include "ui/model/ArpSequenceListModel.h"
+#include "ui/model/ArpTrackListModel.h"
 
 #include "engine/generators/SequenceBuilder.h"
 #include "ui/KeyPressEventTracker.h"
@@ -69,6 +70,7 @@ private:
 
 
     ArpSequenceListModel _listModel;
+    ArpTrackListModel _trackListModel;
 
     StepSelection<CONFIG_STEP_COUNT> _stepSelection;
 

@@ -9,6 +9,27 @@
 
 class ArpTrackListModel : public RoutableListModel {
 public:
+    enum Item {
+        TrackName,
+        PlayMode,
+        FillMode,
+        FillMuted,
+        CvUpdateMode,
+        SlideTime,
+        Octave,
+        Transpose,
+        GateProbabilityBias,
+        RetriggerProbabilityBias,
+        LengthBias,
+        NoteProbabilityBias,
+        PatternFollow,
+        ArpeggiatorMode,
+        ArpeggiatorHold,
+        ArpeggiatorOctaves,
+        ArpeggiatorGateLength,
+        ArpeggiatorDivisor,
+        Last
+    };
 
     ArpTrackListModel() {
         for (int i = 0; i< 8; ++i) {
@@ -68,28 +89,6 @@ public:
     }
 
 private:
-    enum Item {
-        TrackName,
-        PlayMode,
-        FillMode,
-        FillMuted,
-        CvUpdateMode,
-        SlideTime,
-        Octave,
-        Transpose,
-        GateProbabilityBias,
-        RetriggerProbabilityBias,
-        LengthBias,
-        NoteProbabilityBias,
-        PatternFollow,
-        ArpeggiatorMode,
-        ArpeggiatorHold,
-        ArpeggiatorOctaves,
-        ArpeggiatorGateLength,
-        ArpeggiatorDivisor,
-        Last
-    };
-
     static const char *itemName(Item item) {
         switch (item) {
         case TrackName: return "Name";
@@ -108,7 +107,7 @@ private:
         case ArpeggiatorMode:       return "Mode";
         case ArpeggiatorHold:       return "Hold";
         case ArpeggiatorOctaves:    return "Octaves";
-        case ArpeggiatorDivisor:    return "Divisor";
+        case ArpeggiatorDivisor:    return "Rate";
         case ArpeggiatorGateLength: return "Gate Length";
         case Last:      break;
         }

@@ -53,6 +53,13 @@ static const ArpSequenceListModel::Item quickEditItems[8] = {
     ArpSequenceListModel::Item::Last
 };
 
+static const ArpTrackListModel::Item quickEditTrackItems[4] {
+    ArpTrackListModel::ArpeggiatorDivisor,
+    ArpTrackListModel::ArpeggiatorMode,
+    ArpTrackListModel::ArpeggiatorOctaves,
+    ArpTrackListModel::Item::Last
+};
+
 ArpSequenceEditPage::ArpSequenceEditPage(PageManager &manager, PageContext &context) :
     BasePage(manager, context)
 {
@@ -344,6 +351,32 @@ void ArpSequenceEditPage::draw(Canvas &canvas) {
         }
     }
 
+    // display arp detail
+
+    int x = (12 * stepWidth) + ((16 - stepsToDraw)*stepWidth)/2 ;
+    int y = 20;
+    FixedStringBuilder<8> str;
+    canvas.setColor(Color::Bright);
+    track.arpeggiator().printDivisorAbbr(str);
+    canvas.drawText(x + 2,  y -2, str);
+    str.reset();
+    track.arpeggiator().printModeAbbr(str);
+    canvas.drawText(x + 2,  y -2 + 8, str);
+    str.reset();
+    track.arpeggiator().printOctavesAbbr(str);
+    canvas.drawText(x + 2,  y -2 + 16, str);
+    str.reset();
+    sequence.printScaleAbbr(str);
+    canvas.drawText(x + 2,  y -2 + 24, str);
+    str.reset();
+    if (sequence.rootNote()==-1) {
+        str("DFLT");
+    } else {
+        sequence.printRootNote(str);
+    }
+    canvas.drawText(x + 2,  y -2 + 32, str);
+
+
     // handle detail display
 
     if (_showDetail) {
@@ -382,7 +415,11 @@ void ArpSequenceEditPage::updateLeds(Leds &leds) {
         for (int i = 0; i < 8; ++i) {
             int index = MatrixMap::fromStep(i + 8);
             leds.unmask(index);
-            leds.set(index, false, quickEditItems[i] != ArpSequenceListModel::Item::Last);
+            if (i >=0 && i<=2) {
+                leds.set(index, false, quickEditTrackItems[i] != ArpTrackListModel::Item::Last);
+            } else {
+                leds.set(index, false, quickEditItems[i] != ArpSequenceListModel::Item::Last);
+            }
             leds.mask(index);
         }
 
@@ -1030,10 +1067,16 @@ void ArpSequenceEditPage::generateSequence() {
 
 
 void ArpSequenceEditPage::quickEdit(int index) {
-    
-    _listModel.setSequence(&_project.selectedArpSequence());
-    if (quickEditItems[index] != ArpSequenceListModel::Item::Last) {
-        _manager.pages().quickEdit.show(_listModel, int(quickEditItems[index]));
+
+    if (index >= 0 && index <= 2) {
+        _trackListModel.setTrack(_project.selectedTrack().arpTrack());
+        _manager.pages().quickEdit.show(_trackListModel, int(quickEditTrackItems[index]));
+
+    } else {    
+        _listModel.setSequence(&_project.selectedArpSequence());
+        if (quickEditItems[index] != ArpSequenceListModel::Item::Last) {
+            _manager.pages().quickEdit.show(_listModel, int(quickEditItems[index]));
+        }
     }
 }
 
