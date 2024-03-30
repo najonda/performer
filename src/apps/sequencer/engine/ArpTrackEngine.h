@@ -138,6 +138,7 @@ private:
         uint32_t order;
         uint8_t index;
         int8_t octave;
+        bool active = false;
     };
 
     static constexpr int MaxNotes = 8;

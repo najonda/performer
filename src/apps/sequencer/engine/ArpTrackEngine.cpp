@@ -220,6 +220,12 @@ void ArpTrackEngine::reset() {
     _octaveDirection = 0;
 
     _noteCount = 0;
+
+    for (int i = 0; i< int(_notes.size()); ++i) {
+        if (_notes[i].active) {
+            _noteCount++;
+        }
+    }
     _noteHoldCount = 0;
 
 }
@@ -678,6 +684,7 @@ void ArpTrackEngine::addNote(int note, int index, int octave) {
     _notes[pos].order = _noteOrder++;
     _notes[pos].index = index;
     _notes[pos].octave = octave;
+    _notes[pos].active = true;
 }
 
 

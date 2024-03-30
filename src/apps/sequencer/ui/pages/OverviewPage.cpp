@@ -320,10 +320,10 @@ void OverviewPage::draw(Canvas &canvas) {
                 break;
         }  
 
-        if (trackState.pattern()>9) {
+        if (trackState.pattern()>=9) {
             canvas.fillRect(56 - 1, y - 5, 16,7);
         } else {
-            canvas.fillRect(56 - 1, y - 5, 12,7);
+            canvas.fillRect(56 - 1, y - 5, 13,7);
         }
         
         canvas.setBlendMode(BlendMode::Sub);

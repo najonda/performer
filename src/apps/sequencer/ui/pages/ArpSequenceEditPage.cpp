@@ -510,13 +510,18 @@ void ArpSequenceEditPage::keyPress(KeyPressEvent &event) {
             auto &trackEngine = _engine.selectedTrackEngine().as<ArpTrackEngine>();
             
             if (!track.midiKeyboard()) {
+                if (sequence.step(stepIndex).gate()) {
+                    trackEngine.removeNote(sequence.step(stepIndex).note());
+                } else {
+                    trackEngine.addNote(sequence.step(stepIndex).note(), stepIndex);
+                }
                 sequence.step(stepIndex).toggleGate();
             } else {
-            if (sequence.step(stepIndex).gate()) {
-                trackEngine.removeNote(sequence.step(stepIndex).note());
-            } else {
-                trackEngine.addNote(sequence.step(stepIndex).note(), stepIndex);
-            }
+                if (sequence.step(stepIndex).gate()) {
+                    trackEngine.removeNote(sequence.step(stepIndex).note());
+                } else {
+                    trackEngine.addNote(sequence.step(stepIndex).note(), stepIndex);
+                }
             }
             event.consume();
         }
