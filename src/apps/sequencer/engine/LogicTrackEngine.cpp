@@ -25,6 +25,12 @@ static bool evalStepGate(const LogicSequence::Step &step, int probabilityBias) {
     return step.gate() && int(rng.nextRange(LogicSequence::GateProbability::Range)) <= probability;
 }
 
+// evaluate if step gate is active
+static bool evalStepGate(const NoteSequence::Step &step, int probabilityBias) {
+    int probability = clamp(step.gateProbability() + probabilityBias, -1, NoteSequence::GateProbability::Max);
+    return step.gate() && int(rng.nextRange(NoteSequence::GateProbability::Range)) <= probability;
+}
+
 // evaluate step condition
 static bool evalStepCondition(const LogicSequence::Step &step, int iteration, bool fill, bool &prevCondition) {
     auto condition = step.condition();
@@ -481,31 +487,34 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
 
     const auto &inputStep2 = inputSequence2.step(idx2);
 
+    const auto inputStepGate1 = evalStepGate(inputStep1, noteTrack1.gateProbabilityBias());
+    const auto inputStepGate2 = evalStepGate(inputStep2, noteTrack2.gateProbabilityBias());
+
     switch (step.gateLogic()) {
         case LogicSequence::GateLogicMode::One:
-            stepGate = step.gate() && inputStep1.gate();
+            stepGate = stepGate && inputStepGate1;
             break;
         case LogicSequence::GateLogicMode::Two:
-            stepGate = step.gate() && inputStep2.gate();
+            stepGate = stepGate && inputStepGate2;
             break;
         case LogicSequence::GateLogicMode::And:
-            stepGate = step.gate() && (inputStep1.gate() & inputStep2.gate());
+            stepGate = stepGate && (inputStepGate1 & inputStepGate2);
             break;
         case LogicSequence::GateLogicMode::Or:
-            stepGate = step.gate() && (inputStep1.gate() | inputStep2.gate());
+            stepGate = stepGate && (inputStepGate1 | inputStepGate2);
             break;
         case LogicSequence::GateLogicMode::Xor:
-            stepGate = step.gate() && inputStep1.gate() xor inputStep2.gate();
+            stepGate = stepGate && inputStepGate1 xor inputStepGate2;
             break;
         case LogicSequence::GateLogicMode::Nand:
-            stepGate = step.gate() && !(inputStep1.gate() & inputStep2.gate());
+            stepGate = stepGate && !(inputStepGate1 & inputStepGate2);
             break;
         case LogicSequence::GateLogicMode::RandomInput: {
                 int rnd = rng.nextRange(2);
                 if (rnd == 0) {
-                    stepGate = step.gate() && inputStep1.gate();
+                    stepGate = stepGate && inputStepGate1;
                 } else {
-                    stepGate = step.gate() && inputStep2.gate();
+                    stepGate = stepGate && inputStepGate2;
                 }
             }
             break;
@@ -513,29 +522,29 @@ void LogicTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
                     int rndMode = rng.nextRange(6);
                     switch (rndMode) {
                         case 0:
-                            stepGate = step.gate() && inputStep1.gate();
+                            stepGate = stepGate && inputStepGate1;
                             break;
                         case 1:
-                            stepGate = step.gate() && inputStep2.gate();
+                            stepGate = stepGate && inputStepGate2;
                             break;
                         case 2:
-                            stepGate = step.gate() && (inputStep1.gate() & inputStep2.gate());
+                            stepGate = stepGate && (inputStepGate1 & inputStepGate2);
                             break;
                         case 3:
-                            stepGate = step.gate() && (inputStep1.gate() | inputStep2.gate());
+                            stepGate = stepGate && (inputStepGate1 | inputStepGate2);
                             break;
                         case 4:
-                            stepGate = step.gate() && inputStep1.gate() xor inputStep2.gate();
+                            stepGate = stepGate && inputStepGate1 xor inputStepGate2;
                             break;
                         case 5:
-                            stepGate = step.gate() && !(inputStep1.gate() & inputStep2.gate());
+                            stepGate = stepGate && !(inputStepGate1 & inputStepGate2);
                             break;
                         case 6:
                             int rnd = rng.nextRange(2);
                             if (rnd == 0) {
-                                stepGate = step.gate() && inputStep1.gate();
+                                stepGate = stepGate && inputStepGate1;
                             } else {
-                                stepGate = step.gate() && inputStep2.gate();
+                                stepGate = stepGate && inputStepGate2;
                             }
                             break;
 
