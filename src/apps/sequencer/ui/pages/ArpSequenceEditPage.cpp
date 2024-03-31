@@ -458,7 +458,10 @@ void ArpSequenceEditPage::keyUp(KeyEvent &event) {
     if (track.midiKeyboard() && _engine.state().running() && key.isStep()) {
         auto i = MatrixMap::toStep(key.code());
         auto &arpEngine = _engine.trackEngine(_project.selectedTrackIndex()).as<ArpTrackEngine>();
-        arpEngine.removeNote(i);
+        auto &sequence = _project.selectedArpSequence();
+        if (!sequence.step(i).gate()) {
+            arpEngine.removeNote(i);
+        }
     }
 
 }
@@ -516,13 +519,7 @@ void ArpSequenceEditPage::keyPress(KeyPressEvent &event) {
                     trackEngine.addNote(sequence.step(stepIndex).note(), stepIndex);
                 }
                 sequence.step(stepIndex).toggleGate();
-            } else {
-                if (sequence.step(stepIndex).gate()) {
-                    trackEngine.removeNote(sequence.step(stepIndex).note());
-                } else {
-                    trackEngine.addNote(sequence.step(stepIndex).note(), stepIndex);
-                }
-            }
+            } 
             event.consume();
         }
             break;
@@ -538,14 +535,13 @@ void ArpSequenceEditPage::keyPress(KeyPressEvent &event) {
         if (layer() != Layer::Gate) {
             auto &trackEngine = _engine.selectedTrackEngine().as<ArpTrackEngine>();
             if (!track.midiKeyboard()) {
-                sequence.step(stepIndex).toggleGate();
-            } else {
-                if (sequence.step(stepIndex).gate()) {
+                 if (sequence.step(stepIndex).gate()) {
                     trackEngine.removeNote(sequence.step(stepIndex).note());
                 } else {
                     trackEngine.addNote(sequence.step(stepIndex).note(), stepIndex);
                 }
-            }
+                sequence.step(stepIndex).toggleGate();
+            } 
             event.consume();
         }
     }

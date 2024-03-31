@@ -65,6 +65,7 @@ void ArpTrack::write(VersionedSerializedWriter &writer) const {
     writer.write(_retriggerProbabilityBias.base);
     writer.write(_lengthBias.base);
     writer.write(_noteProbabilityBias.base);
+    writer.write(_arpeggiator);
     writeArray(writer, _sequences);
 }
 
@@ -84,6 +85,7 @@ void ArpTrack::read(VersionedSerializedReader &reader) {
     reader.read(_retriggerProbabilityBias.base);
     reader.read(_lengthBias.base);
     reader.read(_noteProbabilityBias.base);
+    reader.read(_arpeggiator);
 
     // There is a bug in previous firmware versions where writing the properties
     // of a note track did not update the hash value.

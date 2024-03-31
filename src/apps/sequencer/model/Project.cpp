@@ -116,7 +116,6 @@ void Project::write(VersionedSerializedWriter &writer) const {
     _midiInputSource.write(writer);
     writer.write(_cvGateInput);
     writer.write(_curveCvInput);
-    writer.write(_resetCvOnStop);
 
     _clockSetup.write(writer);
 
@@ -133,6 +132,7 @@ void Project::write(VersionedSerializedWriter &writer) const {
 
     writer.write(_selectedTrackIndex);
     writer.write(_selectedPatternIndex);
+    writer.write(_resetCvOnStop);
 
     writer.writeHash();
 

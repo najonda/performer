@@ -511,6 +511,9 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
             }
         }
     }
+    if (!sequence.hasSteps() && !_arpTrack.midiKeyboard()) {
+        _noteCount = 0;
+    }
 
     if (_noteCount == 0) {
         _currentStep = -1;
