@@ -86,6 +86,10 @@ public:
 
     int currentIndex() const { return _stepIndex; }
 
+    void setMidiNotePressed(bool val) {
+        _midiNotePressed = val;
+    }
+
 
 private:
     void triggerStep(uint32_t tick, uint32_t divisor, bool nextStep);
@@ -152,6 +156,8 @@ private:
     int8_t _noteHoldCount;
     int8_t _octave;
     int8_t _octaveDirection;
+
+    bool _midiNotePressed = false;
 
     uint32_t _realtiveTick;
 

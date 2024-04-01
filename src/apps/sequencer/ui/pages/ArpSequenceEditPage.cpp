@@ -444,6 +444,8 @@ void ArpSequenceEditPage::keyDown(KeyEvent &event) {
         auto i = MatrixMap::toStep(key.code());
         auto &arpEngine = _engine.trackEngine(_project.selectedTrackIndex()).as<ArpTrackEngine>();
         arpEngine.addNote(i, i);
+        arpEngine.setMidiNotePressed(true);
+
     }
 }
 
@@ -462,6 +464,7 @@ void ArpSequenceEditPage::keyUp(KeyEvent &event) {
         if (!sequence.step(i).gate()) {
             arpEngine.removeNote(i);
         }
+        arpEngine.setMidiNotePressed(false);
     }
 
 }

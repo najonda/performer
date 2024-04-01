@@ -223,7 +223,8 @@ void ArpTrackEngine::reset() {
 
     for (int i = 0; i< int(_notes.size()); ++i) {
         if (_notes[i].active) {
-            _noteCount++;
+            ++_noteCount;
+            ++_noteOrder;
         }
     }
     _noteHoldCount = 0;
@@ -400,8 +401,9 @@ void ArpTrackEngine::update(float dt) {
             reset();
         }
 
-        if (!_arpeggiator.hold() && _noteHoldCount == 0) {
+        if (!_arpeggiator.hold() && _noteHoldCount == 0 && _midiNotePressed) {
             reset();
+            _midiNotePressed = false;
         }
         
         if (relativeTick % divisor == 0) {
@@ -694,6 +696,7 @@ void ArpTrackEngine::addNote(int note, int index, int octave) {
 void ArpTrackEngine::removeNote(int note) {
     for (int i = 0; i < _noteCount; ++i) {
         if (note == _notes[i].note) {
+            _notes[i].active = false;
             _noteHoldCount = _noteHoldCount > 0 ? _noteHoldCount - 1 : 0;
             // do not remove note in hold mode
             if (_arpeggiator.hold()) {
