@@ -442,9 +442,10 @@ void ArpSequenceEditPage::keyDown(KeyEvent &event) {
     auto &track = _project.selectedTrack().arpTrack();
     if (track.midiKeyboard() && _engine.state().running() && key.isStep()) {
         auto i = MatrixMap::toStep(key.code());
+        auto &sequence = _project.selectedArpSequence();
         auto &arpEngine = _engine.trackEngine(_project.selectedTrackIndex()).as<ArpTrackEngine>();
-        arpEngine.addNote(i, i);
-        arpEngine.setMidiNotePressed(true);
+        arpEngine.addNote(i, i, ArpTrackEngine::Type::MIDI, sequence.step(i).noteOctave());
+        arpEngine.setKeyPressed(i, true);
 
     }
 }
@@ -464,7 +465,7 @@ void ArpSequenceEditPage::keyUp(KeyEvent &event) {
         if (!sequence.step(i).gate()) {
             arpEngine.removeNote(i);
         }
-        arpEngine.setMidiNotePressed(false);
+        arpEngine.setKeyPressed(i, false);
     }
 
 }
@@ -519,7 +520,7 @@ void ArpSequenceEditPage::keyPress(KeyPressEvent &event) {
                 if (sequence.step(stepIndex).gate()) {
                     trackEngine.removeNote(sequence.step(stepIndex).note());
                 } else {
-                    trackEngine.addNote(sequence.step(stepIndex).note(), stepIndex);
+                    trackEngine.addNote(sequence.step(stepIndex).note(), stepIndex, ArpTrackEngine::Type::Sequencer, sequence.step(stepIndex).noteOctave());
                 }
                 sequence.step(stepIndex).toggleGate();
             } 
@@ -541,7 +542,7 @@ void ArpSequenceEditPage::keyPress(KeyPressEvent &event) {
                  if (sequence.step(stepIndex).gate()) {
                     trackEngine.removeNote(sequence.step(stepIndex).note());
                 } else {
-                    trackEngine.addNote(sequence.step(stepIndex).note(), stepIndex);
+                    trackEngine.addNote(sequence.step(stepIndex).note(), stepIndex, ArpTrackEngine::Type::Sequencer, sequence.step(stepIndex).noteOctave());
                 }
                 sequence.step(stepIndex).toggleGate();
             } 

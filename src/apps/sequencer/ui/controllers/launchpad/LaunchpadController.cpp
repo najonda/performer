@@ -553,6 +553,7 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
                                     auto &trackEngine = _engine.trackEngine(_project.selectedTrackIndex()).as<ArpTrackEngine>();
                                         
                                     trackEngine.removeNote(fullSelectedNote);
+                                    trackEngine.setKeyPressed(fullSelectedNote, false);
                                 }
                             }
                         }
@@ -600,7 +601,7 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
                     if (sequence.step(stepNoteCleared).gate()) {
                         trackEngine.removeNote(sequence.step(stepNoteCleared).note());
                     } else {
-                        trackEngine.addNote(sequence.step(stepNoteCleared).note(), stepNoteCleared, octave);
+                        trackEngine.addNote(sequence.step(stepNoteCleared).note(), stepNoteCleared, ArpTrackEngine::Type::Sequencer, octave);
                     }
 
                     sequence.step(stepNoteCleared).toggleGate();
@@ -831,7 +832,8 @@ void LaunchpadController::manageArpCircuitKeyboard(const Button &button) {
                 fullSelectedNote = noteIndex + (bypasssScale.notesPerOctave()*selectedOctave); 
                 if (arpTrack.midiKeyboard()) {
                     auto &trackEngine = _engine.trackEngine(_project.selectedTrackIndex()).as<ArpTrackEngine>();
-                    trackEngine.addNote(fullSelectedNote, noteIndex, (bypasssScale.notesPerOctave()*selectedOctave));
+                    trackEngine.addNote(fullSelectedNote, noteIndex, ArpTrackEngine::Type::MIDI, (bypasssScale.notesPerOctave()*selectedOctave));
+                    trackEngine.setKeyPressed(noteIndex, true);
                 }
                     
                 break;
@@ -1333,7 +1335,7 @@ void LaunchpadController::sequenceEditArpStep(int row, int col) {
         if (sequence.step(gridIndex).gate()) {
             trackEngine.removeNote(sequence.step(gridIndex).note());
         } else {
-            trackEngine.addNote(sequence.step(gridIndex).note(), gridIndex);
+            trackEngine.addNote(sequence.step(gridIndex).note(), gridIndex, ArpTrackEngine::Type::Sequencer, sequence.step(gridIndex).noteOctave());
         }
         sequence.step(gridIndex).toggleGate();
         break;

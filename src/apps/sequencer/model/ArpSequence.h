@@ -190,6 +190,7 @@ public:
         // noteOctave
 
         int noteOctave() const { return NoteOctave::Min + _data0.noteOctave; }
+        int noteOctave() { return NoteOctave::Min + _data0.noteOctave; }
         void setNoteOctave(int noteOctave) {
             _data0.noteOctave = NoteOctave::clamp(noteOctave) - NoteOctave::Min;
         }

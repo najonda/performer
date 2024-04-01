@@ -8,6 +8,7 @@
 #include "model/ArpSequence.h"
 #include "StepRecorder.h"
 #include "model/Arpeggiator.h"
+#include <array>
 #include <cstdint>
 
 
@@ -35,6 +36,12 @@ class ArpStep {
     };
 class ArpTrackEngine : public TrackEngine {
 public:
+
+    enum class Type {
+        Sequencer,
+        MIDI
+    };
+
     ArpTrackEngine(Engine &engine, Model &model, Track &track, const TrackEngine *linkedTrackEngine) :
         TrackEngine(engine, model, track, linkedTrackEngine),
         _arpTrack(track.arpTrack()),
@@ -81,13 +88,22 @@ public:
         return _sequenceState;
     }
 
-    void addNote(int note, int index, int octave = 0);
+    void addNote(int note, int index, Type type, int octave = 0);
     void removeNote(int note);
 
     int currentIndex() const { return _stepIndex; }
 
-    void setMidiNotePressed(bool val) {
-        _midiNotePressed = val;
+    void setKeyPressed(int i, bool val) {
+        _keyPressed[i] = val;
+    }
+
+    bool isKeyPressed() {
+        for (int i = 0; i < int(_keyPressed.size()); ++i) {
+            if (_keyPressed[i]) {
+                return true;
+            }
+        }
+        return false;
     }
 
 
@@ -143,6 +159,7 @@ private:
         uint8_t index;
         int8_t octave;
         bool active = false;
+        Type type;
     };
 
     static constexpr int MaxNotes = 8;
@@ -157,7 +174,7 @@ private:
     int8_t _octave;
     int8_t _octaveDirection;
 
-    bool _midiNotePressed = false;
+    std::array<bool, 12> _keyPressed;
 
     uint32_t _realtiveTick;
 

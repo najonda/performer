@@ -229,6 +229,7 @@ void ArpTrackEngine::reset() {
     }
     _noteHoldCount = 0;
 
+
 }
 
 void ArpTrackEngine::restart() {
@@ -401,9 +402,17 @@ void ArpTrackEngine::update(float dt) {
             reset();
         }
 
-        if (!_arpeggiator.hold() && _noteHoldCount == 0 && _midiNotePressed) {
+        /*f (!_arpeggiator.hold() && _noteHoldCount == 0 && _isMidiNotesPresent) {
             reset();
-            _midiNotePressed = false;
+            _isMidiNotesPresent = false;
+        }*/
+
+        if (!_arpeggiator.hold() && !isKeyPressed()) {
+            for (int i = 0; i < _noteCount; ++i) {
+                if (_notes[i].type == Type::MIDI) {
+                    removeNote(_notes[i].note);
+                }
+            }
         }
         
         if (relativeTick % divisor == 0) {
@@ -446,6 +455,7 @@ void ArpTrackEngine::monitorMidi(uint32_t tick, const MidiMessage &message) {
         int stepNoteCleared = note - (octave*scale.notesPerOctave());
         sequence.step(stepNoteCleared).setNoteOctave(0);
         removeNote(note);
+        setKeyPressed(note, false);
     }
 
     if (message.isNoteOn()) {
@@ -463,14 +473,15 @@ void ArpTrackEngine::monitorMidi(uint32_t tick, const MidiMessage &message) {
             int stepNoteCleared = note - (octave*scale.notesPerOctave());
             if (sequence.step(stepNoteCleared).bypassScale()) {
                 sequence.step(stepNoteCleared).setNoteOctave(octave);
-                addNote(note, stepNoteCleared, octave);
+                addNote(note, stepNoteCleared, Type::MIDI, octave);
             } else {
                 if (scale.isNotePresent(note)) {
                     sequence.step(stepNoteCleared).setNoteOctave(octave);
-                    addNote(note, stepNoteCleared, octave);
+                    addNote(note, stepNoteCleared, Type::MIDI, octave);
                 }
             }
         }
+        setKeyPressed(note, true);
     }
     /*if (_engine.recording() && _model.project().recordMode() == Types::RecordMode::StepRecord) {
         _stepRecorder.process(message, *_sequence, [this] (int midiNote) { return noteFromMidiNote(midiNote); });
@@ -509,7 +520,7 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
     if (_noteCount == 0 && sequence.hasSteps()) {
         for (int i = 0; i < 12; ++i) {
             if (sequence.step(i).gate()) {
-                addNote(sequence.step(i).note(), i);
+                addNote(sequence.step(i).note(), i, Type::Sequencer, sequence.step(i).noteOctave());
             }
         }
     }
@@ -519,6 +530,7 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
 
     if (_noteCount == 0) {
         _currentStep = -1;
+        _noteOrder = 0;
         return;
     }
     
@@ -623,7 +635,7 @@ void ArpTrackEngine::recordStep(uint32_t tick, uint32_t divisor) {
         step.setNoteVariationProbability(ArpSequence::NoteVariationProbability::Max);
         step.setCondition(Types::Condition::Off);
 
-        addNote(stepNoteCleared, stepNoteCleared);
+        addNote(stepNoteCleared, stepNoteCleared, Type::Sequencer, octave);
         stepWritten = true;
     };
 
@@ -662,7 +674,7 @@ int ArpTrackEngine::noteFromMidiNote(uint8_t midiNote) const {
     }
 }
 
-void ArpTrackEngine::addNote(int note, int index, int octave) {
+void ArpTrackEngine::addNote(int note, int index, Type type, int octave) {
     // exit if note set is full
     if (_noteCount >= MaxNotes) {
         return;
@@ -690,6 +702,7 @@ void ArpTrackEngine::addNote(int note, int index, int octave) {
     _notes[pos].index = index;
     _notes[pos].octave = octave;
     _notes[pos].active = true;
+    _notes[pos].type = type;
 }
 
 
@@ -705,7 +718,11 @@ void ArpTrackEngine::removeNote(int note) {
             --_noteCount;
             for (int j = i; j < _noteCount; ++j) {
                 _notes[j] = _notes[j + 1];
+                if (j+ 1 == _noteCount) {
+                    _notes[j].active = false;
+                }
             }
+            
             return;
         }
     }
