@@ -222,14 +222,9 @@ void ArpTrackEngine::reset() {
     _noteCount = 0;
 
     for (int i = 0; i< int(_notes.size()); ++i) {
-        if (_notes[i].active) {
-            ++_noteCount;
-            ++_noteOrder;
-        }
+        ++_noteCount;
+        ++_noteOrder;
     }
-    _noteHoldCount = 0;
-
-
 }
 
 void ArpTrackEngine::restart() {
@@ -402,21 +397,16 @@ void ArpTrackEngine::update(float dt) {
             reset();
         }
 
-        /*f (!_arpeggiator.hold() && _noteHoldCount == 0 && _isMidiNotesPresent) {
-            reset();
-            _isMidiNotesPresent = false;
-        }*/
-
         if (!_arpeggiator.hold() && !isKeyPressed()) {
             for (int i = 0; i < _noteCount; ++i) {
-                if (_notes[i].type == Type::MIDI) {
-                    removeNote(_notes[i].note);
+                if (_notes.at(i).type == Type::MIDI) {
+                    removeNote(_notes.at(i).note);
                 }
             }
         }
         
         if (relativeTick % divisor == 0) {
-            int sequenceStepIndex = _notes[_noteIndex].index;
+            int sequenceStepIndex = _notes.at(_noteIndex).index;
             _currentStep = sequenceStepIndex;
             const auto &step = sequence.step(sequenceStepIndex);
             setOverride(evalStepNote(step, _arpTrack.noteProbabilityBias(), scale, rootNote, _octave+octave, transpose, sequence));
@@ -462,7 +452,7 @@ void ArpTrackEngine::monitorMidi(uint32_t tick, const MidiMessage &message) {
         int note = noteFromMidiNote(message.note()) + evalTransposition(scale, octave, transpose);
         bool isPresent = false;
         for (int i=0; i <_noteCount; ++i) {
-            if (_notes[i].note == uint8_t(note)) {
+            if (_notes.at(i).note == uint8_t(note)) {
                 isPresent = true;
                 break;
             }
@@ -555,7 +545,7 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
         }
     }
 
-    int sequenceStepIndex = _notes[_noteIndex].index;
+    int sequenceStepIndex = _notes.at(_noteIndex).index;
     _currentStep = sequenceStepIndex;
 
     const auto &step = evalSequence.step(sequenceStepIndex);
@@ -680,52 +670,42 @@ void ArpTrackEngine::addNote(int note, int index, Type type, int octave) {
         return;
     }
 
-    // find insert position
-    int pos = 0;
-    while (pos < _noteCount && note > _notes[pos].note) {
-        ++pos;
+    for (int i= 0; i < int(_notes.size()); ++i) {
+        if (_notes.at(i).note == note) {
+            return;
+        }
     }
 
-    // exit if note is already in note set
-    if (pos < _noteCount && note == _notes[pos].note) {
-        return;
-    }
-
-    // insert into ordered note set
     ++_noteCount;
-    ++_noteHoldCount;
-    for (int i = _noteCount - 1; i > pos; --i) {
-        _notes[i] = _notes[i - 1];
-    }
-    _notes[pos].note = note;
-    _notes[pos].order = _noteOrder++;
-    _notes[pos].index = index;
-    _notes[pos].octave = octave;
-    _notes[pos].active = true;
-    _notes[pos].type = type;
+
+    Note n;
+    n.note = note;
+    n.order = _noteOrder++;
+    n.index = index;
+    n.octave = octave;
+    n.type = type;
+
+    _notes.insert(_notes.end(), n);
+
+    std::sort(_notes.begin(), _notes.end(), _note);
 }
 
 
 void ArpTrackEngine::removeNote(int note) {
+    int index = -1;
     for (int i = 0; i < _noteCount; ++i) {
-        if (note == _notes[i].note) {
-            _notes[i].active = false;
-            _noteHoldCount = _noteHoldCount > 0 ? _noteHoldCount - 1 : 0;
-            // do not remove note in hold mode
-            if (_arpeggiator.hold()) {
-                return;
-            }
-            --_noteCount;
-            for (int j = i; j < _noteCount; ++j) {
-                _notes[j] = _notes[j + 1];
-                if (j+ 1 == _noteCount) {
-                    _notes[j].active = false;
-                }
-            }
-            
+        if (_arpeggiator.hold()) {
             return;
         }
+
+        if (_notes.at(i).note == note) {
+            index = i;
+            --_noteCount;
+            break;
+        }
     }
+    _notes.erase(_notes.begin() + index);
+
 }
 
 int ArpTrackEngine::noteIndexFromOrder(int order) {
@@ -733,7 +713,7 @@ int ArpTrackEngine::noteIndexFromOrder(int order) {
     for (int noteIndex = 0; noteIndex < _noteCount; ++noteIndex) {
         int currentOrder = 0;
         for (int i = 0; i < _noteCount; ++i) {
-            if (_notes[i].order < _notes[noteIndex].order) {
+            if (_notes.at(i).order < _notes.at(noteIndex).order) {
                 ++currentOrder;
             }
         }

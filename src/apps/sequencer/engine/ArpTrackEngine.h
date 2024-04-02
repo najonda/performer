@@ -10,6 +10,7 @@
 #include "model/Arpeggiator.h"
 #include <array>
 #include <cstdint>
+#include <vector>
 
 
 class ArpStep {
@@ -158,19 +159,19 @@ private:
         uint32_t order;
         uint8_t index;
         int8_t octave;
-        bool active = false;
         Type type;
-    };
+
+        bool operator() (Note i,Note j) { return (i.note < j.note);}
+    } _note;
 
     static constexpr int MaxNotes = 8;
 
-    std::array<Note, MaxNotes> _notes;
+    std::vector<Note> _notes;
 
     int _stepIndex;
     int _noteIndex;
     uint32_t _noteOrder;
     int8_t _noteCount;
-    int8_t _noteHoldCount;
     int8_t _octave;
     int8_t _octaveDirection;
 
