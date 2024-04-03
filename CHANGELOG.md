@@ -2,8 +2,14 @@
 
 # v0.3.0 ()
 - Arpeggiator Track
-- increase rest proability to 15 steps 
-- logic track fast inout visulaization (press shift)
+- increase stochastic rest proability to 15 steps 
+- logic track fast input visulaization (press shift)
+- fix clipboard copy track
+- issue #100 reorganize quick functions shortcuts
+- fix logic gate probability
+- fix rotate steps
+- keep sequence names when copy and paste
+
 
 # v0.2.2 (20 March 2024)
 - Logic Track
