@@ -164,7 +164,7 @@ private:
         bool operator() (Note i,Note j) { return (i.note < j.note);}
     } _note;
 
-    static constexpr int MaxNotes = 8;
+    static constexpr int MaxNotes = 12;
 
     std::vector<Note> _notes;
 

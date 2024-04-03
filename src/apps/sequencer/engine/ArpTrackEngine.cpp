@@ -334,6 +334,7 @@ TrackEngine::TickResult ArpTrackEngine::tick(uint32_t tick) {
 }
 
 void ArpTrackEngine::update(float dt) {
+    _noteCount = _notes.size();
     bool running = _engine.state().running();
 
     const auto &sequence = *_sequence;
@@ -432,6 +433,7 @@ void ArpTrackEngine::changePattern() {
 }
 
 void ArpTrackEngine::monitorMidi(uint32_t tick, const MidiMessage &message) {
+    _noteCount = _notes.size();
     _recordHistory.write(tick, message);
 
     auto &sequence = *_sequence;
@@ -497,6 +499,7 @@ void ArpTrackEngine::setMonitorStep(int index) {
     }
 }
 void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextStep) {
+    _noteCount = _notes.size();
     int octave = _arpTrack.octave();
     int transpose = _arpTrack.transpose();
     bool fillStep = fill() && (rng.nextRange(100) < uint32_t(fillAmount()));
@@ -665,6 +668,7 @@ int ArpTrackEngine::noteFromMidiNote(uint8_t midiNote) const {
 }
 
 void ArpTrackEngine::addNote(int note, int index, Type type, int octave) {
+    _noteCount = _notes.size();
     // exit if note set is full
     if (_noteCount >= MaxNotes) {
         return;
@@ -676,8 +680,6 @@ void ArpTrackEngine::addNote(int note, int index, Type type, int octave) {
         }
     }
 
-    ++_noteCount;
-
     Note n;
     n.note = note;
     n.order = _noteOrder++;
@@ -688,11 +690,13 @@ void ArpTrackEngine::addNote(int note, int index, Type type, int octave) {
     _notes.insert(_notes.end(), n);
 
     std::sort(_notes.begin(), _notes.end(), _note);
+    ++_noteCount;
 }
 
 
 void ArpTrackEngine::removeNote(int note) {
     int index = -1;
+    _noteCount = _notes.size();
     for (int i = 0; i < _noteCount; ++i) {
         if (_arpeggiator.hold()) {
             return;
@@ -709,6 +713,7 @@ void ArpTrackEngine::removeNote(int note) {
 }
 
 int ArpTrackEngine::noteIndexFromOrder(int order) {
+    _noteCount = _notes.size();
     // search note index of note with given relative order
     for (int noteIndex = 0; noteIndex < _noteCount; ++noteIndex) {
         int currentOrder = 0;
@@ -726,6 +731,7 @@ int ArpTrackEngine::noteIndexFromOrder(int order) {
 
 void ArpTrackEngine::advanceStep() {
     _noteIndex = 0;
+    _noteCount = _notes.size();
     auto &sequence = *_sequence;
     uint32_t divisor = sequence.divisor() * (CONFIG_PPQN / CONFIG_SEQUENCE_PPQN);
     uint32_t resetDivisor = sequence.resetMeasure() * _engine.measureDivisor();
