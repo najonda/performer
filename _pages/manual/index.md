@@ -11,7 +11,7 @@ nav: 20
 > The user manual is also available as a PDF [here](./manual.pdf).
 <!-- pdf-exclude-end -->
 
-> This document is written for firmware version 0.2.2
+> This document is written for firmware version 0.3.0
 <!-- TOC -->
 
 <!-- page-break -->
@@ -30,6 +30,7 @@ nav: 20
   - [MIDI/CV Track](#concepts-midi-cv-track)
   - [Stochastic Track](#concepts-stochastic-track)
   - [Logic Track](#concepts-logic-track)
+  - [Arpeggiator Track](#concepts-arp-track)
   - [Pattern](#concepts-pattern)
   - [Snapshot](#concepts-snapshot)
   - [Fills](#concepts-fills)
@@ -174,8 +175,9 @@ Each of the 8 tracks can be configured to one of the following modes:
 - MIDI/CV
 - Stochastic
 - Logic
+- Arpeggiator
 
-In _Note_ mode, the default mode, a track uses advanced step sequencing to generate rhythms and melodies. _Curve_ mode also uses step sequencing, but each step is defined as a curve shape, making this mode very versatile for generating modulation signals. In MIDI/CV mode, a track acts as a MIDI to CV converter, which can be useful when attaching a MIDI keyboard to play some voices live or sequence them from an external MIDI sequencer. In Stochastic mode the track act as a stochastic cv generator based on notes probabilities
+In _Note_ mode, the default mode, a track uses advanced step sequencing to generate rhythms and melodies. _Curve_ mode also uses step sequencing, but each step is defined as a curve shape, making this mode very versatile for generating modulation signals. In MIDI/CV mode, a track acts as a MIDI to CV converter, which can be useful when attaching a MIDI keyboard to play some voices live or sequence them from an external MIDI sequencer. In _Stochastic_ mode the track act as a stochastic cv generator based on notes probabilities. In _Logic_ mode the track use two _note_ tracks as inputs to perform logic operation (gate and note). In _Arpeggiator_ mode the track generate arpeggios based on selected steps or inputs notes.
 
 <h4>Track Routing</h4>
 
@@ -287,6 +289,12 @@ In the Note layer there is a new Note Logic layout defining the logic operation 
 
 > Note: A Note track can only be linked to a subsequent logic track due to the internal architecture of the sequencer. This means that the first available logic track must be track 3, linking to note track 1 and 2. 
 
+<!-- Arpeggiator Track -->
+
+<h3 id="concepts-arp-track">Arpeggiator Track</h3>
+
+In arpeggiator Mode, a track generate arpeggios based on the selected gates and the inputs notes coming from the key steps, launchpad or external MIDI keyboard.
+All _notes_ track layers are available. In addition the track mode offers control over arpeggiator rest, mode, rate, octaves and hold control. 
 
 <!-- Pattern -->
 
@@ -664,7 +672,7 @@ If a track is in _Note_ mode, the following parameters are available:
 
 | Parameter | Range                                | Description                                                                                                                                                                                                                                                                                                                                                           |
 | :--- |:-------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Track Name | -                                    | Press `ENCODER` to enter text editor for changing the project name.                                                                                                                                                                                                                                                                                                   |
+| Track Name | -                                    | Press `ENCODER` to enter text editor for changing the track name.                                                                                                                                                                                                                                                                                                     |
 | Play Mode | [Play Modes](#appendix-play-modes)   | Mode used for playing sequences in this track.                                                                                                                                                                                                                                                                                                                        |
 | Fill Mode | None, Gates, Next Pattern, Condition | Mode used when fill is activated for the track. _None_ does nothing. _Gates_ plays each step of the sequence independent of whether the step gate is active or not. _Next Pattern_ uses the step data of the next pattern on the same track. _Condition_ plays steps that have the _Fill_ condition set, and does not play steps that have the _!Fill_ condition set. |
 | CV Update Mode | Gate, Always                         | Mode used for updating the CV output of this track. _Gate_ only updates the CV output if the step gate is active, _Always_ always updates the CV output independent of the step gate.                                                                                                                                                                                 |
@@ -690,7 +698,7 @@ If a track is in _Curve_, the following parameters are available:
 
 | Parameter | Range                                 | Description                                                                                                                                                                                                                                                                                         |
 | :--- |:--------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Track Name | -                                     | Press `ENCODER` to enter text editor for changing the project name.                                                                                                                                                                                                                                 |
+| Track Name | -                                     | Press `ENCODER` to enter text editor for changing the track name.                                                                                                                                                                                                                                   |
 | Play Mode | [Play Modes](#appendix-play-modes)    | Mode used for playing sequences in this track.                                                                                                                                                                                                                                                      |
 | Fill Mode | None, Variation, Next Pattern, Invert | Mode used when fill is activated for the track. _None_ does nothing. _Variation_ plays the curve shapes defined in the _Shape Variation_ layer independent of their probability. _Next Pattern_ uses the step data of the next pattern on the same track. _Invert_ plays the curve shapes inverted. |
 | Mute Mode | Last Value, 0V, Min, Max              | Voltage that is output when track is muted. _Last Value_ keeps the last value before mute is engaged. _0V_ outputs zero volts. _Min_ and _Max_ sets the voltage to the minimum or maximum value of the selected voltage range.                                                                      |
@@ -712,25 +720,25 @@ If a track is in _Curve_, the following parameters are available:
 
 If a track is in MIDI/CV mode, the following parameters are available:
 
-| Parameter | Range | Description |
-| :--- | :--- | :--- |
-| Track Name | - | Press `ENCODER` to enter text editor for changing the project name. |
-| Source | MIDI, USB | MIDI source port (hold `SHIFT` and rotate `ENCODER` to select MIDI channel). |
-| Voices | 1 - 8 | Number of voices. |
-| Voice Config | Pitch, Pitch+Vel, Pitch+Vel+Press | CV signals to generate for each voice. |
-| Note Priority | Last Note, First Note, Lowest Note, Highest Note | Determines which active notes have the highest priority to be output. |
-| Low Note | C-1 - G9 | Low MIDI note of the key range this track listens to. |
-| High Note | C-1 - G9 | High MIDI note of the key range this track listens to. |
-| Pitch Bend | off, 1 - 48 semitones | Pitch bend range. |
-| Mod Range | 1-5V Unipolar, 1-5V Bipolar | CV output voltage range for modulation signals (velocity and pressure). |
-| Retrigger | no, yes | Retrigger voices on each received _Note On_ MIDI message. |
-| Slide Time | 0% - 100% | Duration of pitch slides for legato notes when configured in monophonic mode (e.g. 1 voice). |
-| Transpose | -100 - +100 | Number of notes to transpose the notes up or down. |
-| Arpeggiator | no, yes | Enable arpeggiator mode. |
-| Hold | no, yes | Hold chords in arpeggiator after keys are released. |
-| Mode | [Arpeggiator Modes](#appendix-arpeggiator-modes) | Arpeggiator mode (sequence). |
-| Divisor | [Divisors](#appendix-divisors) | Divisor for arpeggiator sequence. |
-| Gate Length | 1-100% | Gate length generated notes. |
+| Parameter | Range | Description                                                                                                                   |
+| :--- | :--- |:------------------------------------------------------------------------------------------------------------------------------|
+| Track Name | - | Press `ENCODER` to enter text editor for changing the track name.                                                             |
+| Source | MIDI, USB | MIDI source port (hold `SHIFT` and rotate `ENCODER` to select MIDI channel).                                                  |
+| Voices | 1 - 8 | Number of voices.                                                                                                             |
+| Voice Config | Pitch, Pitch+Vel, Pitch+Vel+Press | CV signals to generate for each voice.                                                                                        |
+| Note Priority | Last Note, First Note, Lowest Note, Highest Note | Determines which active notes have the highest priority to be output.                                                         |
+| Low Note | C-1 - G9 | Low MIDI note of the key range this track listens to.                                                                         |
+| High Note | C-1 - G9 | High MIDI note of the key range this track listens to.                                                                        |
+| Pitch Bend | off, 1 - 48 semitones | Pitch bend range.                                                                                                             |
+| Mod Range | 1-5V Unipolar, 1-5V Bipolar | CV output voltage range for modulation signals (velocity and pressure).                                                       |
+| Retrigger | no, yes | Retrigger voices on each received _Note On_ MIDI message.                                                                     |
+| Slide Time | 0% - 100% | Duration of pitch slides for legato notes when configured in monophonic mode (e.g. 1 voice).                                  |
+| Transpose | -100 - +100 | Number of notes to transpose the notes up or down.                                                                            |
+| Arpeggiator | no, yes | Enable arpeggiator mode.                                                                                                      |
+| Hold | no, yes | Hold chords in arpeggiator after keys are released.                                                                           |
+| Mode | [Arpeggiator Modes](#appendix-arpeggiator-modes) | Arpeggiator mode (sequence).                                                                                                  |
+| Divisor | [Divisors](#appendix-divisors) | Divisor for arpeggiator sequence.                                                                                             |
+| Gate Length | 1-100% | Gate length generated notes.                                                                                                  |
 | Octaves | Off, Up 1-5, Up Down 1-5, Down 1-5, Down Up 1-5 | Order and number of octaves to play the arpeggiator sequence over. The note order is reverse when playing _down_ the octaves. |
 
 > Note: _Slide Time_ and _Transpose_ are routable parameters.
@@ -743,29 +751,29 @@ If a track is in MIDI/CV mode, the following parameters are available:
 
 If a track is in Stochastic mode, the following parameters are available:
 
-| Parameter | Range                                | Description                                                                                                                                                                                                                                                                                                                            |
-| :--- |:-------------------------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Track Name | -                                    | Press `ENCODER` to enter text editor for changing the project name.                                                                                                                                                                                                                                                                    |
-| Play Mode | [Play Modes](#appendix-play-modes)   | Mode used for playing sequences in this track.                                                                                                                                                                                                                                                                                         |
-| CV Update Mode | Gate, Always                         | Mode used for updating the CV output of this track. _Gate_ only updates the CV output if the step gate is active, _Always_ always updates the CV output independent of the step gate.                                                                                                                                                                                 |
-| Slide Time | 0% - 100%                            | Duration of pitch slides for steps that have _Slide_ enabled.                                                                                                                                                                                                                                                                          |
-| Octave | -10 - +10                            | Number of octaves to transpose the sequence up or down.                                                                                                                                                                                                                                                                                |
-| Transpose | -100 - +100                          | Number of notes to transpose the sequence up or down. Note that this depends on the current [Scale](#appendix-scales) of the sequence.                                                                                                                                                                                                 
-| Rotate | [Rotation](#appendix-rotation)       | Amount of rotation applied to the sequence.                                                                                                                                                                                                                                                                                            |
-| Gate P. Bias | -100% - +100%                        | Gate probability bias that is added to the sequence.                                                                                                                                                                                                                                                                                   |
-| Retrig P. Bias | -100% - +100%                        | Retrigger probability bias that is added to the sequence.                                                                                                                                                                                                                                                                              |
-| Length Bias | -100% - +100%                        | Length bias bias that is added to the sequence.                                                                                                                                                                                                                                                                                        |
-| Note P. Bias | -100% - +100%                        | Note variation probability bias that is added to the sequence.                                                                                                                                                                                                                                                                         |
+| Parameter | Range                                | Description                                                                                                                                                                           |
+| :--- |:-------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Track Name | -                                    | Press `ENCODER` to enter text editor for changing the track name.                                                                                                                     |
+| Play Mode | [Play Modes](#appendix-play-modes)   | Mode used for playing sequences in this track. Fixed to Aligned                                                                                                                       |
+| CV Update Mode | Gate, Always                         | Mode used for updating the CV output of this track. _Gate_ only updates the CV output if the step gate is active, _Always_ always updates the CV output independent of the step gate. |
+| Slide Time | 0% - 100%                            | Duration of pitch slides for steps that have _Slide_ enabled.                                                                                                                         |
+| Octave | -10 - +10                            | Number of octaves to transpose the sequence up or down.                                                                                                                               |
+| Transpose | -100 - +100                          | Number of notes to transpose the sequence up or down. Note that this depends on the current [Scale](#appendix-scales) of the sequence.                                                
+| Rotate | [Rotation](#appendix-rotation)       | Amount of rotation applied to the sequence.                                                                                                                                           |
+| Gate P. Bias | -100% - +100%                        | Gate probability bias that is added to the sequence.                                                                                                                                  |
+| Retrig P. Bias | -100% - +100%                        | Retrigger probability bias that is added to the sequence.                                                                                                                             |
+| Length Bias | -100% - +100%                        | Length bias bias that is added to the sequence.                                                                                                                                       |
+| Note P. Bias | -100% - +100%                        | Note variation probability bias that is added to the sequence.                                                                                                                        |
 
 <h4>Logic Track</h4>
 
-![](images/page-note-track.png)
+![](images/page-logic-track.png)
 
 If a track is in _Logic_ mode, the following parameters are available:
 
 | Parameter      | Range                                | Description                                                                                                                                                                                                                                                                                                                                                           |
 |:---------------|:-------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Track Name     | -                                    | Press `ENCODER` to enter text editor for changing the project name.                                                                                                                                                                                                                                                                                                   |
+| Track Name     | -                                    | Press `ENCODER` to enter text editor for changing the track name.                                                                                                                                                                                                                                                                                                     |
 | Play Mode      | [Play Modes](#appendix-play-modes)   | Mode used for playing sequences in this track.                                                                                                                                                                                                                                                                                                                        |
 | Fill Mode      | None, Gates, Next Pattern, Condition | Mode used when fill is activated for the track. _None_ does nothing. _Gates_ plays each step of the sequence independent of whether the step gate is active or not. _Next Pattern_ uses the step data of the next pattern on the same track. _Condition_ plays steps that have the _Fill_ condition set, and does not play steps that have the _!Fill_ condition set. |
 | CV Update Mode | Gate, Always                         | Mode used for updating the CV output of this track. _Gate_ only updates the CV output if the step gate is active, _Always_ always updates the CV output independent of the step gate.                                                                                                                                                                                 |
@@ -784,6 +792,33 @@ If a track is in _Logic_ mode, the following parameters are available:
 
 > Note: _Slide Time_, _Octave_, _Transpose_, _Rotate_, _Gate P. Bias_, _Retrig P. Bias_, _Length Bias_ and _Note P. Bias_ are routable parameters. These parameters are great for live performance, as they allow to change how the sequence is played back without actually changing the sequence itself.
 
+<h4>Arpeggiator Track</h4>
+
+![](images/page-arp-track.png)
+
+If a track is in _Arpeggiator_ mode, the following parameters are available:
+
+| Parameter      | Range                                | Description                                                                                                                                                                                                                                                                                                                                                           |
+|:---------------|:-------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Track Name     | -                                    | Press `ENCODER` to enter text editor for changing the track name.                                                                                                                                                                                                                                                                                                     |
+| Play Mode      | [Play Modes](#appendix-play-modes)   | Mode used for playing sequences in this track. Fixed to Aligned                                                                                                                                                                                                                                                                                                       |
+| Fill Mode      | None, Gates, Next Pattern, Condition | Mode used when fill is activated for the track. _None_ does nothing. _Gates_ plays each step of the sequence independent of whether the step gate is active or not. _Next Pattern_ uses the step data of the next pattern on the same track. _Condition_ plays steps that have the _Fill_ condition set, and does not play steps that have the _!Fill_ condition set. |
+| CV Update Mode | Gate, Always                         | Mode used for updating the CV output of this track. _Gate_ only updates the CV output if the step gate is active, _Always_ always updates the CV output independent of the step gate.                                                                                                                                                                                 |
+| Slide Time     | 0% - 100%                            | Duration of pitch slides for steps that have _Slide_ enabled.                                                                                                                                                                                                                                                                                                         |
+| Octave         | -10 - +10                            | Number of octaves to transpose the sequence up or down.                                                                                                                                                                                                                                                                                                               |
+| Transpose      | -100 - +100                          | Number of notes to transpose the sequence up or down. Note that this depends on the current [Scale](#appendix-scales) of the sequence.                                                                                                                                                                                                                                
+| Gate P. Bias   | -100% - +100%                        | Gate probability bias that is added to the sequence.                                                                                                                                                                                                                                                                                                                  |
+| Retrig P. Bias | -100% - +100%                        | Retrigger probability bias that is added to the sequence.                                                                                                                                                                                                                                                                                                             |
+| Length Bias    | -100% - +100%                        | Length bias bias that is added to the sequence.                                                                                                                                                                                                                                                                                                                       |
+| Note P. Bias   | -100% - +100%                        | Note variation probability bias that is added to the sequence.                                                                                                                                                                                                                                                                                                        |
+| Pattern Follow | Off, Display, Launchpad, Display+LP  | Enable pattern follow Use `PAGE`+`S16` tio cycle between modes                                                                                                                                                                                                                                                                                                        |
+| Mode           | [Arpeggiator Modes](#appendix-arpeggiator-modes)                                      | Arpeggiator mode (sequence)                                                                                                                                                                                                                                                                                                                                           |
+| Hold           | no, yes | Hold chords in arpeggiator after keys are released.                                                                                                                                                                                                                                                                                                                   |
+| Octaves        | Off, Up 1-5, Up Down 1-5, Down 1-5, Down Up 1-5 | Order and number of octaves to play the arpeggiator sequence over. The note order is reverse when playing _down_ the octaves.                                                                                                                                                                                                                                         |
+| Gate Length    | 1-100% | Gate length generated notes.                                                                                                                                                                                                                                                                                                                                          |
+| Rate           | [Divisors](#appendix-divisors) | Divisor for arpeggiator generated sequence.                                                                                                                                                                                                                                                                                                                           |
+
+> Note: _Slide Time_, _Octave_, _Transpose_, _Gate P. Bias_, _Retrig P. Bias_, _Length Bias_ and _Note P. Bias_ are routable parameters. These parameters are great for live performance, as they allow to change how the sequence is played back without actually changing the sequence itself.
 
 <!-- Sequence -->
 
@@ -825,13 +860,14 @@ If a track is in _Note_ mode, the following parameters are available:
 
 | Parameter | Range | Description                                                                                                                                                                                                                                                                                                                                                            |
 | :--- | :--- |:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Name     | -                                    | Press `ENCODER` to enter text editor for changing the sequence name.                                                                                                                                                                                                                                                                                                   |
 | First Step | 1 - 64 | First step to play. Hold `SHIFT` to edit both first and last step together.                                                                                                                                                                                                                                                                                            |
 | Last Step | 1 - 64 | Last step to play. Hold `SHIFT` to edit both first and last step together.                                                                                                                                                                                                                                                                                             |
 | Run Mode | [Run Modes](#appendix-run-modes) | Mode in which to play the sequence.                                                                                                                                                                                                                                                                                                                                    |
 | Divisor | [Divisors](#appendix-divisors) | Time divisor for this sequence.                                                                                                                                                                                                                                                                                                                                        |
 | Reset Measure | off, 1 - 128 bars | Number of measures/bars at which to reset the sequence.                                                                                                                                                                                                                                                                                                                |
 | Scale | [Scales](#appendix-scales) | Scale to use for this sequence. If set to _Default_, uses the default scale set on the [Project](#pages-project) page. The scale will change on encoder press and new notes will be calculated based on the previous scale: if a note of the previous scale is present in the new scale it will be preserved. If a note is not present the nearest one will be picked. |
-| Root Note | C, C#, D, D#, E, F, F#, G, G#, A, B | Root note to use for this sequence. If set to ../../../src/apps/sequencer/model/Routing.h_Default_, uses the default root note set on the [Project](#pages-project) page.                                                                                                                                                                                                                                         |
+| Root Note | C, C#, D, D#, E, F, F#, G, G#, A, B | Root note to use for this sequence. If set to ../../../src/apps/sequencer/model/Routing.h_Default_, uses the default root note set on the [Project](#pages-project) page.                                                                                                                                                                                              |
 
 > Note: _First Step_, _Last Step_, _Run Mode_, _Divisor_, _Scale_ and _Root Note_ are routable parameters.
 
@@ -843,6 +879,7 @@ If a track is in _Curve_ mode, the following parameters are available:
 
 | Parameter | Range | Description |
 | :--- | :--- | :--- |
+| Name     | -                                    | Press `ENCODER` to enter text editor for changing the sequence name.                                                                                                                                                                                                                                                                                                   |
 | First Step | 1 - 64 | First step to play. Hold `SHIFT` to edit both first and last step together. |
 | Last Step | 1 - 64 | Last step to play. Hold `SHIFT` to edit both first and last step together. |
 | Run Mode | [Run Modes](#appendix-run-modes) | Mode in which to play the sequence.  |
@@ -879,6 +916,29 @@ If a track is in _Stochastic_ mode, the following parameters are available:
 
 All available options in the _Note_ sequence page are also available on the _Logic_ sequence page
 
+<h4>Arpeggiator Track</h4>
+
+If a track is in _Arpeggiator_ mode, the following parameters are available:
+
+![](images/page-arp-sequence.png)
+
+| Parameter      | Range                               | Description                                                                                                                                                                                                                                                                                                                                                            |  
+|:---------------|:------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Name     | -                                    | Press `ENCODER` to enter text editor for changing the sequence name.                                                                                                                                                                                                                                                                                                   |
+| Divisor        | [Divisors](#appendix-divisors)      | Time divisor for this sequence.                                                                                                                                                                                                                                                                                                                                        |
+| Reset Measure  | off, 1 - 128 bars                   | Number of measures/bars at which to reset the sequence.                                                                                                                                                                                                                                                                                                                |
+| Scale          | [Scales](#appendix-scales)          | Scale to use for this sequence. If set to _Default_, uses the default scale set on the [Project](#pages-project) page. The scale will change on encoder press and new notes will be calculated based on the previous scale: if a note of the previous scale is present in the new scale it will be preserved. If a note is not present the nearest one will be picked. |
+| Root Note      | C, C#, D, D#, E, F, F#, G, G#, A, B | Root note to use for this sequence. If set to _Default_, uses the default root note set on the [Project](#pages-project) page.                                                                                                                                                                                                                                         |
+| Rest Prob. 2   | 0-100%                              | The probability that the sequence will rest every 2 steps                                                                                                                                                                                                                                                                                                              |
+| Rest Prob. 4   | 0-100%                              | The probability that the sequence will rest every 4 steps                                                                                                                                                                                                                                                                                                              |
+| Rest Prob. 8   | 0-100%                              | The probability that the sequence will rest every 8 steps                                                                                                                                                                                                                                                                                                              |
+| Seq First Step | 1 - 64                              | First step of the locked loop to play                                                                                                                                                                                                                                                                                                                                  |
+| Seq Last Step | 1 - 64 | Last step of the kicjed loop to play                                                                                                                                                                                                                                                                                                                                   |                                                                                                                                                                                                                                                                                                                                                                   
+| L Oct. Range | -10 - 10 | Lower octave bound used to generate random pitches for each stochastic step                                                                                                                                                                                                                                                                                            |
+| H Oct. Range | -10 - 10 | Upper octave bound ised to generate random pitches for each stochastic step                                                                                                                                                                                                                                                                                            |
+| Length Mod | -200 - 200 % | Stochastic length modifier added to the step length                                                                                                                                                                                                                                                                                                                    |
+
+
 <!-- Steps -->
 
 <h3 id="pages-steps">Steps</h3>
@@ -889,10 +949,12 @@ The _Steps_ page is entered using `PAGE` + `STEPS`.
 ![](images/page-curve-steps.png)
 ![](images/page-stochastic-steps.png)
 ![](images/page-logic-steps.png)
+![](images/page-arp-steps.png)
+
 
 This page allows editing the currently selected sequence on the currently selected track. Depending on the track mode of the selected track, this page shows a different graphical representation of the sequence. If track mode is set to _MIDI/CV_, the page is not available and selecting it will jump to the [Track](#pages-track) page.
 
-In a _Logic_ track if _detailed view_ is enabled a visual representation of the inputs track is visible for each step: a dot means input track 1 has gate on, an empty square means input track 2 has gate on, a combination of dot and empty square means both input tracks has gate on and finally the full square means logic gate is on. A visual feedback will be visualized when the logic gate out is on.
+In a _Logic_ track if _detailed view_ is enabled a visual representation of the inputs track is visible for each step: a dot means input track 1 has gate on, an empty square means input track 2 has gate on, a combination of dot and empty square means both input tracks has gate on and finally the full square means logic gate is on. A visual feedback will be visualized when the logic gate out is on. Use `SHIFT` to show the status of the inputs instead of the sequence gates
 
 
 <h4>Layer Selection</h4>
@@ -928,13 +990,12 @@ The following layers are available in _Stochastic_ mode:
 | Button | Layers                                                       |
 | :--- |:-------------------------------------------------------------|
 | `F1` | Gate, Gate Probability, Gate Offset                          |
-| `F2` | Retrigger, Retrigger Probability, Repeat, Repeat Mode        |
+| `F2` | Retrigger, Retrigger Probability      |
 | `F3` | Length, Length Variation Range, Length Variation Probability |
 | `F4` | Note Probability, Octave, Octave Probability, Slide          |
 | `F5` | Condition                                                    |
 
 The following layers are available in _Logic_ mode:
-
 
 | Button | Layers                                                                            |
 | :--- |:----------------------------------------------------------------------------------|
@@ -943,6 +1004,16 @@ The following layers are available in _Logic_ mode:
 | `F3` | Length, Length Variation Range, Length Variation Probability                      |
 | `F4` | Note Logic, Note Variation Range, Note Variation Probability, Slide |
 | `F5` | Condition                                                                         |
+
+The following layers are available in _Arpeggiator_ mode:
+
+| Button | Layers                                                                                                 |
+| :--- |:-------------------------------------------------------------------------------------------------------|
+| `F1` | Gate, Gate Probability, Gate Offset                                                                    |
+| `F2` | Retrigger, Retrigger Probability                                                                       |
+| `F3` | Length, Length Variation Range, Length Variation Probability                                           |
+| `F4` | Note Probability, Note Variation Range, Note Variation Probability,, Octave, Octave Probability, Slide |
+| `F5` | Condition                                                                                              |
 
 <h4>Section Selection</h4>
 
@@ -971,6 +1042,7 @@ To adjust the values of the currently selected layer, hold `S[1-16]` and rotate 
 - When editing a _Stochastic_ track pressing `PAGE`+`S6` will clear the loop and enter a new one
 - When editing a _Stochastic_ track pressing `PAGE`+`S5` will reseed the stochastic generator and pick a random value for the Note Probability BIAS parameter
 - When editing a _Logic_ track all _Note_ track features and shortcuts are still available.
+- When editing an _Arpeggiator_ track pressing `PAGE`+`S16` will enable to "keyboard" mode. In this mode you cannot edit the sequence but you can play additional arpeggios notes using the `STEPS` buttons, the launchpad or an external MIDI keyboard
 
 <h4>Advanced Step Selection</h4>
 
@@ -1022,6 +1094,8 @@ While holding the `PAGE` button, the selected sequence parameter can be adjusted
 > Note: When quick access is active, the step LEDs will indicate the range of values that can be selected in green as well as the current selection in red.
 
 > Note: Pressing the `ENCODER` while rotating it has the same effect as pressing `SHIFT` when editing the same parameter through the menu.
+
+> Note: In an _Arpeggiator_ track `S9` will change the arpeggiator rate, `S10` the arpeggiator mode and `S11` the arpaggiator octaves 
 
 <!-- Generators -->
 

@@ -85,7 +85,12 @@ def process_images():
         "page-generators-random.png",
         "page-user-settings.png",
         "page-metropolix-repeat.png",
-        "page-metropolix-repeat-mode.png"
+        "page-metropolix-repeat-mode.png",
+        "page-stochastic-track.png",
+        "page-arp-track.png",
+        "page-arp-steps.png",
+        "page-arp-sequence.png",
+        "page-stochastic-sequence.png"
     ]
 
     print("Processing images ...")
