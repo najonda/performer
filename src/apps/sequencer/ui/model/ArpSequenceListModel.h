@@ -12,8 +12,6 @@ class ArpSequenceListModel : public RoutableListModel {
 public:
     enum Item {
         Name,
-        FirstStep,
-        LastStep,
         Divisor,
         ResetMeasure,
         Scale,
@@ -87,10 +85,6 @@ public:
         switch (Item(row)) {
         case Divisor:
             return Routing::Target::Divisor;
-        case FirstStep:
-            return Routing::Target::FirstStep;
-        case LastStep:
-            return Routing::Target::LastStep;
         case Scale:
             return Routing::Target::Scale;
         case RootNote:
@@ -123,8 +117,6 @@ private:
     static const char *itemName(Item item) {
         switch (item) {
         case Name:              return "Name";
-        case FirstStep:         return "First Step";
-        case LastStep:          return "Last Step";
         case Divisor:           return "Divisor";
         case ResetMeasure:      return "Reset Measure";
         case Scale:             return "Scale";
@@ -149,12 +141,6 @@ private:
         case Name:
              str(_sequence->name());
              break;
-        case FirstStep:
-            _sequence->printFirstStep(str);
-            break;
-        case LastStep:
-            _sequence->printLastStep(str);
-            break;
         case Divisor:
             _sequence->printDivisor(str);
             break;
@@ -202,12 +188,6 @@ private:
         switch (item) {
         case Name:
             break;
-        case FirstStep:
-            _sequence->editFirstStep(value, shift);
-            break;
-        case LastStep:
-            _sequence->editLastStep(value, shift);
-            break;
         case Divisor:
             _sequence->editDivisor(value, shift);
             break;
@@ -253,9 +233,6 @@ private:
         switch (item) {
         case Name:
             break;
-        case FirstStep:
-        case LastStep:
-            return 16;
         case Divisor:
         case ResetMeasure:
             return 16;
@@ -280,10 +257,6 @@ private:
         switch (item) {
         case Name:
             break;
-        case FirstStep:
-            return _sequence->firstStep();
-        case LastStep:
-            return _sequence->lastStep();
         case Divisor:
             return _sequence->indexedDivisor();
         case ResetMeasure:
@@ -314,10 +287,6 @@ private:
         switch (item) {
         case Name:
             break;
-        case FirstStep:
-            return _sequence->setFirstStep(index);
-        case LastStep:
-            return _sequence->setLastStep(index);
         case Divisor:
             return _sequence->setIndexedDivisor(index);
         case ResetMeasure:
