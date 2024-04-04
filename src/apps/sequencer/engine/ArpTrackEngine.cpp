@@ -221,9 +221,12 @@ void ArpTrackEngine::reset() {
 
     _noteCount = 0;
 
-    for (int i = 0; i< int(_notes.size()); ++i) {
+    for (int i = 0; i < int(_notes.size()); ++i) {
         ++_noteCount;
-        ++_noteOrder;
+        uint32_t order = _notes.at(i).order;
+        if (order > _noteOrder) {
+            _noteOrder = order + 1;
+        }
     }
 }
 
@@ -682,7 +685,7 @@ void ArpTrackEngine::addNote(int note, int index, Type type, int octave) {
 
     Note n;
     n.note = note;
-    n.order = _noteOrder++;
+    n.order = ++_noteOrder;
     n.index = index;
     n.octave = octave;
     n.type = type;
