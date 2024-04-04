@@ -257,6 +257,7 @@ void ArpSequence::writeRouted(Routing::Target target, int intValue, float floatV
 }
 
 void ArpSequence::clear() {
+    setName("INIT");
     setScale(-1);
     setRootNote(-1);
     setDivisor(12);
