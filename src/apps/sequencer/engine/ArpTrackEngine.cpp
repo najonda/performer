@@ -431,6 +431,7 @@ void ArpTrackEngine::update(float dt) {
 }
 
 void ArpTrackEngine::changePattern() {
+    _notes.clear();
     _sequence = &_arpTrack.sequence(pattern());
     _fillSequence = &_arpTrack.sequence(std::min(pattern() + 1, CONFIG_PATTERN_COUNT - 1));
 }
