@@ -177,6 +177,8 @@ private:
 
     std::array<bool, 12> _keyPressed;
 
+    int _prevPattern = 0;
+
     uint32_t _realtiveTick;
 
     struct Gate {
