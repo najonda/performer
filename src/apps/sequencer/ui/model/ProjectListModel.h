@@ -56,6 +56,14 @@ public:
         _editScale = !_editScale;
     }
 
+    void initScale() {
+        _selectedScale = 0;
+    }
+
+    void resetScale() {
+        _selectedScale = _project.scale();
+    }
+
 private:
     enum Item {
         Name,
