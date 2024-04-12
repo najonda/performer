@@ -440,7 +440,9 @@ void ArpSequenceEditPage::keyDown(KeyEvent &event) {
     _stepSelection.keyDown(event, stepOffset());
     updateMonitorStep();
     auto &track = _project.selectedTrack().arpTrack();
-    if (track.midiKeyboard() && _engine.state().running() && key.isStep()) {
+    bool shift = globalKeyState()[Key::Shift];
+    bool page =  globalKeyState()[Key::Page];
+    if (track.midiKeyboard() && _engine.state().running() && (key.isStep() && !page && !shift)) {
         auto i = MatrixMap::toStep(key.code());
         auto &sequence = _project.selectedArpSequence();
         auto &arpEngine = _engine.trackEngine(_project.selectedTrackIndex()).as<ArpTrackEngine>();
@@ -458,7 +460,9 @@ void ArpSequenceEditPage::keyUp(KeyEvent &event) {
     _stepSelection.keyUp(event, stepOffset());
     updateMonitorStep();
     auto &track = _project.selectedTrack().arpTrack();
-    if (track.midiKeyboard() && _engine.state().running() && key.isStep()) {
+    bool shift = globalKeyState()[Key::Shift];
+    bool page =  globalKeyState()[Key::Page];
+    if (track.midiKeyboard() && _engine.state().running() && key.isStep() && (key.isStep() && !page &&! shift)) {
         auto i = MatrixMap::toStep(key.code());
         auto &arpEngine = _engine.trackEngine(_project.selectedTrackIndex()).as<ArpTrackEngine>();
         auto &sequence = _project.selectedArpSequence();

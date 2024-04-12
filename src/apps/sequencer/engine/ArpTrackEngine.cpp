@@ -254,7 +254,11 @@ TrackEngine::TickResult ArpTrackEngine::tick(uint32_t tick) {
             triggerStep(tick, linkData->divisor);
         }
     } else {
+
         uint32_t divisor = sequence.divisor() * (CONFIG_PPQN / CONFIG_SEQUENCE_PPQN);
+        if (_arpTrack.midiKeyboard() ) {
+            divisor = _arpeggiator.divisor() * (CONFIG_PPQN / CONFIG_SEQUENCE_PPQN);
+                    }
         uint32_t resetDivisor = sequence.resetMeasure() * _engine.measureDivisor();
         uint32_t relativeTick = resetDivisor == 0 ? tick : tick % resetDivisor;
 
