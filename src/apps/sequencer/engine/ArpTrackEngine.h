@@ -155,7 +155,7 @@ private:
     const Arpeggiator &_arpeggiator;
 
     struct Note {
-        int8_t note;
+        int32_t note;
         uint32_t order;
         uint8_t index;
         int8_t octave;

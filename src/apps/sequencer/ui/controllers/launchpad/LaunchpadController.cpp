@@ -523,6 +523,15 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
                 case (Track::TrackMode::Arp): {
                         if (_project.selectedArpSequenceLayer()==ArpSequence::Layer::Note) {
                             if (button.row >=3 && button.row <= 4) {
+                                if (button.col == 7) { // exit if button is up/down track octave
+                                    break;
+                                }
+
+                                // exit if grid button is not a note
+                                if ((button.row == 3 && button.col == 0) || (button.row == 3 && button.col == 3)) {
+                                    break;
+                                }
+
                                 auto &arpTrack = _project.selectedTrack().arpTrack();
                                 if (arpTrack.midiKeyboard()) {
                                     const auto &sequence = _project.selectedArpSequence();
@@ -591,6 +600,12 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
             case Track::TrackMode::Arp: {
                 if (button.row >=3 && button.row <=4) {
                     if (button.col == 7) {
+                        break;
+                    }
+                    if ((button.row == 3 && button.col == 0) || (button.row == 3 && button.col == 3)) {
+                        break;
+                    }
+                    if (_project.selectedTrack().arpTrack().midiKeyboard()) {
                         break;
                     }
                     auto &sequence = _project.selectedArpSequence();
@@ -808,6 +823,10 @@ void LaunchpadController::manageArpCircuitKeyboard(const Button &button) {
                 if (button.row == 4 && button.col == 7) {
                     arpTrack.setOctave(currentOctave-1);
                     return;
+                }
+
+                if ((button.row == 3 && button.col == 0) || (button.row == 3 && button.col == 3)) {
+                    return;;
                 }
 
                 int ft = -1;
@@ -2820,7 +2839,7 @@ void LaunchpadController::drawArpSequenceNotes(const ArpSequence &sequence, ArpS
         drawBarH(0, step.gateProbability(), true, false);
     }
 
-    auto arpEngine = _engine.selectedTrackEngine().as<ArpTrackEngine>();
+    auto &arpEngine = _engine.selectedTrackEngine().as<ArpTrackEngine>();
     for (int col = 0; col < 8; ++col) {
         if (col == arpEngine.currentIndex()%8) {
             if (arpEngine.currentIndex()<8) {

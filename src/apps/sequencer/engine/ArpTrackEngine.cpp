@@ -414,6 +414,11 @@ void ArpTrackEngine::update(float dt) {
         }
         
         if (relativeTick % divisor == 0) {
+
+            if (int(_notes.size()) <= _noteIndex) {
+                _stepIndex = 0;
+                return;
+            }
             int sequenceStepIndex = _notes.at(_noteIndex).index;
             _currentStep = sequenceStepIndex;
             const auto &step = sequence.step(sequenceStepIndex);
@@ -547,6 +552,11 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
 
     if (_arpTrack.midiKeyboard()) {
         return;
+    }
+    for (int i = 0; i < _noteCount; ++i) {
+        if (_notes.at(i).type == Type::MIDI) {
+            removeNote(_notes.at(i).note);
+        }
     }
 
     if (_skips != 0 && _stepIndex > 0 && !useFillGates) {
