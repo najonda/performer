@@ -401,10 +401,6 @@ void ArpTrackEngine::update(float dt) {
         // delay note off if gate length is at maximum to enable legato style playback
         length += l == 100 ? 1u : 0u;
 
-        if (relativeTick == 0) {
-            reset();
-        }
-
         if (!_arpeggiator.hold() && !isKeyPressed()) {
             for (int i = 0; i < _noteCount; ++i) {
                 if (_notes.at(i).type == Type::MIDI) {
