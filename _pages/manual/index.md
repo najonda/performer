@@ -2160,17 +2160,31 @@ The visualization on the grid follows this schema:
 * row 5 represents the tones of a chromatic scale, selected note is highlighted, available notes in the scale are highlighted
 * row 7 represents the octave switcher from -4 to 3 octave, selected octave is highlighted
 * raw 8 is a quick page change shortcut
-  
-<h4 id="appendix-stochastic-circuit">Stochastic Circuit note editor</h4>
-* First 2 rows represent the probability of the selected note
-* row 4 represents the semitones of a chromatic scale, selected note is highlighted, available notes in the scale are highlighted
-* row 5 represents the tones of a chromatic scale, selected note is highlighted, available notes in the scale are highlighted
-* row 7 is a quick shortcut for stochastic options: Engage loop, Clear Loop, Reseed 
-
 
 - if you press a button in the gates representation you will toggle the gate
 - if you hold an available key (`GRID[4|5|,[0-7]`) and press a gate you will enter a gate with the selected note value plus the selected octave. if the gate is already present you will set the selected note plus the selected octave of the selected gate
 
+  
+<h4 id="appendix-stochastic-circuit">Stochastic Circuit note editor</h4>
+* First 2 rows represent the probability of the selected note
+* row 3 is a quick visual representation of the sequence current step
+* row 4 represents the semitones of a chromatic scale, selected note is highlighted, available notes in the scale are highlighted
+* row 5 represents the tones of a chromatic scale, selected note is highlighted, available notes in the scale are highlighted
+* row 7 is a quick shortcut for stochastic options: Engage loop, Clear Loop, Reseed 
+
+- on row 4 the 8th button will rise track octave +1
+- on row 5 the 8th button will decrease track octave -1
+
+<h4 id="appendix-stochastic-circuit">Arpeggiator Circuit note editor</h4>
+* First 2 rows represent the probability of the selected gate
+* row 3 is a quick visual representation of the sequence current step
+* row 4 represents the semitones of a chromatic scale, selected note is highlighted, available notes in the scale are highlighted
+* row 5 represents the tones of a chromatic scale, selected note is highlighted, available notes in the scale are highlighted
+* row 7 represents the octave switcher from -4 to 3 octave, selected octave is highlighted
+* row 8 is a quick shortcut for arp options: Engage keyboard, Hold mode
+
+- on row 4 the 8th button will rise track octave +1
+- on row 5 the 8th button will decrease track octave -1
 
 <h3 id="appendix-usb-midi-devices">USB MIDI Devices</h3>
 
