@@ -107,6 +107,10 @@ public:
         return false;
     }
 
+    void clearNotes() {
+        _notes.clear();
+    }
+
 
 private:
     void triggerStep(uint32_t tick, uint32_t divisor, bool nextStep);
