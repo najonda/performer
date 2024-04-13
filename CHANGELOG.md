@@ -11,6 +11,10 @@
 - issue #100 - reorganize quick functions shortcuts
 - issue #101 - reset cv in stop parameter
 
+> **testers** :
+>  
+> mebitek, Jil, Guillaume Libersat, XQSTKRPS, P.M. Lenneskog
+
 
 # v0.2.2 (20 March 2024)
 - Logic Track
