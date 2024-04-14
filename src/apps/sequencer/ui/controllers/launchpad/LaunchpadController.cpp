@@ -592,9 +592,14 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
                     if (button.col == 7) {
                         break;
                     }
+                    if ((button.row == 3 && button.col == 0) || (button.row == 3 && button.col == 3)) {
+                        break;
+                    }
                     auto &sequence = _project.selectedStochasticSequence();
-                    sequence.step(fullSelectedNote).toggleGate();
-                }
+                    int octave = roundDownDivide(fullSelectedNote, 12);
+                    int stepNoteCleared = fullSelectedNote - (octave*12);
+                    sequence.step(stepNoteCleared).toggleGate();
+                    sequence.step(stepNoteCleared).setNoteOctave(octave);                }
                 break;
             }
             case Track::TrackMode::Arp: {
@@ -774,11 +779,42 @@ void LaunchpadController::manageStochasticCircuitKeyboard(const Button &button) 
             } else if (button.row >= 0 && button.row < 2) {
                 auto &sequence = _project.selectedStochasticSequence();
                 int linearIndex = button.col  + (button.row*8);
-
-                sequence.step(fullSelectedNote).setNoteVariationProbability(linearIndex);
+                int octave = roundDownDivide(fullSelectedNote, 12);
+                int stepNoteCleared = fullSelectedNote - (octave*12);
+                sequence.step(stepNoteCleared).setNoteVariationProbability(linearIndex);
 
                 break;
-            } else if (button.row == 6) {
+            }  else if (button.row == 6) {
+                switch (button.col) {
+                    case 0:
+                        selectedOctave = -4;
+                        break;
+                    case 1:
+                        selectedOctave = -3;
+                        break;
+                    case 2:
+                        selectedOctave = -2;
+                        break;
+                    case 3:
+                        selectedOctave = -1;
+                        break;
+                    case 4:
+                        selectedOctave = 0;
+                        break;
+                    case 5:
+                        selectedOctave = 1;
+                        break;
+                    case 6:
+                        selectedOctave = 2;
+                        break;
+                    case 7:
+                        selectedOctave = 3;
+                        break;
+                    default:
+                        break;
+                }
+            
+            } else if (button.row == 7) {
                 switch (button.col) {
                     case 0:
                         sequence.setUseLoop();
@@ -859,8 +895,9 @@ void LaunchpadController::manageArpCircuitKeyboard(const Button &button) {
             } else if (button.row >= 0 && button.row < 2) {
                 auto &sequence = _project.selectedArpSequence();
                 int linearIndex = button.col  + (button.row*8);
-
-                sequence.step(fullSelectedNote).setGateProbability(linearIndex);
+                int octave = roundDownDivide(fullSelectedNote, 12);
+                int stepNoteCleared = fullSelectedNote - (octave*12);
+                sequence.step(stepNoteCleared).setGateProbability(linearIndex);
 
                 break;
             } else if (button.row == 6) {
@@ -2649,9 +2686,6 @@ void LaunchpadController::drawStochasticSequenceNotes(const StochasticSequence &
                     }
                     if (scale.isNotePresent(n)) {
                         n = scale.getNoteIndex(n);
-                        if (col == 7) {
-                            n = n + scale.notesPerOctave();
-                        }
                         int stepIndex = -1;
                         if (row == 3) {
                             stepIndex = getMapValue(semitones, col);
@@ -2774,11 +2808,30 @@ void LaunchpadController::drawStochasticSequenceNotes(const StochasticSequence &
             }
         }
 
+        // draw octave
+        for (int col = 0; col < 8; ++col) {
+            int o = getMapValue(octaveMap, col);
+            setGridLed(6, col, o==selectedOctave ? colorYellow(): colorYellow(1));
+
+            if (_engine.state().running()) {
+                const auto &step = sequence.step(currentStep);
+                int octave = step.noteOctave();
+                for (auto const& x : octaveMap)
+                    {
+                        if (step.gate() && octave == x.second) {
+                            setGridLed(6, x.first, step.gate() && octave == x.second ? colorRed() : colorYellow(1));
+                            break;
+                        }
+                    
+                    }
+            }
+        }
+
 
         // draw options
-        setGridLed(6, 0, sequence.useLoop() ? colorYellow(): colorYellow(1));
-        setGridLed(6, 1, sequence.clearLoop() ? colorYellow(): colorYellow(1));
-        setGridLed(6,2, !sequence.useLoop() && !sequence.isEmpty() && sequence.reseed() == 1 ? colorYellow(): colorYellow(1));
+        setGridLed(7, 0, sequence.useLoop() ? colorYellow(): colorYellow(1));
+        setGridLed(7, 1, sequence.clearLoop() ? colorYellow(): colorYellow(1));
+        setGridLed(7,2, !sequence.useLoop() && !sequence.isEmpty() && sequence.reseed() == 1 ? colorYellow(): colorYellow(1));
 }
 
 void LaunchpadController::drawArpSequenceBits(const ArpSequence &sequence, ArpSequence::Layer layer, int currentStep) {
@@ -2999,18 +3052,7 @@ void LaunchpadController::drawArpSequenceNotes(const ArpSequence &sequence, ArpS
 
         if (_engine.state().running()) {
             const auto &step = sequence.step(currentStep);
-            int s = step.note();
-
-            /*int octave = 0;
-            if (step.bypassScale()) {
-                const Scale &bypassScale = Scale::get(0);
-                octave = s / bypassScale.notesPerOctave();
-                std::cerr << octave << "\n";
-            } else {
-                octave = s / scale.notesPerOctave();
-            }*/
             int octave = step.noteOctave();
-            std::cerr << octave << "\n";
             for (auto const& x : octaveMap)
                 {
                     if (step.gate() && octave == x.second) {
