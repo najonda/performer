@@ -2487,11 +2487,8 @@ void LaunchpadController::drawRunningKeyboardCircuit(int row, int col, const Not
 }
 
 void LaunchpadController::drawRunningStochasticKeyboardCircuit(int row, int col, const StochasticSequence::Step &step, const Scale &scale, int rootNote) {
-    int noteOctave = step.note() / scale.notesPerOctave();
-    int s = step.note() - (scale.notesPerOctave()*noteOctave);
-    if (row == 4 && col == 7) {
-        s = step.note();
-    }
+    int noteOctave = step.noteOctave();
+    int s = step.note();
 
     for (auto const& x : semitones)
     {
@@ -2515,12 +2512,8 @@ void LaunchpadController::drawRunningStochasticKeyboardCircuit(int row, int col,
 }
 
 void LaunchpadController::drawRunningArpKeyboardCircuit(int row, int col, const ArpSequence::Step &step, const Scale &scale, int rootNote) {
-    int noteOctave = step.note() / scale.notesPerOctave();
-    int s = step.note() - (scale.notesPerOctave()*noteOctave);
-    if (row == 4 && col == 7) {
-        s = step.note();
-    }
-
+    int noteOctave = step.noteOctave();
+    int s = step.note();
     for (auto const& x : semitones)
     {
         if (step.gate() && s == scale.getNoteIndex(x.second)) {
@@ -2876,9 +2869,7 @@ void LaunchpadController::drawArpSequenceNotes(const ArpSequence &sequence, ArpS
                 }
                 if (scale.isNotePresent(n)) {
                     n = scale.getNoteIndex(n);
-                    if (col == 7) {
-                        n = n + scale.notesPerOctave();
-                    }
+                    
                     int stepIndex = -1;
                     if (row == 3) {
                         stepIndex = getMapValue(semitones, col);
@@ -3010,13 +3001,16 @@ void LaunchpadController::drawArpSequenceNotes(const ArpSequence &sequence, ArpS
             const auto &step = sequence.step(currentStep);
             int s = step.note();
 
-            int octave = 0;
+            /*int octave = 0;
             if (step.bypassScale()) {
                 const Scale &bypassScale = Scale::get(0);
                 octave = s / bypassScale.notesPerOctave();
+                std::cerr << octave << "\n";
             } else {
                 octave = s / scale.notesPerOctave();
-            }
+            }*/
+            int octave = step.noteOctave();
+            std::cerr << octave << "\n";
             for (auto const& x : octaveMap)
                 {
                     if (step.gate() && octave == x.second) {
