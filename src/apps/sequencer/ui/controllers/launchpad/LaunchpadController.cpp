@@ -719,6 +719,7 @@ void LaunchpadController::manageCircuitKeyboard(const Button &button) {
                     default:
                         break;
                 }
+                break;
             } else if (button.row == 7) {
                 if (button.col <=3) {
                     Button btn = Button(3,button.col);
@@ -813,6 +814,7 @@ void LaunchpadController::manageStochasticCircuitKeyboard(const Button &button) 
                     default:
                         break;
                 }
+                break;
             
             } else if (button.row == 7) {
                 switch (button.col) {
@@ -929,7 +931,7 @@ void LaunchpadController::manageArpCircuitKeyboard(const Button &button) {
                     default:
                         break;
                 }
-            
+                break;
             } else if (button.row == 7) {
                 if (button.col == 0) {
                     auto &track = _project.selectedTrack().arpTrack();
