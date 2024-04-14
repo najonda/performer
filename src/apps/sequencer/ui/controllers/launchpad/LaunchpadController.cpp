@@ -763,19 +763,18 @@ void LaunchpadController::manageStochasticCircuitKeyboard(const Button &button) 
                 }
                 if (scale.isNotePresent(ft)) {
                     int noteIndex = scale.getNoteIndex(ft);
-                    selectedNote = noteIndex + (scale.notesPerOctave()*selectedOctave);
-                    if (button.col == 7) {
-                        selectedNote = selectedNote + scale.notesPerOctave();
+                    auto step = sequence.step(noteIndex);
+                    selectedNote = noteIndex + (scale.notesPerOctave()*step.noteOctave());
+                    selectedOctave = step.noteOctave();
 
-                    }
                     fullNoteSelected = false;
                 } else {
                     fullNoteSelected = true;
 
                 }
                 int noteIndex = bypasssScale.getNoteIndex(ft);
-                fullSelectedNote = noteIndex + (bypasssScale.notesPerOctave()*selectedOctave);                         
-                    
+                auto step = sequence.step(noteIndex);
+                fullSelectedNote = noteIndex + (bypasssScale.notesPerOctave()*step.noteOctave());                         
                 break;
             } else if (button.row >= 0 && button.row < 2) {
                 auto &sequence = _project.selectedStochasticSequence();
@@ -875,18 +874,17 @@ void LaunchpadController::manageArpCircuitKeyboard(const Button &button) {
                 }
                 if (scale.isNotePresent(ft)) {
                     int noteIndex = scale.getNoteIndex(ft);
-                    selectedNote = noteIndex + (scale.notesPerOctave()*selectedOctave);
-                    if (button.col == 7) {
-                        selectedNote = selectedNote + scale.notesPerOctave();
-
-                    }
+                    auto step = sequence.step(noteIndex);
+                    selectedNote = noteIndex + (scale.notesPerOctave()*step.noteOctave());
+                    selectedOctave = step.noteOctave();
                     fullNoteSelected = false;
                 } else {
                     fullNoteSelected = true;
 
                 }
                 int noteIndex = bypasssScale.getNoteIndex(ft);
-                fullSelectedNote = noteIndex + (bypasssScale.notesPerOctave()*selectedOctave); 
+                auto step = sequence.step(noteIndex);
+                fullSelectedNote = noteIndex + (bypasssScale.notesPerOctave()*step.noteOctave()); 
                 if (arpTrack.midiKeyboard()) {
                     auto &trackEngine = _engine.trackEngine(_project.selectedTrackIndex()).as<ArpTrackEngine>();
                     trackEngine.addNote(fullSelectedNote, noteIndex, ArpTrackEngine::Type::MIDI, (bypasssScale.notesPerOctave()*selectedOctave));
