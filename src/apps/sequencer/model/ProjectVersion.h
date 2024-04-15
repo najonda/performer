@@ -108,7 +108,7 @@ enum ProjectVersion {
     // add logic track
     Version37 = 37,
 
-    // add arp track
+    // add arp track and malekko integration
     Version38 = 38,
 
 

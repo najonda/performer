@@ -10,6 +10,7 @@
 - keep sequence names when copy and paste
 - issue #100 - reorganize quick functions shortcuts
 - issue #101 - reset cv in stop parameter
+- integrate Malekko integration 
 
 > **testers** :
 >  
