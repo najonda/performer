@@ -547,22 +547,21 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
                                     if (scale.isNotePresent(ft)) {
                                         int noteIndex = scale.getNoteIndex(ft);
                                         selectedNote = noteIndex + (scale.notesPerOctave()*selectedOctave);
-                                        if (button.col == 7) {
-                                            selectedNote = selectedNote + scale.notesPerOctave();
-
-                                        }
                                         fullNoteSelected = false;
                                     } else {
                                         fullNoteSelected = true;
 
                                     }
                                     int noteIndex = bypasssScale.getNoteIndex(ft);
-                                    fullSelectedNote = noteIndex + (bypasssScale.notesPerOctave()*selectedOctave); 
+                                    selectedNote = noteIndex; 
+                                    if (sequence.step(selectedNote).gate()) {
+                                        break;
+                                    }
 
                                     auto &trackEngine = _engine.trackEngine(_project.selectedTrackIndex()).as<ArpTrackEngine>();
                                         
-                                    trackEngine.removeNote(fullSelectedNote);
-                                    trackEngine.setKeyPressed(fullSelectedNote, false);
+                                    trackEngine.removeNote(selectedNote);
+                                    trackEngine.setKeyPressed(selectedNote, false);
                                 }
                             }
                         }
@@ -596,10 +595,8 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
                         break;
                     }
                     auto &sequence = _project.selectedStochasticSequence();
-                    int octave = roundDownDivide(fullSelectedNote, 12);
-                    int stepNoteCleared = fullSelectedNote - (octave*12);
-                    sequence.step(stepNoteCleared).toggleGate();
-                    sequence.step(stepNoteCleared).setNoteOctave(octave);                }
+                    sequence.step(selectedNote).toggleGate();
+                    sequence.step(selectedNote).setNoteOctave(selectedOctave);                }
                 break;
             }
             case Track::TrackMode::Arp: {
@@ -614,18 +611,17 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
                         break;
                     }
                     auto &sequence = _project.selectedArpSequence();
+                    const auto &scale = sequence.selectedScale(_project.scale());
+
                     auto &trackEngine = _engine.trackEngine(_project.selectedTrackIndex()).as<ArpTrackEngine>();
-                    int octave = roundDownDivide(fullSelectedNote, 12);
-        
-                    int stepNoteCleared = fullSelectedNote - (octave*12);
-                    if (sequence.step(stepNoteCleared).gate()) {
-                        trackEngine.removeNote(sequence.step(stepNoteCleared).note());
+                    if (sequence.step(selectedNote).gate()) {
+                        trackEngine.removeNote(sequence.step(selectedNote).note());
                     } else {
-                        trackEngine.addNote(sequence.step(stepNoteCleared).note(), stepNoteCleared, ArpTrackEngine::Type::Sequencer, octave);
+                        trackEngine.addNote(sequence.step(selectedNote).note(), selectedNote, ArpTrackEngine::Type::Sequencer, selectedOctave);
                     }
 
-                    sequence.step(stepNoteCleared).toggleGate();
-                    sequence.step(stepNoteCleared).setNoteOctave(octave);
+                    sequence.step(selectedNote).toggleGate();
+                    sequence.step(selectedNote).setNoteOctave(selectedOctave);
                     
                 }
                 break;
@@ -873,23 +869,11 @@ void LaunchpadController::manageArpCircuitKeyboard(const Button &button) {
                 } else if (button.row == 4) {
                     ft = getMapValue(tones, button.col);
                 }
-                if (scale.isNotePresent(ft)) {
-                    int noteIndex = scale.getNoteIndex(ft);
-                    selectedNote = noteIndex + (scale.notesPerOctave()*selectedOctave);
-                    if (button.col == 7) {
-                        selectedNote = selectedNote + scale.notesPerOctave();
-
-                    }
-                    fullNoteSelected = false;
-                } else {
-                    fullNoteSelected = true;
-
-                }
                 int noteIndex = bypasssScale.getNoteIndex(ft);
-                fullSelectedNote = noteIndex + (bypasssScale.notesPerOctave()*selectedOctave); 
+                selectedNote = noteIndex; 
                 if (arpTrack.midiKeyboard()) {
                     auto &trackEngine = _engine.trackEngine(_project.selectedTrackIndex()).as<ArpTrackEngine>();
-                    trackEngine.addNote(fullSelectedNote, noteIndex, ArpTrackEngine::Type::MIDI, (bypasssScale.notesPerOctave()*selectedOctave));
+                    trackEngine.addNote(selectedNote, noteIndex, ArpTrackEngine::Type::MIDI, (bypasssScale.notesPerOctave()*selectedOctave));
                     trackEngine.setKeyPressed(noteIndex, true);
                 }
                     
@@ -897,9 +881,8 @@ void LaunchpadController::manageArpCircuitKeyboard(const Button &button) {
             } else if (button.row >= 0 && button.row < 2) {
                 auto &sequence = _project.selectedArpSequence();
                 int linearIndex = button.col  + (button.row*8);
-                int octave = roundDownDivide(fullSelectedNote, 12);
-                int stepNoteCleared = fullSelectedNote - (octave*12);
-                sequence.step(stepNoteCleared).setGateProbability(linearIndex);
+
+                sequence.step(selectedNote).setGateProbability(linearIndex);
 
                 break;
             } else if (button.row == 6) {
@@ -2539,19 +2522,14 @@ void LaunchpadController::drawRunningStochasticKeyboardCircuit(int row, int col,
     for (auto const& x : tones)
     {
 
-        if (step.gate() && s == scale.getNoteIndex(x.second)+noteOctave*scale.notesPerOctave()) {
-            if (step.note() == rootNote+(scale.notesPerOctave()*noteOctave) && noteOctave == selectedOctave +1) {
-                setGridLed(4, 7, colorRed());
-            } else {
-                setGridLed(4, x.first, step.gate() && s == scale.getNoteIndex(x.second)+noteOctave*scale.notesPerOctave() ? colorRed() : colorGreen());
-            }
+        if (step.gate() && s == scale.getNoteIndex(x.second)) {
+            setGridLed(4, x.first, step.gate() && s == scale.getNoteIndex(x.second) ? colorRed() : colorGreen());
             break;
         }
     }
 }
 
 void LaunchpadController::drawRunningArpKeyboardCircuit(int row, int col, const ArpSequence::Step &step, const Scale &scale, int rootNote) {
-    int noteOctave = step.noteOctave();
     int s = step.note();
     for (auto const& x : semitones)
     {
@@ -2563,12 +2541,8 @@ void LaunchpadController::drawRunningArpKeyboardCircuit(int row, int col, const 
     for (auto const& x : tones)
     {
 
-        if (step.gate() && s == scale.getNoteIndex(x.second)+noteOctave*scale.notesPerOctave()) {
-            if (step.note() == rootNote+(scale.notesPerOctave()*noteOctave) && noteOctave == selectedOctave +1) {
-                setGridLed(4, 7, colorRed());
-            } else {
-                setGridLed(4, x.first, step.gate() && s == scale.getNoteIndex(x.second)+noteOctave*scale.notesPerOctave() ? colorRed() : colorGreen());
-            }
+        if (step.gate() && s == scale.getNoteIndex(x.second)) {
+            setGridLed(4, x.first, step.gate() && s == scale.getNoteIndex(x.second) ? colorRed() : colorGreen());
             break;
         }
     }
@@ -2642,7 +2616,7 @@ void LaunchpadController::drawStochasticSequenceNotes(const StochasticSequence &
 
     const auto &scale = sequence.selectedScale(_project.scale());
       const Scale &bypassScale = Scale::get(0);
-        int stepIndex = fullSelectedNote;
+        int stepIndex = selectedNote;
         const auto &step = sequence.step(stepIndex);  
         if (step.noteVariationProbability() > 7) { 
             drawBarH(0, step.noteVariationProbability(), true, false);
@@ -2700,7 +2674,7 @@ void LaunchpadController::drawStochasticSequenceNotes(const StochasticSequence &
                             alternate = colorYellow(1);
                         }
 
-                        Color color = (selectedNote - (scale.notesPerOctave()*selectedOctave))== n && !fullNoteSelected ? colorYellow() : alternate;
+                        Color color = selectedNote == n && !fullNoteSelected ? colorYellow() : alternate;
                         setGridLed(row, col, color);
                     } else {
                         int stepIndex = -1;
@@ -2715,7 +2689,7 @@ void LaunchpadController::drawStochasticSequenceNotes(const StochasticSequence &
                             alternate = colorYellow(1);
                         }
                         n = bypassScale.getNoteIndex(n);
-                        Color color = (fullSelectedNote - (bypassScale.notesPerOctave()*selectedOctave))== n && fullNoteSelected ? colorYellow() : alternate;
+                        Color color = selectedNote == n && fullNoteSelected ? colorYellow() : alternate;
                         setGridLed(row, col, color);
                         
                     }
@@ -2878,7 +2852,7 @@ void LaunchpadController::drawArpSequenceNotes(const ArpSequence &sequence, ArpS
     const auto &scale = sequence.selectedScale(_project.scale());
     const auto &track = _project.selectedTrack().arpTrack();
     const Scale &bypassScale = Scale::get(0);
-    int stepIndex = fullSelectedNote;
+    int stepIndex = selectedNote;
     const auto &step = sequence.step(stepIndex);  
     if (step.gateProbability() > 7) { 
         drawBarH(0, step.gateProbability(), true, false);
@@ -2937,7 +2911,7 @@ void LaunchpadController::drawArpSequenceNotes(const ArpSequence &sequence, ArpS
                         alternate = colorYellow(1);
                     }
 
-                    Color color = (selectedNote - (scale.notesPerOctave()*selectedOctave))== n && !fullNoteSelected ? colorYellow() : alternate;
+                    Color color =  selectedNote== n && !fullNoteSelected ? colorYellow() : alternate;
                     setGridLed(row, col, color);
                 } else {
                     int stepIndex = -1;
@@ -2952,7 +2926,7 @@ void LaunchpadController::drawArpSequenceNotes(const ArpSequence &sequence, ArpS
                         alternate = colorYellow(1);
                     }
                     n = bypassScale.getNoteIndex(n);
-                    Color color = (fullSelectedNote - (bypassScale.notesPerOctave()*selectedOctave))== n && fullNoteSelected ? colorYellow() : alternate;
+                    Color color = selectedNote == n && fullNoteSelected ? colorYellow() : alternate;
                     setGridLed(row, col, color);
                     
                 }
