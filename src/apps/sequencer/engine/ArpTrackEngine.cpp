@@ -420,6 +420,7 @@ void ArpTrackEngine::update(float dt) {
             const auto &step = sequence.step(sequenceStepIndex);
             setOverride(evalStepNote(step, _arpTrack.noteProbabilityBias(), scale, rootNote, _octave+octave, transpose, sequence));
             _realtiveTick = relativeTick;
+            _slideActive = step.slide();
         } 
         if (relativeTick == (_realtiveTick+length)) {
             clearOverride();
