@@ -718,7 +718,7 @@ void ArpTrackEngine::removeNote(int note) {
     int index = -1;
     _noteCount = _notes.size();
     for (int i = 0; i < _noteCount; ++i) {
-        if (_arpeggiator.hold()) {
+        if (_arpeggiator.hold() && _arpTrack.midiKeyboard()) {
             return;
         }
 
