@@ -611,8 +611,6 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
                         break;
                     }
                     auto &sequence = _project.selectedArpSequence();
-                    const auto &scale = sequence.selectedScale(_project.scale());
-
                     auto &trackEngine = _engine.trackEngine(_project.selectedTrackIndex()).as<ArpTrackEngine>();
                     if (sequence.step(selectedNote).gate()) {
                         trackEngine.removeNote(sequence.step(selectedNote).note());
@@ -838,8 +836,6 @@ void LaunchpadController::manageStochasticCircuitKeyboard(const Button &button) 
 }
 
 void LaunchpadController::manageArpCircuitKeyboard(const Button &button) {
-    auto &sequence = _project.selectedArpSequence();
-    const auto &scale = sequence.selectedScale(_project.scale());
     const Scale &bypasssScale = Scale::get(0);
 
     switch ( _project.selectedArpSequenceLayer()) {
@@ -2509,7 +2505,6 @@ void LaunchpadController::drawRunningKeyboardCircuit(int row, int col, const Not
 }
 
 void LaunchpadController::drawRunningStochasticKeyboardCircuit(int row, int col, const StochasticSequence::Step &step, const Scale &scale, int rootNote) {
-    int noteOctave = step.noteOctave();
     int s = step.note();
 
     for (auto const& x : semitones)
