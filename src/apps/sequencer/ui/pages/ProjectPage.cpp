@@ -149,6 +149,7 @@ void ProjectPage::initProject() {
         if (result) {
             _engine.suspend();
             _listModel.initScale();
+            _project.clear();
             showMessage("PROJECT INITIALIZED");
             _engine.resume();
         }
