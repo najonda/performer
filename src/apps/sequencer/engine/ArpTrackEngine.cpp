@@ -13,6 +13,7 @@
 #include "model/Scale.h"
 #include "ui/MatrixMap.h"
 #include <climits>
+#include <cstddef>
 #include <cstdint>
 #include <iostream>
 #include <ctime>
@@ -541,12 +542,6 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
         _noteOrder = 0;
         return;
     }
-
-    for (int i = 0; i < _noteCount; ++i) {
-        if (_notes.at(i).type == Type::MIDI) {
-            removeNote(_notes.at(i).note);
-        }
-    }
     
     advanceStep();
     if (_stepIndex == 0) {
@@ -556,7 +551,15 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
     if (_arpTrack.midiKeyboard()) {
         return;
     }
+    for (int i = 0; i < _noteCount; ++i) {
+        if (_notes.at(i).type == Type::MIDI) {
+            removeNote(_notes.at(i).note);
+        }
+    }
 
+    if (_noteIndex>int(sizeof(_notes))) {
+        _noteIndex = int(sizeof(_notes));
+    }
 
     if (_skips != 0 && _stepIndex > 0 && !useFillGates) {
         --_skips;
