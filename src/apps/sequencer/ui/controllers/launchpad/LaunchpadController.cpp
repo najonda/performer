@@ -915,9 +915,13 @@ void LaunchpadController::manageArpCircuitKeyboard(const Button &button) {
                 if (button.col == 0) {
                     auto &track = _project.selectedTrack().arpTrack();
                     track.toggleMidiKeybaord();
+                    track.arpeggiator().setHold(false);
                 }
                 if (button.col == 1) {
                     auto &track = _project.selectedTrack().arpTrack();
+                    if (!track.midiKeyboard()) {
+                        break;
+                    }
                     track.arpeggiator().setHold(!track.arpeggiator().hold());
                 }
                 break;

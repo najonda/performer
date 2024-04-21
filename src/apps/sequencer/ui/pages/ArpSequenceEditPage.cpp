@@ -496,6 +496,7 @@ void ArpSequenceEditPage::keyPress(KeyPressEvent &event) {
     if (key.isQuickEdit()) {
         if (key.is(Key::Step15)) {
             track.toggleMidiKeybaord();
+            track.arpeggiator().setHold(false);
         } else {
             quickEdit(key.quickEdit());
         }

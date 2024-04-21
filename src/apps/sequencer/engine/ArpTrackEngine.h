@@ -48,6 +48,7 @@ public:
         _arpTrack(track.arpTrack()),
         _arpeggiator(track.arpTrack().arpeggiator())
     {
+        _notes.reserve(12);
         reset();
     }
 

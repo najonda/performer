@@ -35,6 +35,14 @@ static bool evalStepGate(const ArpSequence::Step &step, int probabilityBias) {
     return step.gate() && int(rng.nextRange(ArpSequence::GateProbability::Range)) <= probability;
 }
 
+static bool evalMIDIStepGate(const ArpSequence::Step &step, int probabilityBias) {
+    int probability = clamp(step.gateProbability() + probabilityBias, -1, ArpSequence::GateProbability::Max);
+    if (probability==0) {
+        return false;
+    }
+    return int(rng.nextRange(ArpSequence::GateProbability::Range)) <= probability;
+}
+
 // evaluate if step gate is active
  int ArpTrackEngine::evalRestProbability(ArpSequence &sequence) {
     int sum = 0;
@@ -259,7 +267,7 @@ TrackEngine::TickResult ArpTrackEngine::tick(uint32_t tick) {
         uint32_t divisor = sequence.divisor() * (CONFIG_PPQN / CONFIG_SEQUENCE_PPQN);
         if (_arpTrack.midiKeyboard() ) {
             divisor = _arpeggiator.divisor() * (CONFIG_PPQN / CONFIG_SEQUENCE_PPQN);
-                    }
+        }
         uint32_t resetDivisor = sequence.resetMeasure() * _engine.measureDivisor();
         uint32_t relativeTick = resetDivisor == 0 ? tick : tick % resetDivisor;
 
@@ -391,41 +399,9 @@ void ArpTrackEngine::update(float dt) {
     if (stepMonitoring) {
         const auto &step = sequence.step(_monitorStepIndex);
         setOverride(evalStepNote(step, 0, scale, rootNote, octave, transpose,  sequence, true));
-    } else if (liveMonitoring && _noteCount != 0 && _arpTrack.midiKeyboard() && running) {
-
-        uint32_t divisor = _arpeggiator.divisor() * (CONFIG_PPQN / CONFIG_SEQUENCE_PPQN);
-        uint32_t resetDivisor = sequence.resetMeasure() * _engine.measureDivisor();
-        uint32_t relativeTick = resetDivisor == 0 ? _engine.tick() : _engine.tick() % resetDivisor;
-
-        int l = clamp(_arpeggiator.gateLength(), 10, 100);
-        uint32_t length = std::max(uint32_t(1), uint32_t((divisor * l) / 100));
-        // delay note off if gate length is at maximum to enable legato style playback
-        length += l == 100 ? 1u : 0u;
-
-        if (!_arpeggiator.hold() && !isKeyPressed()) {
-            for (int i = 0; i < _noteCount; ++i) {
-                if (_notes.at(i).type == Type::MIDI) {
-                    removeNote(_notes.at(i).note);
-                }
-            }
-        }
-        
-        if (relativeTick % divisor == 0) {
-
-            if (int(_notes.size()) <= _noteIndex) {
-                _stepIndex = 0;
-                return;
-            }
-            int sequenceStepIndex = _notes.at(_noteIndex).index;
-            _currentStep = sequenceStepIndex;
-            const auto &step = sequence.step(sequenceStepIndex);
-            setOverride(evalStepNote(step, _arpTrack.noteProbabilityBias(), scale, rootNote, _octave+octave, transpose, sequence));
-            _realtiveTick = relativeTick;
-            _slideActive = step.slide();
-        } 
-        if (relativeTick == (_realtiveTick+length)) {
-            clearOverride();
-        }
+    } else if (liveMonitoring && _recordHistory.isNoteActive()) {
+        int note = noteFromMidiNote(_recordHistory.activeNote()) + evalTransposition(scale, octave, transpose);
+        setOverride(scale.noteToVolts(note) + (scale.isChromatic() ? rootNote : 0) * (1.f / 12.f));
     } else {
         clearOverride();
     }
@@ -542,23 +518,26 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
         _noteOrder = 0;
         return;
     }
+
+    if (!_arpeggiator.hold() && !isKeyPressed()) {
+        for (int i = 0; i < _noteCount; ++i) {
+            if (_notes.at(i).type == Type::MIDI) {
+                removeNote(_notes.at(i).note);
+            }
+        }
+    }
+
+    if (_notes.empty()) {
+        return;
+    }
     
     advanceStep();
     if (_stepIndex == 0) {
         advanceOctave();
     }
 
-    if (_arpTrack.midiKeyboard()) {
-        return;
-    }
-    for (int i = 0; i < _noteCount; ++i) {
-        if (_notes.at(i).type == Type::MIDI) {
-            removeNote(_notes.at(i).note);
-        }
-    }
-
-    if (_noteIndex>int(sizeof(_notes))) {
-        _noteIndex = int(sizeof(_notes));
+    if (_noteIndex >= int(_notes.size())) {
+        _noteIndex = int(_notes.size())-1;
     }
 
     if (_skips != 0 && _stepIndex > 0 && !useFillGates) {
@@ -581,7 +560,14 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
     int gateOffset = ((int) divisor * step.gateOffset()) / (ArpSequence::GateOffset::Max + 1);
     uint32_t stepTick = (int) tick + gateOffset;
 
-    bool stepGate = evalStepGate(step, _arpTrack.gateProbabilityBias()) || useFillGates;
+    bool stepGate= false;
+    if (_notes.at(_noteIndex).type == Type::MIDI) {
+        stepGate = evalMIDIStepGate(step, _arpTrack.gateProbabilityBias()) || useFillGates;
+    } else {
+        stepGate = evalStepGate(step, _arpTrack.gateProbabilityBias()) || useFillGates;
+    }
+
+    //bool stepGate = evalStepGate(step, _arpTrack.gateProbabilityBias()) || useFillGates;
     if (stepGate) {
         stepGate = evalStepCondition(step, _iteration, useFillCondition, _prevCondition); //TODO check iteration
     }
