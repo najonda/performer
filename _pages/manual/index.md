@@ -2170,7 +2170,8 @@ The visualization on the grid follows this schema:
 * row 3 is a quick visual representation of the sequence current step
 * row 4 represents the semitones of a chromatic scale, selected note is highlighted, available notes in the scale are highlighted
 * row 5 represents the tones of a chromatic scale, selected note is highlighted, available notes in the scale are highlighted
-* row 7 is a quick shortcut for stochastic options: Engage loop, Clear Loop, Reseed 
+* row 7 represents the octave switcher from -4 to 3 octave, selected octave is highlighted
+* row 8 is a quick shortcut for stochastic options: Engage loop, Clear Loop, Reseed 
 
 - on row 4 the 8th button will rise track octave +1
 - on row 5 the 8th button will decrease track octave -1
