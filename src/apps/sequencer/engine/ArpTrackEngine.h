@@ -10,6 +10,7 @@
 #include "model/Arpeggiator.h"
 #include <array>
 #include <cstdint>
+#include <map>
 #include <vector>
 
 
@@ -100,8 +101,8 @@ public:
     }
 
     bool isKeyPressed() {
-        for (int i = 0; i < int(_keyPressed.size()); ++i) {
-            if (_keyPressed[i]) {
+        for (auto const& x : _keyPressed)    {
+            if (x.second) {
                 return true;
             }
         }
@@ -180,7 +181,7 @@ private:
     int8_t _octave;
     int8_t _octaveDirection;
 
-    std::array<bool, 128> _keyPressed;
+    std::map<int32_t, bool> _keyPressed;
 
     int _prevPattern = 0;
 
