@@ -31,7 +31,8 @@ static const ContextMenuModel::Item contextMenuItems[] = {
     { "INIT" },
     { "COPY" },
     { "PASTE" },
-    { "DUP"},
+    { "DUP"} ,
+    { "SAVE" },
 };
 
 
