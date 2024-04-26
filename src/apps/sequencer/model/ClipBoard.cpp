@@ -222,6 +222,9 @@ void ClipBoard::pastePattern(int patternIndex) const {
                 case Track::TrackMode::Logic:
                     track.logicTrack().sequence(patternIndex) = pattern.sequences[trackIndex].data.logic;
                     break;
+                case Track::TrackMode::Arp:
+                    track.arpTrack().sequence(patternIndex) = pattern.sequences[trackIndex].data.arp;
+                    break;
                 default:
                     break;
                 }
