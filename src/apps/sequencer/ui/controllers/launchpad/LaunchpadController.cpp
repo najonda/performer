@@ -1372,13 +1372,18 @@ void LaunchpadController::sequenceEditArpStep(int row, int col) {
     int value = (7 - row) + _sequence.navigation.row * 8;
 
     switch (layer) {
-    case ArpSequence::Layer::Gate:
-        if (sequence.step(gridIndex).gate()) {
-            trackEngine.removeNote(sequence.step(gridIndex).note());
-        } else {
-            trackEngine.addNote(sequence.step(gridIndex).note(), gridIndex, ArpTrackEngine::Type::Sequencer, sequence.step(gridIndex).noteOctave());
+    case ArpSequence::Layer::Gate: {
+            auto &arpTrack = _project.selectedTrack().arpTrack();
+            if (arpTrack.midiKeyboard()) {
+                    break;
+            }
+            if (sequence.step(gridIndex).gate()) {
+                trackEngine.removeNote(sequence.step(gridIndex).note());
+            } else {
+                trackEngine.addNote(sequence.step(gridIndex).note(), gridIndex, ArpTrackEngine::Type::Sequencer, sequence.step(gridIndex).noteOctave());
+            }
+            sequence.step(gridIndex).toggleGate();
         }
-        sequence.step(gridIndex).toggleGate();
         break;
     case ArpSequence::Layer::Slide:
         sequence.step(gridIndex).toggleSlide();
