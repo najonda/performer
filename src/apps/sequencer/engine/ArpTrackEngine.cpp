@@ -138,6 +138,7 @@ static int evalTransposition(const Scale &scale, int octave, int transpose) {
 
 // evaluate note voltage
 static float evalStepNote(const ArpSequence::Step &step, int probabilityBias, const Scale &scale, int rootNote, int octave, int transpose, ArpSequence sequence, bool useVariation = true) {
+
     if (step.bypassScale()) {
         const Scale &bypassScale = Scale::get(0);
         int note = step.note() + evalTransposition(bypassScale, octave, transpose);
@@ -399,7 +400,7 @@ void ArpTrackEngine::update(float dt) {
     if (stepMonitoring) {
         const auto &step = sequence.step(_monitorStepIndex);
         setOverride(evalStepNote(step, 0, scale, rootNote, octave, transpose,  sequence, true));
-    } else if (liveMonitoring && _recordHistory.isNoteActive()) {
+    } else if (liveMonitoring && _recordHistory.isNoteActive() && !running) {
         int note = noteFromMidiNote(_recordHistory.activeNote()) + evalTransposition(scale, octave, transpose);
         setOverride(scale.noteToVolts(note) + (scale.isChromatic() ? rootNote : 0) * (1.f / 12.f));
     } else {
@@ -432,39 +433,36 @@ void ArpTrackEngine::monitorMidi(uint32_t tick, const MidiMessage &message) {
     const auto &scale = sequence.selectedScale(_model.project().scale());
     int octave = _arpTrack.octave();
     int transpose = _arpTrack.transpose();
+    
+    bool running = _engine.state().running();
+    if (!running) {
+        return;
+    }
 
     if (message.isNoteOff()) {
         int note = noteFromMidiNote(message.note())  + evalTransposition(scale, octave, transpose);
         int octave = roundDownDivide(note, scale.notesPerOctave());
         int stepNoteCleared = note - (octave*scale.notesPerOctave());
-        sequence.step(stepNoteCleared).setNoteOctave(0);
+        if (sequence.step(stepNoteCleared).gate()) {
+            return;
+        }
+
         removeNote(note);
         setKeyPressed(note, false);
     }
 
     if (message.isNoteOn()) {
         int note = noteFromMidiNote(message.note()) + evalTransposition(scale, octave, transpose);
-        bool isPresent = false;
-        for (int i=0; i <_noteCount; ++i) {
-            if (_notes.at(i).note == uint8_t(note)) {
-                isPresent = true;
-                break;
-            }
+        
+        int octave = roundDownDivide(note, scale.notesPerOctave());
+        int stepNoteCleared = note - (octave*scale.notesPerOctave());
+        if (sequence.step(stepNoteCleared).gate()) {
+            return;
         }
+        //sequence.step(stepNoteCleared).setNoteOctave(octave);
+        addNote(note, stepNoteCleared, ArpTrackEngine::Type::MIDI, octave);
 
-        if (!isPresent) {
-            int octave = roundDownDivide(note, scale.notesPerOctave());
-            int stepNoteCleared = note - (octave*scale.notesPerOctave());
-            if (sequence.step(stepNoteCleared).bypassScale()) {
-                sequence.step(stepNoteCleared).setNoteOctave(octave);
-                addNote(note, stepNoteCleared, Type::MIDI, octave);
-            } else {
-                if (scale.isNotePresent(note)) {
-                    sequence.step(stepNoteCleared).setNoteOctave(octave);
-                    addNote(note, stepNoteCleared, Type::MIDI, octave);
-                }
-            }
-        }
+    
         setKeyPressed(note, true);
     }
     /*if (_engine.recording() && _model.project().recordMode() == Types::RecordMode::StepRecord) {
@@ -502,6 +500,14 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
     auto &sequence = *_sequence;
     const auto &evalSequence = useFillSequence ? *_fillSequence : *_sequence;
 
+    if (!_arpeggiator.hold() && !isKeyPressed()) {
+        for (int i = 0; i < _noteCount; ++i) {
+            if (_notes.at(i).type == Type::MIDI) {
+                removeNote(_notes.at(i).note);
+            }
+        }
+    }
+
     if (_noteCount == 0 && sequence.hasSteps()) {
         for (int i = 0; i < 12; ++i) {
             if (sequence.step(i).gate()) {
@@ -518,14 +524,6 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
         _currentStep = -1;
         _noteOrder = 0;
         return;
-    }
-
-    if (!_arpeggiator.hold() && !isKeyPressed()) {
-        for (int i = 0; i < _noteCount; ++i) {
-            if (_notes.at(i).type == Type::MIDI) {
-                removeNote(_notes.at(i).note);
-            }
-        }
     }
 
     if (_notes.empty()) {
@@ -602,7 +600,7 @@ void ArpTrackEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNextSt
     if (stepGate || _arpTrack.cvUpdateMode() == ArpTrack::CvUpdateMode::Always) {
         const auto &scale = evalSequence.selectedScale(_model.project().scale());
         int rootNote = evalSequence.selectedRootNote(_model.project().rootNote());
-        _cvQueue.push({ Groove::applySwing(stepTick, swing()), evalStepNote(step, _arpTrack.noteProbabilityBias(), scale, rootNote, _octave+octave, transpose, sequence), step.slide() });
+        _cvQueue.push({ Groove::applySwing(stepTick, swing()), evalStepNote(step, _arpTrack.noteProbabilityBias(), scale, rootNote, _octave+octave+_notes.at(_noteIndex).octave, transpose, sequence), step.slide() });
     }
 }
 
@@ -717,10 +715,10 @@ void ArpTrackEngine::removeNote(int note) {
         if (_notes.at(i).note == note) {
             index = i;
             --_noteCount;
+            _notes.erase(_notes.begin() + index);
             break;
         }
     }
-    _notes.erase(_notes.begin() + index);
 
 }
 

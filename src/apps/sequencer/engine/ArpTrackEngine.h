@@ -180,7 +180,7 @@ private:
     int8_t _octave;
     int8_t _octaveDirection;
 
-    std::array<bool, 12> _keyPressed;
+    std::array<bool, 128> _keyPressed;
 
     int _prevPattern = 0;
 
