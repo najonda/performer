@@ -1,6 +1,6 @@
 # Changelog
 
-# v0.3.0 ()
+# v0.3.0 (02 May 2024)
 - Arpeggiator Track
 - increase stochastic rest proability to 15 steps 
 - logic track fast input visulaization (press shift)
