@@ -112,11 +112,13 @@ private:
     void sequenceEditCurveStep(int row, int col);
     void sequenceEditStochasticStep(int row, int col);
     void sequenceEditLogicStep(int row, int col);
+    void sequenceEditArpStep(int row, int col);
 
 
     void sequenceDrawLayer();
     void sequenceDrawStepRange(int highlight);
     void stochasticDrawRestProbability();
+    void arpDrawRestProbability();
     void sequenceDrawRunMode();
     void sequenceDrawFollowMode();
     void sequenceDrawSequence();
@@ -124,11 +126,16 @@ private:
     void sequenceDrawCurveSequence();
     void sequenceDrawStochasticSequence();
     void sequenceDrawLogicSequence();
+    void sequenceDrawArpSequence();
+
 
     void manageCircuitKeyboard(const Button &button);
     void manageStochasticCircuitKeyboard(const Button &button);
+    void manageArpCircuitKeyboard(const Button &button);
     void drawRunningKeyboardCircuit(int row, int col, const NoteSequence::Step &step, const Scale &scale, int rootNote);
     void drawRunningStochasticKeyboardCircuit(int row, int col, const StochasticSequence::Step &step, const Scale &scale, int rootNote);
+    void drawRunningArpKeyboardCircuit(int row, int col, const ArpSequence::Step &step, const Scale &scale, int rootNote);
+
 
     // Pattern mode
     void patternEnter();
@@ -176,13 +183,18 @@ private:
     void drawLogicSequenceNotes(const LogicSequence &sequence, LogicSequence::Layer layer, int currentStep);
     void drawLogicSequenceDots(const LogicSequence &sequence, LogicSequence::Layer layer, int currentStep);
 
+    void drawArpSequenceBits(const ArpSequence &sequence, ArpSequence::Layer layer, int currentStep);
+    void drawArpSequenceBars(const ArpSequence &sequence, ArpSequence::Layer layer, int currentStep);
+    void drawArpSequenceNotes(const ArpSequence &sequence, ArpSequence::Layer layer, int currentStep);
+    void drawArpSequenceDots(const ArpSequence &sequence, ArpSequence::Layer layer, int currentStep);
+
 
     void drawBar(int row, int amount) {
         for (int i = 0; i < 8; ++i) {
             int p = amount;
             if (i<p) {
                 setGridLed(row, i, colorYellow());    
-            } else if (i==p) {
+            } else if (i==p && p != 0) {
                 setGridLed(row, i, colorGreen());
             } else {
                 setGridLed(row, i, colorOff());

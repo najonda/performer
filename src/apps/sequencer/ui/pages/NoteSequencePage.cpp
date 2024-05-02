@@ -67,6 +67,8 @@ void NoteSequencePage::updateLeds(Leds &leds) {
 void NoteSequencePage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
 
+    functionShortcuts(event);
+
     if (key.shiftModifier() && event.count() == 2) {
         saveContextShow();
         event.consume();

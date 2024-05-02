@@ -1,5 +1,22 @@
 # Changelog
 
+# v0.3.0 ()
+- Arpeggiator Track
+- increase stochastic rest proability to 15 steps 
+- logic track fast input visulaization (press shift)
+- fix clipboard copy track
+- fix logic gate probability
+- fix rotate steps [@glibersat](https://github.com/glibersat)
+- keep sequence names when copy and paste
+- issue #100 - reorganize quick functions shortcuts
+- issue #101 - reset cv in stop parameter
+- integrate Malekko integration 
+
+> **testers** :
+>  
+> mebitek, Jil, Guillaume Libersat, XQSTKRPS, P.M. Lenneskog
+
+
 # v0.2.2 (20 March 2024)
 - Logic Track
     - per step gate logic operators

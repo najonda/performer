@@ -350,6 +350,21 @@ bool Engine::trackEnginesConsistent() const {
     return true;
 }
 
+bool Engine::trackPatternsConsistent() const {
+    auto playState = _project.playState();
+    auto firstTrackState = playState.trackState(0);
+
+    for (int trackIndex = 0; trackIndex < CONFIG_TRACK_COUNT; ++trackIndex) {
+        auto trackState = playState.trackState(trackIndex);
+
+        if (trackState.pattern() != firstTrackState.pattern()
+            || trackState.requestedPattern() != firstTrackState.requestedPattern()) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool Engine::sendMidi(MidiPort port, uint8_t cable, const MidiMessage &message) {
     switch (port) {
     case MidiPort::Midi:
@@ -361,6 +376,33 @@ bool Engine::sendMidi(MidiPort port, uint8_t cable, const MidiMessage &message) 
         break;
     }
     return false;
+}
+
+bool Engine::midiProgramChangesEnabled() {
+    return _project.midiIntegrationProgramChangesEnabled()
+        && trackPatternsConsistent()
+        && !_project.playState().snapshotActive();
+}
+
+void Engine::sendMidiProgramChange(int programNumber) {
+    if (_project.midiIntegrationMalekkoEnabled()) {
+        _midiOutputEngine.sendMalekkoSelectHandshake(0);
+    }
+    if (_project.midiIntegrationProgramChangesEnabled()) {
+        _midiOutputEngine.sendProgramChange(0, _project.midiProgramOffset() + programNumber);
+    }
+    if (_project.midiIntegrationMalekkoEnabled()) {
+        _midiOutputEngine.sendMalekkoSelectReleaseHandshake(0);
+    }
+}
+
+void Engine::sendMidiProgramSave(int programNumber) {
+    if (_project.midiIntegrationMalekkoEnabled()) {
+        _midiOutputEngine.sendMalekkoSaveHandshake(0);
+    }
+    if (_project.midiIntegrationProgramChangesEnabled()) {
+        _midiOutputEngine.sendProgramChange(0, _project.midiProgramOffset() + programNumber);
+    }
 }
 
 void Engine::showMessage(const char *text, uint32_t duration) {
@@ -432,6 +474,9 @@ void Engine::updateTrackSetups() {
                 break;
             case Track::TrackMode::Logic:
                 trackEngine = trackContainer.create<LogicTrackEngine>(*this, _model, track, linkedTrackEngine);
+                break;
+            case Track::TrackMode::Arp:
+                trackEngine = trackContainer.create<ArpTrackEngine>(*this, _model, track, linkedTrackEngine);
                 break;
             case Track::TrackMode::Last:
                 break;
@@ -506,9 +551,11 @@ void Engine::updatePlayState(bool ticked) {
     // send initial program change if we haven't sent it already
     // means that when the sequencer initially starts, it will sync connected devices to the same pattern
     // only works when all patterns are equal
-    if (_project.midiPgmChangeEnabled() && !_midiHasSentInitialPgmChange && allPatternsEqual(playState)) {
-        _midiOutputEngine.sendProgramChange(0, playState.trackState(0).pattern());
+    // we also send a program change if the midi program offset setting is updated
+    if (midiProgramChangesEnabled() && (!_midiHasSentInitialPgmChange || _project.midiProgramOffset() != _midiLastInitialProgramOffset)) {
+        sendMidiProgramChange(playState.trackState(0).pattern());
         _midiHasSentInitialPgmChange = true;
+        _midiLastInitialProgramOffset = _project.midiProgramOffset();
     }
 
     // handle mute & pattern requests
@@ -546,8 +593,8 @@ void Engine::updatePlayState(bool ticked) {
         bool shouldPreSendPgmChange = _preSendMidiPgmChange && ((changedPatterns && !playState.hasSyncedRequests())
                                                                 || (preHandleSyncedRequests && playState.hasSyncedRequests()));
 
-        if (_project.midiPgmChangeEnabled() && (shouldSendPgmChange || shouldPreSendPgmChange) && allPatternsEqual(playState)) {
-            _midiOutputEngine.sendProgramChange(0, playState.trackState(0).requestedPattern());
+        if (midiProgramChangesEnabled() && (shouldSendPgmChange || shouldPreSendPgmChange)) {
+            sendMidiProgramChange(playState.trackState(0).requestedPattern());
         }
     }
 
@@ -791,7 +838,9 @@ void Engine::monitorMidi(const MidiMessage &message) {
     if (message.isNoteOn()) {
         // detect if a different note is still active => send note off
         if (_midiMonitoring.lastNote != -1 && _midiMonitoring.lastNote != message.note()) {
-            sendMidi(currentTrack, MidiMessage::makeNoteOff(0, _midiMonitoring.lastNote));
+            if (_project.selectedTrack().trackMode()!=Track::TrackMode::Arp) {
+                sendMidi(currentTrack, MidiMessage::makeNoteOff(0, _midiMonitoring.lastNote)); //TOD verify this
+            }
         }
         // send note on
         sendMidi(currentTrack, MidiMessage::makeNoteOn(0, message.note(), message.velocity()));

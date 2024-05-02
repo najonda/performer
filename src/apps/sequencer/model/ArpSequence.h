@@ -7,9 +7,13 @@
 #include "Types.h"
 #include "Scale.h"
 #include "Routing.h"
+#include "FileDefs.h"
+
 
 #include "core/math/Math.h"
 #include "core/utils/StringBuilder.h"
+#include "core/utils/StringUtils.h"
+
 
 #include <array>
 #include <bitset>
@@ -17,7 +21,7 @@
 #include <initializer_list>
 #include <iostream>
 
-class StochasticSequence {
+class ArpSequence {
 public:
     //----------------------------------------
     // Types
@@ -31,12 +35,11 @@ public:
     typedef SignedValue<4> LengthVariationRange;
     typedef UnsignedValue<4> LengthVariationProbability;
     typedef SignedValue<7> Note;
+    typedef SignedValue<7> NoteVariationRange;
     typedef UnsignedValue<4> NoteVariationProbability;
     typedef SignedValue<3> NoteOctave;
     typedef UnsignedValue<4> NoteOctaveProbability;
     typedef UnsignedValue<7> Condition;
-    typedef UnsignedValue<3> StageRepeats;
-    typedef UnsignedValue<3> StageRepeatsMode;
 
     static_assert(int(Types::Condition::Last) <= Condition::Max + 1, "Condition enum does not fit");
 
@@ -46,11 +49,11 @@ public:
         GateOffset,
         Retrigger,
         RetriggerProbability,
-        StageRepeats,
-        StageRepeatsMode,
         Length,
         LengthVariationRange,
         LengthVariationProbability,
+        Note,
+        NoteVariationRange,
         NoteVariationProbability,
         NoteOctave,
         NoteOctaveProbability,
@@ -72,10 +75,10 @@ public:
         case Layer::LengthVariationProbability: return "LENGTH PROB";
         case Layer::NoteOctave:                 return "OCTAVE";
         case Layer::NoteOctaveProbability:      return "OCTAVE PROB";
+        case Layer::Note:                       return "NOTE";
+        case Layer::NoteVariationRange:         return "NOTE RANGE";
         case Layer::NoteVariationProbability:   return "NOTE PROB";
         case Layer::Condition:                  return "CONDITION";
-        case Layer::StageRepeats:               return "REPEAT";
-        case Layer::StageRepeatsMode:           return "REPEAT MODE";
         case Layer::Last:                       break;
         }
         return nullptr;
@@ -96,13 +99,7 @@ public:
 
     };
 
-    enum Message {
-        None,
-        LoopOn,
-        LoopOff,
-        Cleared,
-        ReSeed,
-    };
+    static constexpr size_t NameLength = FileHeader::NameLength;
 
     class Step {
 
@@ -110,21 +107,6 @@ public:
         //----------------------------------------
         // Properties
         //----------------------------------------
-        
-        // stage
-        void setStageRepeats(int repeats) {
-            _data1.stageRepeats = StageRepeats::clamp(repeats);
-        }
-        unsigned int stageRepeats() const { return _data1.stageRepeats; }
-
-        void setStageRepeatsMode(StageRepeatMode mode) {
-            _data1.stageRepeatMode = mode;
-        }
-
-        StageRepeatMode stageRepeatMode() const { 
-            int value = _data1.stageRepeatMode;
-            return static_cast<StageRepeatMode>(value); 
-        }
 
         // gate
 
@@ -198,9 +180,17 @@ public:
             _data0.note = Note::clamp(note) - Note::Min;
         }
 
+        // noteVariationRange
+
+        int noteVariationRange() const { return NoteVariationRange::Min + _data1.noteVariationRange; }
+        void setNoteVariationRange(int noteVariationRange) {
+            _data1.noteVariationRange = NoteVariationRange::clamp(noteVariationRange) - NoteVariationRange::Min;
+        }
+
         // noteOctave
 
         int noteOctave() const { return NoteOctave::Min + _data0.noteOctave; }
+        int noteOctave() { return NoteOctave::Min + _data0.noteOctave; }
         void setNoteOctave(int noteOctave) {
             _data0.noteOctave = NoteOctave::clamp(noteOctave) - NoteOctave::Min;
         }
@@ -279,8 +269,7 @@ public:
             BitField<uint32_t, 8, RetriggerProbability::Bits> retriggerProbability;
             BitField<uint32_t, 12, GateOffset::Bits> gateOffset;
             BitField<uint32_t, 16, Condition::Bits> condition;
-            BitField<uint32_t, 23, StageRepeats::Bits> stageRepeats;
-            BitField<uint32_t, 26, StageRepeatsMode::Bits> stageRepeatMode;
+            BitField<uint32_t, 23, NoteVariationRange::Bits> noteVariationRange;
             // 5 bits left
         } _data1;
     };
@@ -290,6 +279,21 @@ public:
     //----------------------------------------
     // Properties
     //----------------------------------------
+
+        int slot() const { return _slot; }
+    void setSlot(int slot) {
+        _slot = slot;
+    }
+    bool slotAssigned() const {
+        return _slot != uint8_t(-1);
+    }
+
+    // name
+
+    const char *name() const { return _name; }
+    void setName(const char *name) {
+        StringUtils::copy(_name, name, sizeof(_name));
+    }
 
     // trackIndex
 
@@ -316,6 +320,85 @@ public:
     void printScale(StringBuilder &str) const {
         printRouted(str, Routing::Target::Scale);
         str(scale() < 0 ? "Default" : Scale::name(scale()));
+    }
+
+    void printScaleAbbr(StringBuilder &str) const {
+        switch (scale()) {
+            case -1:
+                str("DFLT");
+                break;
+            case 0:
+                str("SEMT");
+                break;
+            case 1:
+                str("MJR");
+                break;
+            case 2:
+                str("MIN");
+                break;
+            case 3:
+                str("MJRB");
+                break;
+            case 4:
+                str("MINB");
+                break;
+            case 5:
+                str("MJRP");
+                break;
+            case 6:
+                str("MINP");
+                break;
+            case 7:
+                str("FOLK");
+                break;
+            case 8:
+                str("JAPN");
+                break;
+            case 9:
+                str("GAML");
+                break;
+            case 10:
+                str("GYPS");
+                break;
+            case 11:
+                str("ARAB");
+                break;
+            case 12:
+                str("FLAM");
+                break;
+            case 13:
+                str("WHLT");
+                break;
+            case 14:
+                str("5TET");
+                break;
+            case 15:
+                str("7TET");
+                break;
+            case 16:
+                str("19TET");
+                break;
+            case 17:
+                str("22TET");
+                break;
+            case 18:
+                str("24TET");
+                break;
+            case 19:
+                str("USR1");
+                break;
+            case 20:
+                str("USR2");
+                break;
+            case 21:
+                str("USR3");
+                break;
+            case 22:
+                str("USR4");
+                break;
+            default:
+                break;
+        }
     }
 
     const Scale &selectedScale(int defaultScale) const {
@@ -396,24 +479,6 @@ public:
         } else {
             str("%d %s", resetMeasure(), resetMeasure() > 1 ? "bars" : "bar");
         }
-    }
-
-    // runMode
-
-    Types::RunMode runMode() const { return _runMode.get(isRouted(Routing::Target::RunMode)); }
-    void setRunMode(Types::RunMode runMode, bool routed = false) {
-        _runMode.set(ModelUtils::clampedEnum(runMode), routed);
-    }
-
-    void editRunMode(int value, bool shift) {
-        if (!isRouted(Routing::Target::RunMode)) {
-            setRunMode(ModelUtils::adjustedEnum(runMode(), value));
-        }
-    }
-
-    void printRunMode(StringBuilder &str) const {
-        printRouted(str, Routing::Target::RunMode);
-        str(Types::runModeName(runMode()));
     }
 
     // firstStep
@@ -533,119 +598,6 @@ public:
         str("%+.1f%%", restProbability8() * 100.f/15.f);
     }
 
-    // reseed
-
-    bool reseed() const {
-        return _reseed.get(isRouted(Routing::Target::Reseed));
-    }
-
-    void setReseed(int r, bool routed = false) {
-        if (!isRouted(Routing::Target::Reseed)) {
-            _reseed.set(r, routed);
-        }
-        if (reseed()) {
-            setMessage(Message::ReSeed);
-        }
-    }
-
-    // sequence loop last step
-
-    int sequenceLastStep() const {
-        return std::max(sequenceFirstStep(), int(_sequenceLastStep.get(isRouted(Routing::Target::SequenceLastStep))));
-    }
-
-    void setSequenceLastStep(int lastStep, bool routed = false) {
-         _sequenceLastStep.set(clamp(lastStep, sequenceFirstStep(), CONFIG_STEP_COUNT - 1), routed);
-    }
-
-    void editSequenceLastStep(int value, bool shift) {
-        if (shift) {
-            offsetSequenceFirstAndLastStep(value);
-        } else if (!isRouted(Routing::Target::SequenceLastStep)) {
-            setSequenceLastStep(sequenceLastStep() + value);
-        }
-    }
-
-    void printSequenceLastStep(StringBuilder &str) const {
-        printRouted(str, Routing::Target::SequenceLastStep);
-        str("%d", sequenceLastStep()+1);
-    }
-
-    // sequence loop first step
-
-     int sequenceFirstStep() const {
-        return _sequenceFirstStep.get(isRouted(Routing::Target::SequenceFirstStep));
-    }
-
-    void setSequenceFirstStep(int firstStep, bool routed = false) {
-        _sequenceFirstStep.set(clamp(firstStep, 0, sequenceLastStep()), routed);
-    }
-
-    void editSequenceFirstStep(int value, bool shift) {
-        if (shift) {
-            offsetSequenceFirstAndLastStep(value);
-        } else if (!isRouted(Routing::Target::FirstStep)) {
-            setSequenceFirstStep(sequenceFirstStep() + value);
-        }
-    }
-
-    void printSequenceFirstStep(StringBuilder &str) const {
-        printRouted(str, Routing::Target::SequenceFirstStep);
-        str("%d", sequenceFirstStep()+1);
-    }
-
-    // sequence length
-
-    int sequenceLength() {
-        return _sequenceLastStep.base - _sequenceFirstStep.base + 1;
-    }
-
-    // buffer loop length
-
-    int bufferLoopLength() {
-        int bufferLoopLength = 16;
-        if (_sequenceLastStep.base > 15) {
-            bufferLoopLength = _sequenceLastStep.base+1;
-        } 
-        return bufferLoopLength;
-    }
-
-    // use loop
-
-    void setUseLoop() {
-        _useLoop = !_useLoop;
-        if (_useLoop) {
-            setMessage(Message::LoopOn);
-        } else {
-            setMessage(Message::LoopOff);
-        }
-    }
-
-    void setUseLoop(bool value) {
-        _useLoop = value;
-    }
-
-    bool useLoop() {
-        return _useLoop;
-    }
-
-    const bool useLoop() const { return _useLoop;}
-
-    // clear loop
-
-    void setClearLoop(bool clearLoop) {
-        _clearLoop = clearLoop;
-        if (_clearLoop) {
-            setMessage(Message::Cleared);
-        }
-    }
-
-    bool clearLoop() {
-        return _clearLoop;
-    }
-
-    const bool clearLoop() const { return _clearLoop; }
-
     // low octave range
 
     int lowOctaveRange() const { return _lowOctaveRange.get(isRouted(Routing::Target::LowOctaveRange)); }
@@ -686,7 +638,7 @@ public:
 
     int lengthModifier() const { return _lengthModifier.get(isRouted(Routing::Target::LengthModifier)); }
     void setLengthModifier(int length, bool routed = false) {
-        _lengthModifier.set(clamp(length, -StochasticSequence::NoteVariationProbability::Range, StochasticSequence::NoteVariationProbability::Range), routed);
+        _lengthModifier.set(clamp(length, -ArpSequence::NoteVariationProbability::Range, ArpSequence::NoteVariationProbability::Range), routed);
     }
 
     void editLengthModifier(int value, bool shift) {
@@ -700,25 +652,15 @@ public:
         str("%+.1f%%", lengthModifier() * 12.5f);
     }
 
-
-    Message message() {
-        return _message;
-    }
-
-    void setMessage(Message message) {
-        _message = message;
-    }
-
-    const bool isEmpty() const {
+    const bool hasSteps() const {
         for (int i = 0; i < 12; ++i) {
             auto s = step(i);
             if (s.gate()) {
-                return false;
+                return true;
             }
         }
-        return true;
+        return false;
     }
-
 
     // steps
 
@@ -740,7 +682,7 @@ public:
     // Methods
     //----------------------------------------
 
-    StochasticSequence() { clear(); }
+    ArpSequence() { clear(); }
 
     void clear();
     void clearSteps();
@@ -755,7 +697,7 @@ public:
     void duplicateSteps();
 
     void write(VersionedSerializedWriter &writer) const;
-    void read(VersionedSerializedReader &reader);
+    bool read(VersionedSerializedReader &reader);
 
 private:
     void setTrackIndex(int trackIndex) { _trackIndex = trackIndex; }
@@ -771,33 +713,19 @@ private:
         }
     }
 
-    void offsetSequenceFirstAndLastStep(int value) {
-        value = clamp(value, -sequenceFirstStep(), CONFIG_STEP_COUNT - 1 - sequenceLastStep());
-        if (value > 0) {
-            editSequenceLastStep(value, false);
-            editSequenceFirstStep(value, false);
-        } else {
-            editSequenceFirstStep(value, false);
-            editSequenceLastStep(value, false);
-        }
-    }
-
+    uint8_t _slot = uint8_t(-1);
+    char _name[NameLength + 1];
     int8_t _trackIndex = -1;
     Routable<int8_t> _scale;
     Routable<int8_t> _rootNote;
     Routable<uint16_t> _divisor;
     uint8_t _resetMeasure;
-    Routable<Types::RunMode> _runMode;
     uint8_t _firstStep;
     uint8_t _lastStep;
-    Routable<bool> _reseed;
 
     Routable<int8_t> _restProbability2;
     Routable<int8_t> _restProbability4;
     Routable<int8_t> _restProbability8;
-
-    Routable<uint8_t> _sequenceLastStep;
-    Routable<uint8_t> _sequenceFirstStep;
 
     Routable<int8_t> _lowOctaveRange;
     Routable<int8_t> _highOctaveRange;
@@ -806,10 +734,5 @@ private:
     
     StepArray _steps;
 
-    bool _useLoop = false;
-    bool _clearLoop = false;
-
-    Message _message = Message::None;
-
-    friend class StochasticTrack;
+    friend class ArpTrack;
 };

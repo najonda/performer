@@ -183,7 +183,7 @@ void LogicSequenceEditPage::draw(Canvas &canvas) {
         // step gate
         canvas.setColor(stepIndex == currentStep ? Color::Bright : Color::Medium);
         canvas.drawRect(x + 2, y + 2, stepWidth - 4, stepWidth - 4);
-        if (evalStep.logicStep()) {
+        if (evalStep.logicStep() && !globalKeyState()[Key::Shift]) {
             canvas.setColor(_context.model.settings().userSettings().get<DimSequenceSetting>(SettingDimSequence)->getValue() ? Color::Low : Color::Bright);
             if (stepIndex == currentStep) {
                 if (trackEngine.gateOutput(currentStep)) {
@@ -399,6 +399,8 @@ void LogicSequenceEditPage::keyPress(KeyPressEvent &event) {
     auto &sequence = _project.selectedLogicSequence();
     auto &track = _project.selectedTrack().logicTrack();
 
+    functionShortcuts(event);
+
     if (key.isContextMenu()) {
         contextShow();
         event.consume();
@@ -531,7 +533,7 @@ void LogicSequenceEditPage::keyPress(KeyPressEvent &event) {
         if (key.shiftModifier()) {
             _inMemorySequence = _project.selectedLogicSequence();
             sequence.shiftSteps(_stepSelection.selected(), -1);
-            _stepSelection.shiftLeft();
+            _stepSelection.shiftLeft(sequence.firstStep(), sequence.lastStep()-1);
         } else {
             track.setPatternFollowDisplay(false);
              sequence.setSecion(std::max(0, sequence.section() - 1));
@@ -542,7 +544,7 @@ void LogicSequenceEditPage::keyPress(KeyPressEvent &event) {
         if (key.shiftModifier()) {
             _inMemorySequence = _project.selectedLogicSequence();
             sequence.shiftSteps(_stepSelection.selected(), 1);
-            _stepSelection.shiftRight();
+            _stepSelection.shiftRight(sequence.firstStep(), sequence.lastStep()-1);
         } else {
             track.setPatternFollowDisplay(false);
             sequence.setSecion(std::min(3, sequence.section() + 1));

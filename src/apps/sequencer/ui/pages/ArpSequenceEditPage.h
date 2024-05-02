@@ -3,38 +3,17 @@
 #include "BasePage.h"
 
 #include "ui/StepSelection.h"
-#include "ui/model/LogicSequenceListModel.h"
+#include "ui/model/ArpSequenceListModel.h"
+#include "ui/model/ArpTrackListModel.h"
 
 #include "engine/generators/SequenceBuilder.h"
 #include "ui/KeyPressEventTracker.h"
 
 #include "core/utils/Container.h"
 
-class EvalStep {
-    public:
-        EvalStep() {}
-
-        int stepIndex() { return _stepIndex;}
-        bool logicStep() { return _logicStep;}
-        bool input1Step() { return _input1Step;}
-        bool input2Step() { return _input2Step;}
-
-        void setStepIndex(int value) { _stepIndex = value; }
-        void setLogicStep(bool value) {_logicStep = value; }
-        void setInput1Step(bool value) {_input1Step = value; }
-        void setInput2Step(bool value) {_input2Step = value; }
-
-
-    private:
-        uint8_t _stepIndex;
-        bool _logicStep = false;
-        bool _input1Step = false;
-        bool _input2Step = false; 
-};
-
-class LogicSequenceEditPage : public BasePage {
+class ArpSequenceEditPage : public BasePage {
 public:
-    LogicSequenceEditPage(PageManager &manager, PageContext &context);
+    ArpSequenceEditPage(PageManager &manager, PageContext &context);
 
     virtual void enter() override;
     virtual void exit() override;
@@ -49,17 +28,17 @@ public:
     virtual void midi(MidiEvent &event) override;
 
 private:
-    typedef LogicSequence::Layer Layer;
+    typedef ArpSequence::Layer Layer;
 
     static const int StepCount = 16;
 
-    int stepOffset() const { return _project.selectedLogicSequence().section() * StepCount; }
+    int stepOffset() const { return _section * StepCount; }
 
     void switchLayer(int functionKey, bool shift);
     int activeFunctionKey();
 
     void updateMonitorStep();
-    void drawDetail(Canvas &canvas, const LogicSequence::Step &step);
+    void drawDetail(Canvas &canvas, const ArpSequence::Step &step);
 
     void contextShow(bool doubleClick = false);
     void contextAction(int index);
@@ -78,23 +57,23 @@ private:
     void setSelectedStepsGate(bool gate);
 
     void setSectionTracking(bool track);
-    bool isSectionTracking();
-    void toggleSectionTracking();
 
-    LogicSequence::Layer layer() const { return _project.selectedLogicSequenceLayer(); };
-    void setLayer(LogicSequence::Layer layer) { _project.setSelectedLogicSequenceLayer(layer); }
+    ArpSequence::Layer layer() const { return _project.selectedArpSequenceLayer(); };
+    void setLayer(ArpSequence::Layer layer) { _project.setSelectedArpSequenceLayer(layer); }
 
+    int _section = 0;
+    bool _sectionTracking = false;
     bool _showDetail;
     uint32_t _showDetailTicks;
 
     KeyPressEventTracker _keyPressEventTracker;
 
 
-    LogicSequenceListModel _listModel;
+    ArpSequenceListModel _listModel;
+    ArpTrackListModel _trackListModel;
 
     StepSelection<CONFIG_STEP_COUNT> _stepSelection;
 
-    Container<LogicSequenceBuilder> _builderContainer;
+    Container<ArpSequenceBuilder> _builderContainer;
 
-    LogicSequence _inMemorySequence;
 };

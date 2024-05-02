@@ -51,6 +51,8 @@ void TrackPage::updateLeds(Leds &leds) {
 void TrackPage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
 
+    functionShortcuts(event);
+
     if (key.isContextMenu()) {
         contextShow();
         event.consume();
@@ -106,6 +108,13 @@ void TrackPage::keyPress(KeyPressEvent &event) {
                 _manager.pages().textInput.show("NAME:", _logicTrack->name(), LogicTrack::NameLength, [this] (bool result, const char *text) {
                     if (result) {
                         _project.selectedTrack().logicTrack().setName(text);
+                    }
+                 });
+            break;  
+            case Track::TrackMode::Arp:
+                _manager.pages().textInput.show("NAME:", _arpTrack->name(), ArpTrack::NameLength, [this] (bool result, const char *text) {
+                    if (result) {
+                        _project.selectedTrack().arpTrack().setName(text);
                     }
                  });
             break;  
@@ -209,7 +218,12 @@ void TrackPage::setTrack(Track &track) {
         _logicTrackListModel.setTrack(track.logicTrack());
         newListModel = &_logicTrackListModel;
         _logicTrack = &track.logicTrack();
-        break;    
+        break;   
+    case Track::TrackMode::Arp:
+        _arpTrackListModel.setTrack(track.arpTrack());
+        newListModel = &_arpTrackListModel;
+        _arpTrack = &track.arpTrack();
+        break;   
     case Track::TrackMode::Last:
         ASSERT(false, "invalid track mode");
         break;

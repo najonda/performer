@@ -166,6 +166,10 @@ void StochasticEngine::reset() {
     _activity = false;
     _gateOutput = false;
     _slideActive = false;
+    if (_model.project().resetCvOnStop()) {
+        _cvOutput = 0.f;
+        _cvOutputTarget = 0.f;
+    }
     _gateQueue.clear();
     _cvQueue.clear();
     _recordHistory.clear();

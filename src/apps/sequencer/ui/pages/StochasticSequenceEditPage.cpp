@@ -386,6 +386,8 @@ void StochasticSequenceEditPage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
     auto &sequence = _project.selectedStochasticSequence();
 
+    functionShortcuts(event);
+
     if (key.isContextMenu()) {
         contextShow();
         event.consume();

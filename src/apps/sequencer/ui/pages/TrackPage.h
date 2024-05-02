@@ -7,6 +7,7 @@
 #include "ui/model/MidiCvTrackListModel.h"
 #include "ui/model/StochasticTrackListModel.h"
 #include "ui/model/LogicTrackListModel.h"
+#include "ui/model/ArpTrackListModel.h"
 
 
 class TrackPage : public ListPage {
@@ -39,6 +40,7 @@ private:
     MidiCvTrackListModel _midiCvTrackListModel;
     StochasticTrackListModel _stochasticTrackListModel;
     LogicTrackListModel _logicTrackListModel;
+    ArpTrackListModel _arpTrackListModel;
 
     Track *_track;
     
@@ -47,4 +49,5 @@ private:
     MidiCvTrack *_midiCvTrack;
     StochasticTrack *_stochasticTrack;
     LogicTrack *_logicTrack;
+    ArpTrack *_arpTrack;
 };

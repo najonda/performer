@@ -6,6 +6,7 @@
 #include "ui/model/CurveSequenceListModel.h"
 #include "ui/model/StochasticSequenceListModel.h"
 #include "ui/model/LogicSequenceListModel.h"
+#include "ui/model/ArpSequenceListModel.h"
 
 class OverviewPage : public BasePage {
 public:
@@ -28,6 +29,8 @@ private:
     void drawStochasticDetail(Canvas &canvas, const StochasticSequence::Step &step);
     void drawCurveDetail(Canvas &canvas, const CurveSequence::Step &step);
     void drawLogicDetail(Canvas &canvas, const LogicSequence::Step &step);
+    void drawArpDetail(Canvas &canvas, const ArpSequence::Step &step);
+
     void updateMonitorStep();
     void quickEdit(int index);
 
@@ -59,5 +62,6 @@ private:
     CurveSequenceListModel _curveListModel;
     StochasticSequenceListModel _stochasticListModel;
     LogicSequenceListModel _logicListModel;
+    ArpSequenceListModel _arpListModel;
 
 };

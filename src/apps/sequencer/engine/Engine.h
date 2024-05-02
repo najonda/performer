@@ -14,6 +14,7 @@
 #include "MidiOutputEngine.h"
 #include "StochasticEngine.h"
 #include "LogicTrackEngine.h"
+#include "ArpTrackEngine.h"
 #include "MidiPort.h"
 #include "MidiLearn.h"
 #include "CvGateToMidiConverter.h"
@@ -35,7 +36,7 @@
 
 class Engine : private Clock::Listener {
 public:
-    typedef Container<NoteTrackEngine, CurveTrackEngine, MidiCvTrackEngine, StochasticEngine, LogicTrackEngine> TrackEngineContainer;
+    typedef Container<NoteTrackEngine, CurveTrackEngine, MidiCvTrackEngine, StochasticEngine, LogicTrackEngine, ArpTrackEngine> TrackEngineContainer;
     typedef std::array<TrackEngineContainer, CONFIG_TRACK_COUNT> TrackEngineContainerArray;
     typedef std::array<TrackEngine *, CONFIG_TRACK_COUNT> TrackEngineArray;
     typedef std::array<UpdateReducer<os::time::ms(25)>, CONFIG_TRACK_COUNT> TrackUpdateReducerArray;
@@ -150,11 +151,15 @@ public:
           MidiLearn &midiLearn()       { return _midiLearn; }
 
     bool trackEnginesConsistent() const;
+    bool trackPatternsConsistent() const;
 
     bool sendMidi(MidiPort port, uint8_t cable, const MidiMessage &message);
     void setMidiReceiveHandler(MidiReceiveHandler handler) { _midiReceiveHandler = handler; }
     void setUsbMidiConnectHandler(UsbMidiConnectHandler handler) { _usbMidiConnectHandler = handler; }
     void setUsbMidiDisconnectHandler(UsbMidiDisconnectHandler handler) { _usbMidiDisconnectHandler = handler; }
+    bool midiProgramChangesEnabled();
+    void sendMidiProgramChange(int programNumber);
+    void sendMidiProgramSave(int programNumber);
 
     // message handling
     void showMessage(const char *text, uint32_t duration = 1000);
@@ -254,6 +259,7 @@ private:
     // TODO Could be a setting if needed
     static const bool _preSendMidiPgmChange = true;
     bool _midiHasSentInitialPgmChange = false;
+    int _midiLastInitialProgramOffset = -1;
 
     // gate output overrides
     bool _gateOutputOverride = false;

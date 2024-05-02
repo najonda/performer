@@ -52,6 +52,17 @@ static const StochasticSequenceListModel::Item stochasticQuickEditItems[8] = {
     StochasticSequenceListModel::Item::Last
 };
 
+static const ArpSequenceListModel::Item arpQuickEditItems[8] = {
+    ArpSequenceListModel::Item::Last,
+    ArpSequenceListModel::Item::Last,
+    ArpSequenceListModel::Item::Last,
+    ArpSequenceListModel::Item::Divisor,
+    ArpSequenceListModel::Item::ResetMeasure,
+    ArpSequenceListModel::Item::Scale,
+    ArpSequenceListModel::Item::RootNote,
+    ArpSequenceListModel::Item::Last
+};
+
 static void drawNoteTrack(Canvas &canvas, int trackIndex, const NoteTrackEngine &trackEngine, NoteSequence &sequence, bool running, bool patternFollow) {
     canvas.setBlendMode(BlendMode::Set);
 
@@ -163,6 +174,37 @@ static void drawStochasticTrack(Canvas &canvas, int trackIndex, const Stochastic
 
 }
 
+static void drawArpTrack(Canvas &canvas, int trackIndex, const ArpTrackEngine &trackEngine, const ArpSequence &sequence, const Scale &scale) {
+
+    canvas.setBlendMode(BlendMode::Set);
+
+    int stepOffset = (std::max(0, trackEngine.currentStep()) / 12) * 12;
+    int y = trackIndex * 8;
+
+    for (int i = 0; i < 12; ++i) {
+        
+        int stepIndex = stepOffset + i;
+        const auto &step = sequence.step(stepIndex);
+
+        int x = 16 + (76+ i * 8);
+
+        if (trackEngine.currentStep() == stepIndex) {
+            canvas.setColor(step.gate() ? Color::Bright : Color::MediumBright);
+            canvas.fillRect(x + 1, y + 1, 6, 6);
+            
+        } else {
+            canvas.setColor(step.gate() ? Color::Medium : Color::Low);
+            canvas.fillRect(x + 1, y + 1, 6, 6);
+        }
+        if (step.gate() && scale.isNotePresent(step.note())) {
+            canvas.setBlendMode(BlendMode::Sub);
+            canvas.fillRect(x + 3, y + 3, 3, 3);
+            canvas.setBlendMode(BlendMode::Set);
+        }
+    }
+
+}
+
 static void drawCurveTrack(Canvas &canvas, int trackIndex, const CurveTrackEngine &trackEngine, CurveSequence &sequence, bool running, bool patternFollow) {
     canvas.setBlendMode(BlendMode::Add);
     canvas.setColor(Color::MediumBright);
@@ -213,6 +255,8 @@ void OverviewPage::exit() {
         _engine.selectedTrackEngine().as<NoteTrackEngine>().setMonitorStep(-1);
     } else if (_project.selectedTrack().trackMode()==Track::TrackMode::Logic) {
         _engine.selectedTrackEngine().as<LogicTrackEngine>().setMonitorStep(-1);
+    } else if (_project.selectedTrack().trackMode()==Track::TrackMode::Arp) {
+        _engine.selectedTrackEngine().as<ArpTrackEngine>().setMonitorStep(-1);
     }
 }
 
@@ -267,14 +311,19 @@ void OverviewPage::draw(Canvas &canvas) {
                     canvas.drawText(2, y, str);
                 }
                 break;
+            case Track::TrackMode::Arp: {
+                    FixedStringBuilder<16> str("%s%s", _project.selectedTrackIndex() == trackIndex ? "+" : "", track.arpTrack().name());
+                    canvas.drawText(2, y, str);
+                }
+                break;
             default:
                 break;
         }  
 
-        if (trackState.pattern()>9) {
+        if (trackState.pattern()>=9) {
             canvas.fillRect(56 - 1, y - 5, 16,7);
         } else {
-            canvas.fillRect(56 - 1, y - 5, 12,7);
+            canvas.fillRect(56 - 1, y - 5, 13,7);
         }
         
         canvas.setBlendMode(BlendMode::Sub);
@@ -327,6 +376,16 @@ void OverviewPage::draw(Canvas &canvas) {
                 drawLogicTrack(canvas, trackIndex, trackEngine.as<LogicTrackEngine>(), track.logicTrack().sequence(trackState.pattern()), _engine.state().running(), patterFolow);  
             }
             break;
+        case Track::TrackMode::Arp: {
+                const auto &sequence = track.arpTrack().sequence(trackState.pattern());
+                const auto &scale = sequence.selectedScale(_project.scale());
+
+                if (track.arpTrack().midiKeyboard()) {
+                    canvas.drawText(256 - 46, y, FixedStringBuilder<8>("K"));
+                }
+                drawArpTrack(canvas, trackIndex, trackEngine.as<ArpTrackEngine>(), sequence, scale);
+            }
+            break;
         case Track::TrackMode::MidiCv:
             break;
         case Track::TrackMode::Last:
@@ -363,6 +422,10 @@ void OverviewPage::draw(Canvas &canvas) {
                     drawLogicDetail(canvas, sequence.step(_stepSelection.first()));
                 }
                 break;
+            case Track::TrackMode::Arp: {
+                auto &sequence = _project.selectedArpSequence();
+                drawArpDetail(canvas, sequence.step(_stepSelection.first()));
+            }
             default:
                 break;
         }
@@ -438,6 +501,21 @@ void OverviewPage::updateLeds(Leds &leds) {
             
             }
             break;
+        case Track::TrackMode::Arp: {
+            const auto &trackEngine = _engine.selectedTrackEngine().as<ArpTrackEngine>();
+            auto &sequence = _project.selectedArpSequence();
+            int currentStep = trackEngine.isActiveSequence(sequence) ? trackEngine.currentStep() : -1;
+
+            for (int i = 0; i < 16; ++i) {
+                int stepIndex = stepOffset() + i;
+                bool red = (stepIndex == currentStep) || _stepSelection[stepIndex];
+                bool green = (stepIndex != currentStep) && (sequence.step(stepIndex).gate() || _stepSelection[stepIndex]);
+                leds.set(MatrixMap::fromStep(i), red, green);
+            }
+
+            LedPainter::drawSelectedSequenceSection(leds, 0);
+            }
+            break;
         default:
             break;
     }
@@ -458,6 +536,9 @@ void OverviewPage::updateLeds(Leds &leds) {
                     break;
                 case Track::TrackMode::Logic:
                     leds.set(index, false, logicQuickEditItems[i] != LogicSequenceListModel::Item::Last);
+                    break;
+                case Track::TrackMode::Arp:
+                    leds.set(index, false, arpQuickEditItems[i] != ArpSequenceListModel::Item::Last);
                     break;
                 default:
                     break;
@@ -482,6 +563,7 @@ void OverviewPage::keyUp(KeyEvent &event) {
 void OverviewPage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
     
+    functionShortcuts(event);
 
     if (key.isGlobal()) {
         return;
@@ -524,6 +606,14 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
                     
                 }
                 break;
+            case Track::TrackMode::Arp: {
+                auto &track = _project.selectedTrack().arpTrack();
+                if (key.is(Key::Step15)) {
+                    track.toggleMidiKeybaord();
+                } else {
+                    quickEdit(key.quickEdit());
+                }
+            }
             default:
                 break;
         }
@@ -584,7 +674,6 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
         _project.selectedStochasticSequence().setUseLoop(!loop);
         event.consume();
         return;;
-
     }
 
 
@@ -676,6 +765,13 @@ void OverviewPage::keyPress(KeyPressEvent &event) {
             showMessage(str);
             break;
             }
+            case Track::TrackMode::Arp: {
+                    int stepIndex = stepOffset() + key.step();
+                    auto &sequence = _project.selectedArpSequence();
+                    sequence.step(stepIndex).toggleGate();
+                    event.consume();
+                }
+                break;
             default:
                 break;
         }
@@ -1101,6 +1197,10 @@ void OverviewPage::drawLogicDetail(Canvas &canvas, const LogicSequence::Step &st
 
 }
 
+void OverviewPage::drawArpDetail(Canvas &canvas, const ArpSequence::Step &step) {
+
+}
+
 void OverviewPage::updateMonitorStep() {
 
     switch (_project.selectedTrack().trackMode()) {
@@ -1130,6 +1230,14 @@ void OverviewPage::updateMonitorStep() {
             break;
         case Track::TrackMode::Logic: {
                 auto &trackEngine = _engine.selectedTrackEngine().as<LogicTrackEngine>();
+                // TODO should we monitor an all layers not just note?
+                if (_stepSelection.any()) {
+                    trackEngine.setMonitorStep(_stepSelection.first());
+                }   
+            }
+            break;
+        case Track::TrackMode::Arp: {
+                auto &trackEngine = _engine.selectedTrackEngine().as<ArpTrackEngine>();
                 // TODO should we monitor an all layers not just note?
                 if (_stepSelection.any()) {
                     trackEngine.setMonitorStep(_stepSelection.first());
@@ -1175,6 +1283,15 @@ void OverviewPage::quickEdit(int index) {
                 _logicListModel.setSequence(&_project.selectedLogicSequence());
                 if (logicQuickEditItems[index] != LogicSequenceListModel::Item::Last) {
                     _manager.pages().quickEdit.show(_logicListModel, int(logicQuickEditItems[index]));
+                }
+            }
+            break;
+        case Track::TrackMode::Arp: {
+                ArpSequenceListModel _listModel;
+
+                _arpListModel.setSequence(&_project.selectedArpSequence());
+                if (arpQuickEditItems[index] != ArpSequenceListModel::Item::Last) {
+                    _manager.pages().quickEdit.show(_arpListModel, int(arpQuickEditItems[index]));
                 }
             }
             break;

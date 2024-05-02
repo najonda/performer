@@ -29,6 +29,7 @@ public:
 protected:
     void showMessage(const char *text, uint32_t duration = 1000);
     void showContextMenu(const ContextMenu &contextMenu);
+    void functionShortcuts(KeyPressEvent event);
 
     const KeyState &pageKeyState() const { return _context.pageKeyState; }
     const KeyState &globalKeyState() const { return _context.globalKeyState; }
