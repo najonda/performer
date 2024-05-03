@@ -162,6 +162,8 @@ bool Project::read(VersionedSerializedReader &reader) {
     }
     if (reader.dataVersion() >= ProjectVersion::Version32) {
         reader.skip<bool>(ProjectVersion::Version32, ProjectVersion::Version38);
+        setMidiIntegrationMode(Types::MidiIntegrationMode::None);
+        setMidiProgramOffset(0);
     }
     if (reader.dataVersion() >= ProjectVersion::Version38) {
         reader.read(_midiIntegrationMode);
