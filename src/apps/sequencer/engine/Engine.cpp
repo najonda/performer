@@ -661,8 +661,7 @@ void Engine::updatePlayState(bool ticked) {
     }
 
     // handle song slot change
-
-   if (songState.playing()) {
+    if (songState.playing()) {
         const auto &slot = song.slot(songState.currentSlot());
         int currentSlot = songState.currentSlot();
         int currentRepeat = songState.currentRepeat();
@@ -685,6 +684,11 @@ void Engine::updatePlayState(bool ticked) {
                     sendMidiProgramChange(firstPattern);
                 }
             }
+
+            // TODO There is a possible race condition with synced patterns here
+            // If song mode is active, we pre-send the program change,
+            // and a user syncs a pattern change after it was pre-sent
+            // we will not send the program change for the synced pattern change
             _pendingPreHandle = PreHandleComplete;
         }
 
@@ -705,10 +709,9 @@ void Engine::updatePlayState(bool ticked) {
                 for (int trackIndex = 0; trackIndex < CONFIG_TRACK_COUNT; ++trackIndex) {
                     _trackEngines[trackIndex]->restart();
                 }
-
             }
         }
-    }       
+    }   
 
     // abort song mode if slot becomes invalid
 
@@ -819,13 +822,14 @@ void Engine::receiveMidi(MidiPort port, uint8_t cable, const MidiMessage &messag
         return;
     }
 
-       // handle program changes
+    // handle program changes
     if (message.isProgramChange() && _project.midiIntegrationProgramChangesEnabled()) {
         auto &playState = _project.playState();
         // if requested pattern > 16, we wrap around and start from the beginning
         // this allows other gear that may send fixed program changes based on the pattern
         // to still select some sequence on the performer on patterns > 16
         int requestedPattern = message.programNumber() % CONFIG_PATTERN_COUNT;
+
         for (int trackIndex = 0; trackIndex < CONFIG_TRACK_COUNT; ++trackIndex) {
             playState.selectTrackPattern(trackIndex, requestedPattern, PlayState::ExecuteType::Immediate);
         }
