@@ -869,7 +869,9 @@ void LaunchpadController::manageArpCircuitKeyboard(const Button &button) {
                 selectedNote = noteIndex; 
                 if (arpTrack.midiKeyboard()) {
                     auto &trackEngine = _engine.trackEngine(_project.selectedTrackIndex()).as<ArpTrackEngine>();
-                    trackEngine.addNote(selectedNote, noteIndex, ArpTrackEngine::Type::MIDI, (bypasssScale.notesPerOctave()*selectedOctave));
+                    trackEngine.addNote(selectedNote, noteIndex, ArpTrackEngine::Type::MIDI, 0);
+                    auto &sequence = _project.selectedArpSequence();
+                    sequence.step(noteIndex).setNoteOctave(selectedOctave);
                     trackEngine.setKeyPressed(noteIndex, true);
                 }
                     
@@ -2218,18 +2220,6 @@ void LaunchpadController::navigationButtonDown(Navigation &navigation, const But
         if (col >= navigation.left && col <= navigation.right && row >= navigation.bottom && row <= navigation.top) {
             navigation.col = col;
             navigation.row = row;
-            switch (_project.selectedTrack().trackMode()) {
-                case Track::TrackMode::Note: {
-                    auto &sequence = _project.selectedNoteSequence();
-                    if (_project.selectedNoteSequenceLayer()==NoteSequence::Layer::Note) {
-                        sequence.setSecion(col);
-                    }
-                }
-                break;
-                default:
-                    break;
-            }
-
         }
     }
 }
