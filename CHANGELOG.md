@@ -1,5 +1,10 @@
 # Changelog
 
+# v0.3.1 ()
+- issue #111 - fix program change
+- issue #112 - fix launchpad follow mode
+- fix fill display 
+
 # v0.3.0 (02 May 2024)
 - Arpeggiator Track
 - increase stochastic rest proability to 15 steps 
