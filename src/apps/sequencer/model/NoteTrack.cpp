@@ -72,6 +72,7 @@ void NoteTrack::write(VersionedSerializedWriter &writer) const {
     writer.write(_logicTrack);
     writer.write(_logicTrackInput);
     writeArray(writer, _sequences);
+    writer.write(_patternFollow);
 }
 
 void NoteTrack::read(VersionedSerializedReader &reader) {
@@ -101,4 +102,5 @@ void NoteTrack::read(VersionedSerializedReader &reader) {
     }
 
     readArray(reader, _sequences);
+    reader.read(_patternFollow, ProjectVersion::Version39);
 }

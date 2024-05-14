@@ -111,6 +111,9 @@ enum ProjectVersion {
     // add arp track and malekko integration
     Version38 = 38,
 
+    // add pattern follow
+    Version39 = 39,
+
 
     // automatically derive latest version
     Last,
