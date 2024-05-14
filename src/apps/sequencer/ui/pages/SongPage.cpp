@@ -218,8 +218,6 @@ void SongPage::keyPress(KeyPressEvent &event) {
     auto &playState = _project.playState();
     uint8_t selectedTracks = pressedTrackKeys();
 
-    functionShortcuts(event); 
-
     if (key.isContextMenu()) {
         contextShow();
         event.consume();

@@ -35,8 +35,6 @@ void LayoutPage::draw(Canvas &canvas) {
 void LayoutPage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
 
-    //functionShortcuts(event);
-
     if (key.isFunction()) {
         if (key.function() == 4 && _mode == Mode::TrackMode && !_trackModeListModel.sameAsProject(_project)) {
             _manager.pages().confirmation.show("ARE YOU SURE?", [this] (bool result) {

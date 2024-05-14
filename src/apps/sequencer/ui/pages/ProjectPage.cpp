@@ -65,8 +65,6 @@ void ProjectPage::keyPress(KeyPressEvent &event) {
         return;
     }
 
-    //functionShortcuts(event);
-
     if (key.pageModifier()) {
         // easter egg
         if (key.is(Key::Step15)) {
