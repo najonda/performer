@@ -243,10 +243,8 @@ bool CurveTrackEngine::isRecording() const {
     bool val =
         _engine.state().recording() &&
         _curveTrack.curveCvInput() != Types::CurveCvInput::Off;
-        //&&
-        //_model.project().selectedTrackIndex() == _track.trackIndex();
 
-    if (!_track.curveTrack().useMultiCvRec()) {
+    if (!_model.project().useMultiCvRec()) {
         return val && _model.project().selectedTrackIndex() == _track.trackIndex();
     }
     return val;

@@ -214,22 +214,6 @@ public:
         str(Types::curveCvInput(_curveCvInput));
     }
 
-    // use multi cv recording
-    bool useMultiCvRec() const { return _useMultiCv;}
-
-    void editUseMultiCvRec(int value) {
-        _useMultiCv = value == 1;
-    }
-
-    void printUseMultiCvRec(StringBuilder &str) const {
-        if (_useMultiCv) str("On");
-        else str("Off");
-    }
-
-    void setUseMultiCvRec(bool enabled) {
-        _useMultiCv = enabled;
-    }
-
     // min
 
     float min() const { return _min.get(isRouted(Routing::Target::CurveMin)); }
@@ -321,7 +305,6 @@ private:
     Routable<float> _max;
 
     Types::CurveCvInput _curveCvInput;
-    bool _useMultiCv;
 
     CurveSequenceArray _sequences;
 
