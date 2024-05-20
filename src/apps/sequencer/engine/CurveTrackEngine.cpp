@@ -240,11 +240,16 @@ void CurveTrackEngine::updateOutput(uint32_t relativeTick, uint32_t divisor) {
 }
 
 bool CurveTrackEngine::isRecording() const {
-    return
+    bool val =
         _engine.state().recording() &&
         _curveTrack.curveCvInput() != Types::CurveCvInput::Off;
         //&&
         //_model.project().selectedTrackIndex() == _track.trackIndex();
+
+    if (!_track.curveTrack().useMultiCvRec()) {
+        return val && _model.project().selectedTrackIndex() == _track.trackIndex();
+    }
+    return val;
 }
 
 void CurveTrackEngine::updateRecordValue() {

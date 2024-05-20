@@ -42,6 +42,7 @@ void CurveTrack::clear() {
     setCurveCvInput(Types::CurveCvInput::Off);
     setMin(0);
     setMax(CurveSequence::Max::max());
+    setUseMultiCvRec(true);
 
     for (auto &sequence : _sequences) {
         sequence.clear();
@@ -64,6 +65,7 @@ void CurveTrack::write(VersionedSerializedWriter &writer) const {
     writer.write(_max);
     writeArray(writer, _sequences);
     writer.write(_patternFollow);
+    writer.write(_useMultiCv);
 }
 
 void CurveTrack::read(VersionedSerializedReader &reader) {
@@ -81,4 +83,5 @@ void CurveTrack::read(VersionedSerializedReader &reader) {
     reader.read(_max, ProjectVersion::Version37);
     readArray(reader, _sequences);
     reader.read(_patternFollow, ProjectVersion::Version39);
+    reader.read(_useMultiCv, ProjectVersion::Version39);
 }
