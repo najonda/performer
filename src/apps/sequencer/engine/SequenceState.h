@@ -26,6 +26,7 @@ public:
 
 private:
     void advanceRandomWalk(int firstStep, int lastStep, Random &rng);
+    void advanceDrunkenWalk(int firstStep, int lastStep, Random &rng);
 
     int8_t _step;
     int8_t _prevStep;

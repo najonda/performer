@@ -151,6 +151,7 @@ public:
         PingPong,
         Random,
         RandomWalk,
+        DrunkenWalk,
         Last
     };
 
@@ -162,6 +163,7 @@ public:
         case RunMode::PingPong:     return "PingPong";
         case RunMode::Random:       return "Random";
         case RunMode::RandomWalk:   return "Random Walk";
+        case RunMode::DrunkenWalk:  return "Drunken Walk";
         case RunMode::Last:         break;
         }
         return nullptr;
@@ -191,8 +193,8 @@ public:
         switch (patternFollow) {
         case PatternFollow::Off:      return nullptr;
         case Types::PatternFollow::Display:      return "F";
-        case Types::PatternFollow::LaunchPad:    return "F:LP";
-        case Types::PatternFollow::DispAndLP:    return "F:D+LP";
+        case Types::PatternFollow::LaunchPad:    return "F:L";
+        case Types::PatternFollow::DispAndLP:    return "F:DL";
         case PatternFollow::Last:           break;
         }
         return nullptr;
