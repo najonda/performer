@@ -109,6 +109,9 @@ void ClipBoard::copyPattern(int patternIndex) {
         case Track::TrackMode::Logic:
             pattern.sequences[trackIndex].data.logic = track.logicTrack().sequence(patternIndex);
             break;
+        case Track::TrackMode::Arp:
+            pattern.sequences[trackIndex].data.arp = track.arpTrack().sequence(patternIndex);
+            break;
         default:
             break;
         }
