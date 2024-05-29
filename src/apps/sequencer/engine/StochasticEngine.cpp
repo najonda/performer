@@ -435,7 +435,11 @@ void StochasticEngine::triggerStep(uint32_t tick, uint32_t divisor, bool forNext
         int sum =0;
         for (int i = 0; i < 12; i++) {
             if (sequence.step(i).gate()) {
-                probability.insert(probability.end(), StochasticStep(i, clamp(sequence.step(i).noteVariationProbability() + _stochasticTrack.noteProbabilityBias(), -1, StochasticSequence::NoteVariationProbability::Max)));
+                int prob = sequence.step(i).noteVariationProbability() + _stochasticTrack.noteProbabilityBias();
+                if (sequence.step(i).noteVariationProbability()==0) {
+                    prob = 0;
+                }
+                probability.insert(probability.end(), StochasticStep(i, clamp(prob, -1, StochasticSequence::NoteVariationProbability::Max)));
             } else {
                 probability.insert(probability.end(), StochasticStep(i, 0));
             }
