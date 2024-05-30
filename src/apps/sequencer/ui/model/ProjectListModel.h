@@ -82,6 +82,7 @@ private:
         StepsToStop,
         RecordDelay,
         ResetCvOnStop,
+        MultiCvRec,
         //CurveCvInput,
         Last
     };
@@ -104,6 +105,7 @@ private:
         case StepsToStop:       return "Steps to stop";
         case RecordDelay:       return "Record Delay";
         case ResetCvOnStop:     return "Reset CV";
+        case MultiCvRec:        return "Multi CV rec";
         //case CurveCvInput:      return "Curve CV Input";
         case Last:              break;
         }
@@ -166,6 +168,9 @@ private:
         case ResetCvOnStop:
             _project.printResetCvOnStop(str);
             break;
+        case MultiCvRec:
+            _project.printUseMultiCvRec(str);
+            break;
         //case CurveCvInput:
         //    _project.printCurveCvInput(str);
         //    break;
@@ -222,6 +227,9 @@ private:
             break;
         case ResetCvOnStop:
             _project.editResetCvOnStop(value);
+            break;
+        case MultiCvRec:
+            _project.editUseMultiCvRec(value);
             break;
         //case CurveCvInput:
         //    _project.editCurveCvInput(value, shift);

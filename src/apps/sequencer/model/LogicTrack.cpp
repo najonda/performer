@@ -74,6 +74,7 @@ void LogicTrack::write(VersionedSerializedWriter &writer) const {
     writer.write(_inputTrack2);
     writer.write(_detailedView);
     writeArray(writer, _sequences);
+    writer.write(_patternFollow);
 }
 
 void LogicTrack::read(VersionedSerializedReader &reader) {
@@ -105,4 +106,5 @@ void LogicTrack::read(VersionedSerializedReader &reader) {
     }
 
     readArray(reader, _sequences);
+    reader.read(_patternFollow, ProjectVersion::Version39);
 }

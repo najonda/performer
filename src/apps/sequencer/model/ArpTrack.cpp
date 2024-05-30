@@ -67,6 +67,7 @@ void ArpTrack::write(VersionedSerializedWriter &writer) const {
     writer.write(_noteProbabilityBias.base);
     writer.write(_arpeggiator);
     writeArray(writer, _sequences);
+    writer.write(_patternFollow);
 }
 
 void ArpTrack::read(VersionedSerializedReader &reader) {
@@ -94,4 +95,5 @@ void ArpTrack::read(VersionedSerializedReader &reader) {
     }
 
     readArray(reader, _sequences);
+    reader.read(_patternFollow, ProjectVersion::Version39);
 }

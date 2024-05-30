@@ -47,8 +47,6 @@ void MidiOutputPage::draw(Canvas &canvas) {
 void MidiOutputPage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
 
-    //functionShortcuts(event);
-
     if (key.isFunction()) {
         switch (Function(key.function())) {
         case Function::Prev:

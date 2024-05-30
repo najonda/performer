@@ -479,7 +479,6 @@ void ArpSequenceEditPage::keyPress(KeyPressEvent &event) {
     auto &sequence = _project.selectedArpSequence();
     auto &track = _project.selectedTrack().arpTrack();
 
-    functionShortcuts(event);
 
     if (key.isContextMenu()) {
         contextShow();

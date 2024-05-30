@@ -471,6 +471,23 @@ public:
         _resetCvOnStop = enabled;
     }
 
+    // use multi cv recording
+
+    bool useMultiCvRec() const { return _useMultiCv;}
+
+    void editUseMultiCvRec(int value) {
+        _useMultiCv = value == 1;
+    }
+
+    void printUseMultiCvRec(StringBuilder &str) const {
+        if (_useMultiCv) str("On");
+        else str("Off");
+    }
+
+    void setUseMultiCvRec(bool enabled) {
+        _useMultiCv = enabled;
+    }
+
     // selectedTrackIndex
 
     int selectedTrackIndex() const { return _selectedTrackIndex; }
@@ -693,6 +710,7 @@ private:
     uint8_t _recordDelay;
 
     bool _resetCvOnStop;
+    bool _useMultiCv;
 
     int _selectedTrackIndex = 0;
     int _selectedPatternIndex = 0;

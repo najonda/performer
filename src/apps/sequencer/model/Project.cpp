@@ -43,6 +43,7 @@ void Project::clear() {
     setCvGateInput(Types::CvGateInput::Off);
     setCurveCvInput(Types::CurveCvInput::Off);
     setResetCvOnStop(true);
+    setUseMultiCvRec(true);
 
     _clockSetup.clear();
 
@@ -135,6 +136,7 @@ void Project::write(VersionedSerializedWriter &writer) const {
     writer.write(_selectedTrackIndex);
     writer.write(_selectedPatternIndex);
     writer.write(_resetCvOnStop);
+    writer.write(_useMultiCv);
 
     writer.writeHash();
 
@@ -190,6 +192,7 @@ bool Project::read(VersionedSerializedReader &reader) {
     reader.read(_selectedTrackIndex);
     reader.read(_selectedPatternIndex);
     reader.read(_resetCvOnStop, ProjectVersion::Version38);
+    reader.read(_useMultiCv, ProjectVersion::Version39);
 
     bool success = reader.checkHash();
     if (success) {

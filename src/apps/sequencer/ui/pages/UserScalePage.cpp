@@ -49,8 +49,6 @@ void UserScalePage::draw(Canvas &canvas) {
 void UserScalePage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
 
-    //functionShortcuts(event);
-
     if (key.isContextMenu()) {
         contextShow();
         event.consume();

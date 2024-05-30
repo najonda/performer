@@ -596,7 +596,8 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
                     }
                     auto &sequence = _project.selectedStochasticSequence();
                     sequence.step(selectedNote).toggleGate();
-                    sequence.step(selectedNote).setNoteOctave(selectedOctave);                }
+                    sequence.step(selectedNote).setNoteOctave(selectedOctave);                
+                    }
                 break;
             }
             case Track::TrackMode::Arp: {
