@@ -1,5 +1,8 @@
 # Changelog
 
+# v0.3.2 ()
+- issue #123 - request - launchpad X step page responsive
+
 # v0.3.1 (29 May 2024)
 - issue #111 - fix program change
 - issue #112 - fix launchpad follow mode
