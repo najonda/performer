@@ -631,7 +631,7 @@ void LaunchpadController::sequenceButton(const Button &button, ButtonAction acti
 }
 
 void LaunchpadController::manageCircuitKeyboard(const Button &button) {
-    const auto &sequence = _project.selectedNoteSequence();
+    auto &sequence = _project.selectedNoteSequence();
     const auto &scale = sequence.selectedScale(_project.scale());
     const Scale &bypasssScale = Scale::get(0);
     switch ( _project.selectedNoteSequenceLayer()) {
@@ -718,6 +718,7 @@ void LaunchpadController::manageCircuitKeyboard(const Button &button) {
             } else if (button.row == 7) {
                 if (button.col <=3) {
                     Button btn = Button(3,button.col);
+                    sequence.setSecion(button.col);
                     navigationButtonDown(_sequence.navigation, btn);  
                 }
             }
