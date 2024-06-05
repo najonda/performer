@@ -831,7 +831,7 @@ void LaunchpadController::manageStochasticCircuitKeyboard(const Button &button) 
                 break;
             }
         default:
-            sequenceEditStep(button.row, button.col);
+            //sequenceEditStep(button.row, button.col);
             break;
         break;
     }   
@@ -931,7 +931,7 @@ void LaunchpadController::manageArpCircuitKeyboard(const Button &button) {
                 break;
             }
         default:
-            sequenceEditStep(button.row, button.col);
+            //sequenceEditStep(button.row, button.col);
             break;
         break;
     }   
