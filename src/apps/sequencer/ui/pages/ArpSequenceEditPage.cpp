@@ -423,7 +423,7 @@ void ArpSequenceEditPage::updateLeds(Leds &leds) {
             leds.mask(index);
         }
 
-        for (int i : {4, 5, 6, 15}) {
+        for (int i : {15}) {
             int index = MatrixMap::fromStep(i);
             leds.unmask(index);
             leds.set(index, false, true);
@@ -479,7 +479,6 @@ void ArpSequenceEditPage::keyPress(KeyPressEvent &event) {
     auto &sequence = _project.selectedArpSequence();
     auto &track = _project.selectedTrack().arpTrack();
 
-    functionShortcuts(event);
 
     if (key.isContextMenu()) {
         contextShow();

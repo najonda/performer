@@ -63,6 +63,7 @@ void CurveTrack::write(VersionedSerializedWriter &writer) const {
     writer.write(_min);
     writer.write(_max);
     writeArray(writer, _sequences);
+    writer.write(_patternFollow);
 }
 
 void CurveTrack::read(VersionedSerializedReader &reader) {
@@ -79,4 +80,5 @@ void CurveTrack::read(VersionedSerializedReader &reader) {
     reader.read(_min, ProjectVersion::Version37);
     reader.read(_max, ProjectVersion::Version37);
     readArray(reader, _sequences);
+    reader.read(_patternFollow, ProjectVersion::Version39);
 }

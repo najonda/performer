@@ -53,8 +53,6 @@ void RoutingPage::draw(Canvas &canvas) {
 void RoutingPage::keyPress(KeyPressEvent &event) {
     const auto &key = event.key();
     
-    //functionShortcuts(event);
-
     if (edit() && selectedRow() == int(RouteListModel::Item::Tracks) && key.isTrack()) {
         _editRoute.toggleTrack(key.track());
         event.consume();

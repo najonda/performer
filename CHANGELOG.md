@@ -1,9 +1,19 @@
 # Changelog
 
-# v0.3.1 ()
+# v0.3.2 ()
+- issue #123 - request - launchpad X step page responsive
+
+# v0.3.1 (29 May 2024)
 - issue #111 - fix program change
 - issue #112 - fix launchpad follow mode
+- issue #115 - follow pattern is now saved on project
+- issue #116 - fix F1-F5 shortcut
+- issue #117 - fix curve cv problem
+- issue #118 - fix file stack overflow
 - fix fill display 
+- fix stochastic reseed behaviour
+- fix arp track copy pattern
+
 
 # v0.3.0 (02 May 2024)
 - Arpeggiator Track
